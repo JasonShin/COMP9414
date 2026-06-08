@@ -1,0 +1,103 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate index page
+        run: |
+          cat > index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>COMP9414 Study Notes</title>
+              <style>
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      background: #0f0f23;
+                      color: #e0e0e0;
+                      min-height: 100vh;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                  }
+                  .container { max-width: 600px; width: 100%; padding: 20px; }
+                  h1 { text-align: center; color: #7cb7ff; margin-bottom: 8px; font-size: 1.8rem; }
+                  .subtitle { text-align: center; color: #888; margin-bottom: 32px; }
+                  .week-list { display: flex; flex-direction: column; gap: 12px; }
+                  .week-link {
+                      display: block;
+                      padding: 18px 24px;
+                      background: #1a1a3e;
+                      border: 1px solid #2a2a5a;
+                      border-radius: 12px;
+                      color: #7cb7ff;
+                      text-decoration: none;
+                      font-size: 1.1rem;
+                      transition: all 0.2s;
+                  }
+                  .week-link:hover { border-color: #7cb7ff; background: #1a2a4a; }
+                  .week-link span { color: #888; font-size: 0.85rem; display: block; margin-top: 4px; }
+              </style>
+          </head>
+          <body>
+          <div class="container">
+              <h1>COMP9414 Study Notes</h1>
+              <p class="subtitle">AI Foundations - UNSW</p>
+              <div class="week-list" id="weeks"></div>
+          </div>
+          <script>
+              const weeks = document.getElementById('weeks');
+              WEEK_ENTRIES
+          </script>
+          </body>
+          </html>
+          HTMLEOF
+
+          # Find all week*/index.html and generate links
+          entries=""
+          for dir in $(find . -maxdepth 1 -type d -name 'week*' | sort); do
+            week=$(basename "$dir")
+            num="${week#week}"
+            if [ -f "$dir/index.html" ]; then
+              title=$(grep -oP '(?<=<title>).*?(?=</title>)' "$dir/index.html" | head -1)
+              if [ -z "$title" ]; then
+                title="Week $num"
+              fi
+              entries="$entries weeks.innerHTML += '<a class=\"week-link\" href=\"${week}/\">${title}<span>${week}</span></a>';"$'\n'
+            fi
+          done
+
+          if [ -z "$entries" ]; then
+            entries="weeks.innerHTML = '<p style=\"text-align:center;color:#888\">No weeks published yet.</p>';"
+          fi
+
+          sed -i "s|WEEK_ENTRIES|${entries}|" index.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - uses: actions/deploy-pages@v4
+        id: deployment
