@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMP9414 Week 1 - Agents & Search Quiz</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            color: #7cb7ff;
+            margin-bottom: 8px;
+        }
+        header p { color: #888; font-size: 0.95rem; }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #1a1a3e;
+            border: 1px solid #333;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .nav-tab:hover { border-color: #7cb7ff; color: #7cb7ff; }
+        .nav-tab.active { background: #7cb7ff; color: #0f0f23; border-color: #7cb7ff; font-weight: 600; }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1a1a3e;
+            border-radius: 3px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7cb7ff, #a78bfa);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .progress-text {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        /* Quiz card */
+        .quiz-card {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .quiz-card .category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a78bfa;
+            margin-bottom: 12px;
+        }
+        .quiz-card .question {
+            font-size: 1.2rem;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        /* Options */
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            padding: 14px 18px;
+            background: #0f0f23;
+            border: 1px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .option:hover { border-color: #7cb7ff; background: #151535; }
+        .option.selected { border-color: #7cb7ff; background: #1a2a4a; }
+        .option.correct { border-color: #4ade80; background: #0f2a1a; color: #4ade80; }
+        .option.incorrect { border-color: #f87171; background: #2a0f0f; color: #f87171; }
+        .option.show-correct { border-color: #4ade80; background: #0f2a1a; }
+        .option.disabled { pointer-events: none; }
+
+        /* Explanation */
+        .explanation {
+            margin-top: 20px;
+            padding: 16px;
+            background: #0f1a2a;
+            border-left: 3px solid #7cb7ff;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: none;
+            color: #ccc;
+        }
+        .explanation.visible { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #7cb7ff; color: #0f0f23; }
+        .btn-primary:hover { background: #5a9fee; }
+        .btn-secondary { background: #2a2a5a; color: #ccc; }
+        .btn-secondary:hover { background: #3a3a6a; }
+        .btn-reset { background: #f87171; color: #fff; }
+        .btn-reset:hover { background: #dc2626; }
+
+        /* Score */
+        .score-display {
+            text-align: center;
+            padding: 40px;
+        }
+        .score-display h2 { font-size: 2rem; color: #7cb7ff; margin-bottom: 12px; }
+        .score-display .score-num { font-size: 3.5rem; font-weight: 700; color: #4ade80; margin: 16px 0; }
+        .score-display .score-num.low { color: #f87171; }
+        .score-display .score-num.mid { color: #fbbf24; }
+        .score-breakdown { margin-top: 20px; font-size: 0.9rem; color: #aaa; }
+
+        /* Topic section in browse mode */
+        .topic-section { margin-bottom: 32px; }
+        .topic-section h3 { color: #7cb7ff; margin-bottom: 12px; font-size: 1.1rem; }
+        .topic-section ul { padding-left: 20px; }
+        .topic-section li { margin-bottom: 8px; line-height: 1.5; color: #ccc; }
+        .topic-section code { background: #2a2a5a; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Flashcard mode */
+        .flashcard {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .flashcard:hover { border-color: #7cb7ff; }
+        .flashcard .front { font-size: 1.2rem; font-weight: 500; }
+        .flashcard .back { font-size: 1rem; color: #4ade80; line-height: 1.6; display: none; }
+        .flashcard.flipped .front { display: none; }
+        .flashcard.flipped .back { display: block; }
+        .flashcard .hint { font-size: 0.8rem; color: #666; margin-top: 12px; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .quiz-card { padding: 20px; }
+            header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>COMP9414 Week 1: Agents & Search</h1>
+        <p>Interactive quiz to master key concepts</p>
+    </header>
+
+    <div class="nav-tabs">
+        <div class="nav-tab active" onclick="switchMode('quiz')">Quiz Mode</div>
+        <div class="nav-tab" onclick="switchMode('flashcards')">Flashcards</div>
+        <div class="nav-tab" onclick="switchMode('browse')">Browse Topics</div>
+    </div>
+
+    <div id="quiz-mode">
+        <div class="nav-tabs" id="topic-filter" style="margin-bottom:16px">
+            <div class="nav-tab active" data-topic="all" onclick="filterTopic('all')">All Topics</div>
+            <div class="nav-tab" data-topic="agents" onclick="filterTopic('agents')">Agents</div>
+            <div class="nav-tab" data-topic="formulation" onclick="filterTopic('formulation')">Problem Formulation</div>
+            <div class="nav-tab" data-topic="uninformed" onclick="filterTopic('uninformed')">Uninformed Search</div>
+            <div class="nav-tab" data-topic="informed" onclick="filterTopic('informed')">Heuristic Search</div>
+        </div>
+        <div class="progress-text" id="progress-text">Question 1 / 20</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div id="quiz-content"></div>
+        <div class="btn-row" id="quiz-buttons">
+            <button class="btn btn-secondary" onclick="prevQuestion()">Previous</button>
+            <button class="btn btn-primary" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+
+    <div id="flashcard-mode" style="display:none">
+        <div class="progress-text" id="flash-progress">Card 1 / 20</div>
+        <div id="flashcard-content"></div>
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevFlash()">Previous</button>
+            <button class="btn btn-primary" onclick="nextFlash()">Next</button>
+            <button class="btn btn-secondary" onclick="shuffleFlash()">Shuffle</button>
+        </div>
+    </div>
+
+    <div id="browse-mode" style="display:none"></div>
+</div>
+
+<script>
+// ==================== QUIZ DATA ====================
+const questions = [
+    // AGENTS
+    {
+        topic: "agents",
+        category: "Agents & Environments",
+        question: "What are the three core activities of an intelligent agent?",
+        options: [
+            "Sense, Think, Act",
+            "Observe, Plan, Execute",
+            "Input, Process, Output",
+            "Perceive, Learn, Respond"
+        ],
+        correct: 0,
+        explanation: "An agent follows the Sense → Think → Act cycle. It perceives its environment (sense), decides what to do (think), and performs actions (act)."
+    },
+    {
+        topic: "agents",
+        category: "Agents & Environments",
+        question: "What is the definition of an agent in AI?",
+        options: [
+            "A program that can learn from data",
+            "An entity that perceives, decides, and acts in an environment",
+            "A robot that can move autonomously",
+            "A system that passes the Turing test"
+        ],
+        correct: 1,
+        explanation: "An agent is formally defined as an entity that perceives its environment through sensors, makes decisions, and acts upon the environment through actuators."
+    },
+    {
+        topic: "agents",
+        category: "Agents & Environments",
+        question: "Which is NOT a way environments can differ?",
+        options: [
+            "Fully observable vs partially observable",
+            "Deterministic vs stochastic",
+            "Compiled vs interpreted",
+            "Static vs dynamic"
+        ],
+        correct: 2,
+        explanation: "Environments differ in: observability (fully/partially), determinism (deterministic/stochastic), dynamics (static/dynamic), and state type (discrete/continuous). 'Compiled vs interpreted' is a programming concept, not an environment property."
+    },
+    {
+        topic: "agents",
+        category: "Agents & Environments",
+        question: "In the delivery robot example, what are the agent's percepts?",
+        options: [
+            "Rooms, doors, parcels",
+            "Move, pick up, deliver",
+            "Location estimate, camera, door status",
+            "Office building layout"
+        ],
+        correct: 2,
+        explanation: "Percepts are what the agent senses: location estimate, camera input, and door status. The rooms/doors are part of the environment; move/pick up/deliver are actions."
+    },
+    {
+        topic: "agents",
+        category: "Agents & Environments",
+        question: "A partially observable environment means:",
+        options: [
+            "The environment changes over time",
+            "The agent cannot see the whole environment directly",
+            "Actions have random outcomes",
+            "The state space is continuous"
+        ],
+        correct: 1,
+        explanation: "In a partially observable environment, the agent does not have full access to the complete state of the environment at any given time. This is distinct from stochastic (random outcomes) or dynamic (changes over time)."
+    },
+    {
+        topic: "agents",
+        category: "Agents & Environments",
+        question: "The environment includes more than just the physical map. What else?",
+        options: [
+            "Only the goal location",
+            "Physical world, relevant objects, other agents, anything that could change a task or outcome",
+            "Only obstacles and walls",
+            "The agent's internal memory"
+        ],
+        correct: 1,
+        explanation: "The environment encompasses the physical world, relevant objects, other agents or people, and anything that could change a task or outcome — not just the spatial layout."
+    },
+
+    // PROBLEM FORMULATION
+    {
+        topic: "formulation",
+        category: "Problem Formulation",
+        question: "What are the four 'ingredients' needed to define a search problem?",
+        options: [
+            "Graph, nodes, edges, weights",
+            "Initial state, actions/successor function, goal test, path cost",
+            "Start, frontier, explored, solution",
+            "Heuristic, cost, depth, branching factor"
+        ],
+        correct: 1,
+        explanation: "A search problem requires: (1) initial/current state, (2) actions available / successor function, (3) goal test ('are we there yet?'), and (4) path cost."
+    },
+    {
+        topic: "formulation",
+        category: "Problem Formulation",
+        question: "In the Romania road map example, what is the goal test?",
+        options: [
+            "Is the distance minimised?",
+            "Have all cities been visited?",
+            "Is state == Bucharest?",
+            "Is the path shorter than 500km?"
+        ],
+        correct: 2,
+        explanation: "The goal test simply checks: Is the current state Bucharest? The state space is cities, the successor function gives adjacent cities via roads, and the start state is Arad."
+    },
+    {
+        topic: "formulation",
+        category: "Problem Formulation",
+        question: "For a robot on a 7×7 grid facing NESW with a goal on the grid, how many world states exist?",
+        options: [
+            "49 × 4 = 196",
+            "49 × 49 = 2401",
+            "49 × 4 × 49 = 9604",
+            "7 × 7 × 4 × 7 = 1372"
+        ],
+        correct: 2,
+        explanation: "World states = positions (49) × directions (4) × goal positions (49) = 9,604. If the goal is fixed, it reduces to 49 × 4 = 196."
+    },
+    {
+        topic: "formulation",
+        category: "Problem Formulation",
+        question: "What is the key difference between a state space graph and a search tree?",
+        options: [
+            "Graphs have edges, trees don't",
+            "In the graph each state appears once; the tree can have the same state many times (different paths)",
+            "Trees are always smaller than graphs",
+            "Graphs are used for informed search, trees for uninformed"
+        ],
+        correct: 1,
+        explanation: "In a state space graph, each world state occurs exactly once. In a search tree, the same state can appear multiple times — each node represents a state PLUS the path/plan to reach it. The tree is potentially infinite."
+    },
+    {
+        topic: "formulation",
+        category: "Problem Formulation",
+        question: "\"The representation often matters as much as the search algorithm.\" Why?",
+        options: [
+            "Because different algorithms need different programming languages",
+            "Because it determines what actions the agent can even consider",
+            "Because simpler representations run faster",
+            "Because the exam tests representation more than algorithms"
+        ],
+        correct: 1,
+        explanation: "The choice of representation determines what actions are available to the agent. A poor representation may miss valid actions or include too many irrelevant ones, making search impossible or inefficient regardless of the algorithm."
+    },
+    {
+        topic: "formulation",
+        category: "Problem Formulation",
+        question: "What does the general tree search algorithm maintain?",
+        options: [
+            "A complete graph of all states",
+            "A frontier (fringe) of partial plans still under consideration",
+            "A sorted list of all possible solutions",
+            "A hash table of visited states"
+        ],
+        correct: 1,
+        explanation: "The general tree search maintains a frontier (fringe) of partial plans. The key question is: which node on the frontier to explore next? The algorithm expands nodes, applies the goal test, and adds successors back to the frontier."
+    },
+
+    // UNINFORMED SEARCH
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "What data structure does DFS use for its frontier?",
+        options: [
+            "FIFO Queue",
+            "Priority Queue",
+            "LIFO Stack",
+            "Hash Set"
+        ],
+        correct: 2,
+        explanation: "DFS uses a LIFO (Last-In, First-Out) stack. This means the most recently added node is expanded next, causing the search to go deep before going wide."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "What is the space complexity of DFS?",
+        options: [
+            "O(b^m) — exponential",
+            "O(bm) — linear in depth",
+            "O(b^s) — exponential in solution depth",
+            "O(1) — constant"
+        ],
+        correct: 1,
+        explanation: "DFS only stores siblings on the path from root to current node, giving O(bm) space — where b is branching factor and m is maximum depth. This is its main advantage over BFS."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "Is DFS complete? Is it optimal?",
+        options: [
+            "Complete and optimal",
+            "Complete but not optimal",
+            "Not complete (unless cycles prevented), not optimal",
+            "Not complete, but optimal"
+        ],
+        correct: 2,
+        explanation: "DFS is NOT complete — the tree could be infinite (unless we prevent cycles). It is NOT optimal — it finds the 'leftmost' solution regardless of depth or cost."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "What data structure does BFS use for its frontier?",
+        options: [
+            "LIFO Stack",
+            "FIFO Queue",
+            "Priority Queue",
+            "Deque"
+        ],
+        correct: 1,
+        explanation: "BFS uses a FIFO (First-In, First-Out) queue. Nodes are expanded in the order they were discovered, ensuring shallower nodes are explored before deeper ones."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "BFS is optimal only when:",
+        options: [
+            "The heuristic is admissible",
+            "All edge costs are equal (e.g., all 1)",
+            "The graph has no cycles",
+            "The branching factor is less than 10"
+        ],
+        correct: 1,
+        explanation: "BFS finds the shallowest solution (fewest edges). This is only optimal if all step costs are the same. If costs vary, a deeper path could be cheaper — use UCS instead."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "How does Uniform Cost Search (UCS) decide which node to expand?",
+        options: [
+            "Deepest node first",
+            "Shallowest node first",
+            "Node with lowest cumulative path cost g(n)",
+            "Node with lowest heuristic estimate h(n)"
+        ],
+        correct: 2,
+        explanation: "UCS uses a priority queue ordered by cumulative cost g(n). It always expands the cheapest node first, exploring increasing cost contours outward from the start."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "UCS is complete and optimal. What is its main weakness?",
+        options: [
+            "It uses too much memory",
+            "It explores in every direction — no information about goal location",
+            "It cannot handle negative edge weights",
+            "It is slower than DFS in all cases"
+        ],
+        correct: 1,
+        explanation: "UCS explores increasing cost contours in ALL directions equally. It has no information about where the goal is, so it wastes time exploring away from the goal. This motivates heuristic search."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "What is the time complexity of UCS if the optimal solution costs C* and minimum arc cost is ε?",
+        options: [
+            "O(b^m)",
+            "O(b^s)",
+            "O(b^(C*/ε))",
+            "O(C* × b)"
+        ],
+        correct: 2,
+        explanation: "UCS processes all nodes with cost less than C*. The 'effective depth' is roughly C*/ε, so complexity is O(b^(C*/ε)) — exponential in the effective depth."
+    },
+
+    // INFORMED SEARCH
+    {
+        topic: "informed",
+        category: "Heuristic Search",
+        question: "What does A* search use as its ordering function?",
+        options: [
+            "f(n) = g(n) — path cost only",
+            "f(n) = h(n) — heuristic only",
+            "f(n) = g(n) + h(n) — path cost + heuristic estimate",
+            "f(n) = g(n) × h(n)"
+        ],
+        correct: 2,
+        explanation: "A* combines both: f(n) = g(n) + h(n), where g(n) is cost so far and h(n) is estimated cost to goal. This balances exploring cheap paths (like UCS) with heading toward the goal (like Greedy)."
+    },
+    {
+        topic: "informed",
+        category: "Heuristic Search",
+        question: "A heuristic h is admissible if:",
+        options: [
+            "h(n) = 0 for all nodes",
+            "0 ≤ h(n) ≤ h*(n) — it never overestimates the true cost",
+            "h(n) ≥ h*(n) — it always overestimates",
+            "h(n) = g(n) for all nodes"
+        ],
+        correct: 1,
+        explanation: "Admissible means optimistic: the heuristic never overestimates the true remaining cost h*(n). This guarantees A* finds the optimal solution. Example: straight-line distance never exceeds actual road distance."
+    },
+    {
+        topic: "informed",
+        category: "Heuristic Search",
+        question: "Greedy search expands nodes based on:",
+        options: [
+            "Lowest g(n) — cost so far",
+            "Lowest h(n) — estimated cost to goal",
+            "Lowest f(n) = g(n) + h(n)",
+            "Highest h(n)"
+        ],
+        correct: 1,
+        explanation: "Greedy search only considers h(n) — how close the node appears to be to the goal. It ignores path cost g(n). Best case: goes straight to goal. Worst case: like a badly-guided DFS. Not optimal."
+    },
+    {
+        topic: "informed",
+        category: "Heuristic Search",
+        question: "Why is straight-line distance an admissible heuristic for road maps?",
+        options: [
+            "Because it's easy to compute",
+            "Because the shortest path between two points is a straight line — roads are always longer",
+            "Because it's always zero",
+            "Because roads are always straight"
+        ],
+        correct: 1,
+        explanation: "Straight-line distance is always ≤ actual road distance (you can't drive shorter than a straight line). Since it never overestimates, it satisfies 0 ≤ h(n) ≤ h*(n) and is admissible."
+    },
+    {
+        topic: "informed",
+        category: "Heuristic Search",
+        question: "In the A* optimality proof, if A is optimal and B is suboptimal, why is A expanded first?",
+        options: [
+            "Because A is alphabetically first",
+            "Because f(n) ≤ f(A) < f(B) for any ancestor n of A, so all ancestors of A are expanded before B",
+            "Because the heuristic always points to A",
+            "Because B is not on the frontier"
+        ],
+        correct: 1,
+        explanation: "The proof: (1) f(n) ≤ f(A) by admissibility for any ancestor n of A; (2) f(A) < f(B) because B is suboptimal and h=0 at goals; (3) therefore f(n) < f(B), so n is expanded before B. All ancestors of A expand before B, so A itself expands before B."
+    },
+    {
+        topic: "informed",
+        category: "Heuristic Search",
+        question: "What is the relationship between UCS, Greedy search, and A*?",
+        options: [
+            "They are completely unrelated algorithms",
+            "UCS uses g(n), Greedy uses h(n), A* combines both as g(n)+h(n)",
+            "A* is just UCS with a different name",
+            "Greedy is always better than both"
+        ],
+        correct: 1,
+        explanation: "UCS orders by g(n) (cost so far) — complete & optimal but undirected. Greedy orders by h(n) (estimated remaining cost) — directed but not optimal. A* combines both: f(n) = g(n) + h(n) — getting the best of both worlds."
+    },
+
+    // ADDITIONAL / BRIDGE
+    {
+        topic: "formulation",
+        category: "Search → Planning",
+        question: "Why is simple search (this week) insufficient for the delivery robot with locked doors?",
+        options: [
+            "Because the robot moves too slowly",
+            "Because finding a path to the goal isn't enough — the robot needs a sequence of actions (get key, unlock door, pick up parcel, deliver)",
+            "Because locked doors can never be opened",
+            "Because DFS can't handle multiple goals"
+        ],
+        correct: 1,
+        explanation: "When state includes more than location (e.g., carrying objects, door states), we need planning: states are facts about the world, actions have preconditions and effects, and the goal is a set of conditions — not just a destination."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "What are the four properties used to evaluate search algorithms?",
+        options: [
+            "Speed, accuracy, memory, simplicity",
+            "Completeness, optimality, time complexity, space complexity",
+            "Correctness, efficiency, scalability, robustness",
+            "Depth, breadth, cost, heuristic"
+        ],
+        correct: 1,
+        explanation: "We evaluate search algorithms on: (1) Completeness — guaranteed to find a solution if one exists? (2) Optimality — guaranteed to find the least-cost path? (3) Time complexity — how many nodes expanded? (4) Space complexity — maximum frontier size?"
+    },
+    {
+        topic: "formulation",
+        category: "Problem Formulation",
+        question: "A rational agent selects actions that:",
+        options: [
+            "Minimise computation time",
+            "Maximise utility",
+            "Explore all possible states",
+            "Avoid all risks"
+        ],
+        correct: 1,
+        explanation: "A rational agent selects actions that maximise utility — the expected benefit or value of the outcome. This is the fundamental principle driving agent decision-making."
+    },
+    {
+        topic: "uninformed",
+        category: "Uninformed Search",
+        question: "The total number of nodes in a search tree with branching factor b and maximum depth m is:",
+        options: [
+            "b × m",
+            "b^m",
+            "1 + b + b² + ... + b^m = O(b^m)",
+            "m × b²"
+        ],
+        correct: 2,
+        explanation: "The tree has 1 root + b children + b² grandchildren + ... + b^m nodes at depth m. The sum 1 + b + b² + ... + b^m is dominated by the last term, giving O(b^m)."
+    }
+];
+
+// ==================== FLASHCARD DATA ====================
+const flashcards = [
+    { front: "What is an agent?", back: "An entity that perceives, decides, and acts in an environment. (Sense → Think → Act)" },
+    { front: "What is the environment?", back: "The external world in which an agent operates. It provides percepts and changes in response to actions (and sometimes independently)." },
+    { front: "Name the 4 environment property dimensions", back: "1. Fully observable vs Partially observable\n2. Deterministic vs Stochastic\n3. Static vs Dynamic\n4. Discrete vs Continuous" },
+    { front: "4 ingredients of a search problem?", back: "1. Initial/current state\n2. Actions / successor function\n3. Goal test\n4. Path cost" },
+    { front: "State space graph vs Search tree?", back: "Graph: each state appears ONCE, may have loops.\nTree: same state can appear many times (one per path). Potentially infinite — never fully built." },
+    { front: "DFS: data structure, complete, optimal?", back: "LIFO Stack.\nNot complete (unless cycle prevention).\nNot optimal (finds leftmost, not cheapest).\nSpace: O(bm) — its main advantage." },
+    { front: "BFS: data structure, complete, optimal?", back: "FIFO Queue.\nComplete: yes.\nOptimal: only if all costs = 1.\nTime & Space: O(b^s) where s = solution depth." },
+    { front: "UCS: strategy, complete, optimal?", back: "Priority queue by cumulative cost g(n).\nComplete: yes (if C* finite, ε > 0).\nOptimal: YES.\nWeakness: explores all directions equally." },
+    { front: "What is a heuristic h(n)?", back: "An estimate of the cost from node n to the nearest goal. Used to guide search toward the goal." },
+    { front: "When is h(n) admissible?", back: "When 0 ≤ h(n) ≤ h*(n) — it never overestimates the true remaining cost. Required for A* optimality." },
+    { front: "A* ordering function?", back: "f(n) = g(n) + h(n)\ng(n) = cost so far\nh(n) = estimated cost to goal\nExpands lowest f(n) first." },
+    { front: "Why is A* optimal?", back: "With admissible h: for optimal goal A and suboptimal goal B,\nf(n) ≤ f(A) < f(B)\nSo all ancestors of A expand before B, meaning A expands before B." },
+    { front: "Greedy search: strategy & weakness?", back: "Expands node with lowest h(n) only.\nIgnores path cost g(n).\nNot complete, not optimal.\nWorst case: like badly-guided DFS." },
+    { front: "UCS vs Greedy vs A*?", back: "UCS: orders by g(n) — optimal but undirected.\nGreedy: orders by h(n) — directed but not optimal.\nA*: orders by g(n)+h(n) — best of both." },
+    { front: "Completeness means?", back: "The algorithm is guaranteed to find a solution if one exists." },
+    { front: "Optimality means?", back: "The algorithm is guaranteed to find the LEAST COST path." },
+    { front: "Why isn't simple search enough for a delivery robot?", back: "Need planning: states = facts about world, actions have preconditions & effects, goal = set of conditions.\nMust handle: get key → unlock door → pick up → deliver." },
+    { front: "World states for robot on 7×7 grid, 4 directions, goal on grid?", back: "49 positions × 4 directions × 49 goal positions = 9,604.\nIf goal is fixed: 49 × 4 = 196." },
+    { front: "UCS time/space complexity?", back: "O(b^(C*/ε)) where:\nC* = cost of optimal solution\nε = minimum arc cost\n'Effective depth' ≈ C*/ε" },
+    { front: "Why does representation matter?", back: "It determines what actions the agent can even consider. A poor representation can make a solvable problem unsolvable for the search algorithm." }
+];
+
+// ==================== BROWSE DATA ====================
+const browseContent = `
+<div class="topic-section">
+<h3>1. Intelligent Agents</h3>
+<ul>
+<li><strong>Agent</strong> = entity that perceives, decides, and acts (Sense → Think → Act)</li>
+<li><strong>Environment</strong> = external world providing percepts; changes via agent actions or independently</li>
+<li>Environment is NOT just the map — includes physical world, objects, other agents, anything affecting outcomes</li>
+<li>Environment properties: observable, deterministic, static, discrete (each has a spectrum)</li>
+<li><strong>Delivery robot example:</strong> percepts = location/camera/door status; actions = move/pick up/deliver</li>
+<li>"Good AI starts with a good model of the environment"</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>2. Problem Formulation</h3>
+<ul>
+<li>Four ingredients: <strong>initial state, successor function, goal test, path cost</strong></li>
+<li>A <strong>rational agent</strong> selects actions that maximise utility</li>
+<li>Representation matters as much as the algorithm — determines available actions</li>
+<li><strong>Romania example:</strong> state=cities, successor=roads, start=Arad, goal=Bucharest</li>
+<li><strong>State space graph:</strong> each state once, edges = successors, may have loops</li>
+<li><strong>Search tree:</strong> "what if" tree, same state can appear many times, potentially infinite</li>
+<li>World state count: position × direction × goal = 49 × 4 × 49 = 9,604</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>3. General Tree Search</h3>
+<ul>
+<li>Maintain a <strong>frontier</strong> (fringe) of partial plans</li>
+<li>Loop: choose node from frontier → goal test → expand → add successors to frontier</li>
+<li>Key question: <strong>which frontier node to explore next?</strong> (defines the algorithm)</li>
+<li>Goal: expand as few tree nodes as possible</li>
+<li>Properties to evaluate: <strong>completeness, optimality, time complexity, space complexity</strong></li>
+<li>Total nodes in tree: 1 + b + b² + ... + b^m = O(b^m)</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>4. Depth-First Search (DFS)</h3>
+<ul>
+<li>Strategy: expand <strong>deepest</strong> node first</li>
+<li>Frontier: <strong>LIFO stack</strong></li>
+<li>Time: O(b^m) — could process whole tree</li>
+<li>Space: <strong>O(bm)</strong> — only siblings on path to root (main advantage!)</li>
+<li>Complete? <strong>No</strong> (m could be infinite, unless cycle prevention)</li>
+<li>Optimal? <strong>No</strong> — finds "leftmost" solution regardless of cost</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>5. Breadth-First Search (BFS)</h3>
+<ul>
+<li>Strategy: expand <strong>shallowest</strong> node first</li>
+<li>Frontier: <strong>FIFO queue</strong></li>
+<li>Time: O(b^s) where s = depth of shallowest solution</li>
+<li>Space: O(b^s) — stores roughly the last tier</li>
+<li>Complete? <strong>Yes</strong></li>
+<li>Optimal? <strong>Only if all costs = 1</strong></li>
+<li>Finds shortest path by number of actions, NOT least-cost path</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>6. Uniform Cost Search (UCS)</h3>
+<ul>
+<li>Strategy: expand <strong>cheapest cumulative cost</strong> node first</li>
+<li>Frontier: <strong>priority queue</strong> ordered by g(n)</li>
+<li>Time & Space: O(b^(C*/ε)) — C* = optimal cost, ε = min arc cost</li>
+<li>Complete? <strong>Yes</strong> (if C* finite, ε > 0)</li>
+<li>Optimal? <strong>Yes!</strong></li>
+<li>Explores increasing cost contours in ALL directions</li>
+<li>Weakness: no goal direction information</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>7. Greedy Search</h3>
+<ul>
+<li>Strategy: expand node with lowest <strong>h(n)</strong> (estimated cost to goal)</li>
+<li>Best case: straight to goal</li>
+<li>Worst case: like badly-guided DFS</li>
+<li><strong>Not optimal, not complete</strong></li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>8. A* Search</h3>
+<ul>
+<li>Ordering: <code>f(n) = g(n) + h(n)</code></li>
+<li>Combines UCS (cost so far) with Greedy (goal estimate)</li>
+<li><strong>Admissible heuristic:</strong> 0 ≤ h(n) ≤ h*(n) — never overestimates</li>
+<li>Example: straight-line distance (always ≤ road distance)</li>
+<li><strong>A* is optimal</strong> when h is admissible</li>
+<li>Proof: f(n) ≤ f(A) < f(B), so optimal goal A always expanded before suboptimal B</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>9. Search → Planning (Week 2 Preview)</h3>
+<ul>
+<li>This week: state=location, actions=movement, goal=destination</li>
+<li>Next week: state=facts about world, actions have <strong>preconditions & effects</strong>, goal=set of conditions</li>
+<li>Example: robot needs key → unlock door → carry parcel → deliver</li>
+<li>Simple search can't handle this — need to represent and reason about action sequences</li>
+</ul>
+</div>
+`;
+
+// ==================== QUIZ LOGIC ====================
+let currentQuestion = 0;
+let answers = {};
+let filteredQuestions = [...questions];
+let currentTopic = 'all';
+let currentFlash = 0;
+let shuffledFlash = [...flashcards];
+
+function filterTopic(topic) {
+    currentTopic = topic;
+    document.querySelectorAll('#topic-filter .nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`#topic-filter [data-topic="${topic}"]`).classList.add('active');
+    if (topic === 'all') {
+        filteredQuestions = [...questions];
+    } else {
+        filteredQuestions = questions.filter(q => q.topic === topic);
+    }
+    currentQuestion = 0;
+    answers = {};
+    renderQuiz();
+}
+
+function renderQuiz() {
+    if (filteredQuestions.length === 0) {
+        document.getElementById('quiz-content').innerHTML = '<div class="quiz-card"><p>No questions for this topic.</p></div>';
+        return;
+    }
+    const total = filteredQuestions.length;
+    const answered = Object.keys(answers).length;
+
+    // Check if all answered — show score
+    if (answered === total && answered > 0) {
+        showScore();
+        return;
+    }
+
+    const q = filteredQuestions[currentQuestion];
+    document.getElementById('progress-text').textContent = `Question ${currentQuestion + 1} / ${total}`;
+    document.getElementById('progress-fill').style.width = `${((currentQuestion + 1) / total) * 100}%`;
+
+    const hasAnswered = answers[currentQuestion] !== undefined;
+    const optionsHtml = q.options.map((opt, i) => {
+        let cls = 'option';
+        if (hasAnswered) {
+            cls += ' disabled';
+            if (i === q.correct) cls += ' correct';
+            else if (i === answers[currentQuestion] && i !== q.correct) cls += ' incorrect';
+        }
+        return `<div class="${cls}" onclick="selectAnswer(${i})">${opt}</div>`;
+    }).join('');
+
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="quiz-card">
+            <div class="category">${q.category}</div>
+            <div class="question">${q.question}</div>
+            <div class="options">${optionsHtml}</div>
+            <div class="explanation ${hasAnswered ? 'visible' : ''}">${q.explanation}</div>
+        </div>
+    `;
+}
+
+function selectAnswer(idx) {
+    if (answers[currentQuestion] !== undefined) return;
+    answers[currentQuestion] = idx;
+    renderQuiz();
+}
+
+function nextQuestion() {
+    if (currentQuestion < filteredQuestions.length - 1) {
+        currentQuestion++;
+        renderQuiz();
+    } else if (Object.keys(answers).length === filteredQuestions.length) {
+        showScore();
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuiz();
+    }
+}
+
+function showScore() {
+    const total = filteredQuestions.length;
+    let correct = 0;
+    for (let i = 0; i < total; i++) {
+        if (answers[i] === filteredQuestions[i].correct) correct++;
+    }
+    const pct = Math.round((correct / total) * 100);
+    let cls = pct >= 80 ? '' : pct >= 50 ? 'mid' : 'low';
+
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="score-display">
+            <h2>Quiz Complete!</h2>
+            <div class="score-num ${cls}">${correct}/${total}</div>
+            <p>${pct}% correct</p>
+            <div class="score-breakdown">
+                ${pct >= 80 ? 'Excellent! You have a strong grasp of the material.' :
+                  pct >= 50 ? 'Good effort! Review the topics you missed.' :
+                  'Keep studying! Try the flashcards to reinforce concepts.'}
+            </div>
+            <div class="btn-row" style="margin-top:24px">
+                <button class="btn btn-primary" onclick="resetQuiz()">Try Again</button>
+                <button class="btn btn-secondary" onclick="reviewMissed()">Review Missed</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('progress-text').textContent = `Completed: ${correct}/${total} correct`;
+}
+
+function resetQuiz() {
+    answers = {};
+    currentQuestion = 0;
+    renderQuiz();
+}
+
+function reviewMissed() {
+    const missed = [];
+    for (let i = 0; i < filteredQuestions.length; i++) {
+        if (answers[i] !== filteredQuestions[i].correct) missed.push(i);
+    }
+    if (missed.length === 0) { resetQuiz(); return; }
+    currentQuestion = missed[0];
+    answers = {};
+    renderQuiz();
+}
+
+// ==================== FLASHCARD LOGIC ====================
+function renderFlashcard() {
+    const f = shuffledFlash[currentFlash];
+    document.getElementById('flash-progress').textContent = `Card ${currentFlash + 1} / ${shuffledFlash.length}`;
+    document.getElementById('flashcard-content').innerHTML = `
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="front">${f.front}<div class="hint">Click to reveal answer</div></div>
+            <div class="back">${f.back.replace(/\n/g, '<br>')}</div>
+        </div>
+    `;
+}
+
+function nextFlash() {
+    currentFlash = (currentFlash + 1) % shuffledFlash.length;
+    renderFlashcard();
+}
+
+function prevFlash() {
+    currentFlash = (currentFlash - 1 + shuffledFlash.length) % shuffledFlash.length;
+    renderFlashcard();
+}
+
+function shuffleFlash() {
+    for (let i = shuffledFlash.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledFlash[i], shuffledFlash[j]] = [shuffledFlash[j], shuffledFlash[i]];
+    }
+    currentFlash = 0;
+    renderFlashcard();
+}
+
+// ==================== MODE SWITCHING ====================
+function switchMode(mode) {
+    document.querySelectorAll('.nav-tabs')[0].querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    document.getElementById('quiz-mode').style.display = mode === 'quiz' ? 'block' : 'none';
+    document.getElementById('flashcard-mode').style.display = mode === 'flashcards' ? 'block' : 'none';
+    document.getElementById('browse-mode').style.display = mode === 'browse' ? 'block' : 'none';
+
+    if (mode === 'flashcards') renderFlashcard();
+    if (mode === 'browse') document.getElementById('browse-mode').innerHTML = browseContent;
+}
+
+// Initialize
+renderQuiz();
+</script>
+</body>
+</html>
