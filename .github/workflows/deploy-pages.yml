@@ -24,16 +24,31 @@ jobs:
 
       - name: Generate index page
         run: |
-          cat > index.html << 'HTMLEOF'
-          <!DOCTYPE html>
+          python3 - << 'PYEOF'
+          import glob, re, html
+
+          weeks = sorted(glob.glob("week*/index.html"))
+          links = ""
+          for path in weeks:
+              week = path.split("/")[0]
+              with open(path) as f:
+                  content = f.read()
+              m = re.search(r"<title>(.*?)</title>", content)
+              title = html.escape(m.group(1)) if m else week.capitalize()
+              links += f'<a class="week-link" href="{week}/">{title}<span>{week}</span></a>\n'
+
+          if not links:
+              links = '<p style="text-align:center;color:#888">No weeks published yet.</p>'
+
+          page = f"""<!DOCTYPE html>
           <html lang="en">
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <title>COMP9414 Study Notes</title>
               <style>
-                  * { margin: 0; padding: 0; box-sizing: border-box; }
-                  body {
+                  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+                  body {{
                       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                       background: #0f0f23;
                       color: #e0e0e0;
@@ -41,12 +56,12 @@ jobs:
                       display: flex;
                       align-items: center;
                       justify-content: center;
-                  }
-                  .container { max-width: 600px; width: 100%; padding: 20px; }
-                  h1 { text-align: center; color: #7cb7ff; margin-bottom: 8px; font-size: 1.8rem; }
-                  .subtitle { text-align: center; color: #888; margin-bottom: 32px; }
-                  .week-list { display: flex; flex-direction: column; gap: 12px; }
-                  .week-link {
+                  }}
+                  .container {{ max-width: 600px; width: 100%; padding: 20px; }}
+                  h1 {{ text-align: center; color: #7cb7ff; margin-bottom: 8px; font-size: 1.8rem; }}
+                  .subtitle {{ text-align: center; color: #888; margin-bottom: 32px; }}
+                  .week-list {{ display: flex; flex-direction: column; gap: 12px; }}
+                  .week-link {{
                       display: block;
                       padding: 18px 24px;
                       background: #1a1a3e;
@@ -56,44 +71,27 @@ jobs:
                       text-decoration: none;
                       font-size: 1.1rem;
                       transition: all 0.2s;
-                  }
-                  .week-link:hover { border-color: #7cb7ff; background: #1a2a4a; }
-                  .week-link span { color: #888; font-size: 0.85rem; display: block; margin-top: 4px; }
+                  }}
+                  .week-link:hover {{ border-color: #7cb7ff; background: #1a2a4a; }}
+                  .week-link span {{ color: #888; font-size: 0.85rem; display: block; margin-top: 4px; }}
               </style>
           </head>
           <body>
           <div class="container">
               <h1>COMP9414 Study Notes</h1>
               <p class="subtitle">AI Foundations - UNSW</p>
-              <div class="week-list" id="weeks"></div>
+              <div class="week-list">
+                  {links}
+              </div>
           </div>
-          <script>
-              const weeks = document.getElementById('weeks');
-              WEEK_ENTRIES
-          </script>
           </body>
-          </html>
-          HTMLEOF
+          </html>"""
 
-          # Find all week*/index.html and generate links
-          entries=""
-          for dir in $(find . -maxdepth 1 -type d -name 'week*' | sort); do
-            week=$(basename "$dir")
-            num="${week#week}"
-            if [ -f "$dir/index.html" ]; then
-              title=$(grep -oP '(?<=<title>).*?(?=</title>)' "$dir/index.html" | head -1)
-              if [ -z "$title" ]; then
-                title="Week $num"
-              fi
-              entries="$entries weeks.innerHTML += '<a class=\"week-link\" href=\"${week}/\">${title}<span>${week}</span></a>';"$'\n'
-            fi
-          done
+          with open("index.html", "w") as f:
+              f.write(page)
 
-          if [ -z "$entries" ]; then
-            entries="weeks.innerHTML = '<p style=\"text-align:center;color:#888\">No weeks published yet.</p>';"
-          fi
-
-          sed -i "s|WEEK_ENTRIES|${entries}|" index.html
+          print("Generated index.html with entries:", [w.split("/")[0] for w in weeks])
+          PYEOF
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
