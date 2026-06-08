@@ -196,6 +196,60 @@
         .flashcard.flipped .back { display: block; }
         .flashcard .hint { font-size: 0.8rem; color: #666; margin-top: 12px; }
 
+        /* Slide mode */
+        .slide {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .slide h2 {
+            font-size: 1.4rem;
+            color: #7cb7ff;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #2a2a5a;
+            padding-bottom: 12px;
+        }
+        .slide h3 { font-size: 1.1rem; color: #a78bfa; margin: 16px 0 8px; }
+        .slide p { line-height: 1.7; margin-bottom: 12px; color: #ccc; }
+        .slide ul, .slide ol { padding-left: 20px; margin-bottom: 12px; }
+        .slide li { margin-bottom: 6px; line-height: 1.6; color: #ccc; }
+        .slide .highlight {
+            background: #0f1a2a;
+            border-left: 3px solid #7cb7ff;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 0.95rem;
+        }
+        .slide .formula {
+            background: #0f1a2a;
+            border: 1px solid #2a2a5a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #4ade80;
+        }
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.9rem;
+        }
+        .slide th, .slide td {
+            padding: 8px 12px;
+            border: 1px solid #2a2a5a;
+            text-align: left;
+        }
+        .slide th { background: #0f1a2a; color: #7cb7ff; }
+        .slide td { color: #ccc; }
+        .slide .slide-num { font-size: 0.75rem; color: #555; text-align: right; }
+
         /* Responsive */
         @media (max-width: 600px) {
             .container { padding: 12px; }
@@ -215,6 +269,7 @@
         <div class="nav-tab active" onclick="switchMode('quiz')">Quiz Mode</div>
         <div class="nav-tab" onclick="switchMode('flashcards')">Flashcards</div>
         <div class="nav-tab" onclick="switchMode('browse')">Browse Topics</div>
+        <div class="nav-tab" onclick="switchMode('slides')">Slides</div>
     </div>
 
     <div id="quiz-mode">
@@ -245,6 +300,15 @@
     </div>
 
     <div id="browse-mode" style="display:none"></div>
+
+    <div id="slides-mode" style="display:none">
+        <div class="progress-text" id="slide-progress">Slide 1 / 45</div>
+        <div id="slide-content"></div>
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevSlide()">Previous</button>
+            <button class="btn btn-primary" onclick="nextSlide()">Next</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -937,6 +1001,471 @@ function shuffleFlash() {
     renderFlashcard();
 }
 
+// ==================== SLIDES DATA ====================
+const slides = [
+    {
+        title: "Agents & Search",
+        content: `<p>COMP9414 Week 1 — Oliver Obst, UNSW</p>
+        <p>Material based on:</p>
+        <ul>
+        <li><em>Artificial Intelligence: A Modern Approach</em> by Peter Norvig and Stuart Russell</li>
+        <li><em>Introduction to Artificial Intelligence</em> by Nikhil Sharma, Josh Hug, Jacky Liang, and Henry Zhu</li>
+        <li>Slides by Dan Klein and Stuart Russell</li>
+        <li>The ai9414 python package</li>
+        </ul>`
+    },
+    {
+        title: "Course Overview",
+        content: `<table>
+        <tr><th>Week</th><th>Date</th><th>Topic</th><th>Notes</th></tr>
+        <tr><td>1</td><td>5/6</td><td>Introduction. Agents & Search</td><td></td></tr>
+        <tr><td>2</td><td>12/6</td><td>Planning</td><td>Release assignment #1</td></tr>
+        <tr><td>3</td><td>19/6</td><td>Knowledge representation</td><td></td></tr>
+        <tr><td>4</td><td>26/6</td><td>Neural networks</td><td></td></tr>
+        <tr><td>5</td><td>3/7</td><td>Reinforcement learning</td><td>Deadline assignment #1 (6 Jul)</td></tr>
+        <tr><td>6</td><td>10/7</td><td></td><td>Release assignment #2</td></tr>
+        <tr><td>7</td><td>17/7</td><td>Reasoning with uncertainty</td><td></td></tr>
+        <tr><td>8</td><td>24/7</td><td>Computer vision</td><td></td></tr>
+        <tr><td>9</td><td>31/7</td><td>Foundation models</td><td>Deadline assignment #2 (31 Jul)</td></tr>
+        <tr><td>10</td><td>7/8</td><td>Human-aligned intelligent robotics</td><td></td></tr>
+        </table>`
+    },
+    {
+        title: "Week 1 Content",
+        content: `<ul>
+        <li>Intelligent agents as goal-directed systems</li>
+        <li>Problem formulation: state, action, goal, cost</li>
+        <li>State spaces and search trees</li>
+        <li>Uninformed search: DFS, BFS, uniform-cost</li>
+        <li>Heuristic search: intuition and A*</li>
+        <li>Example on a small office navigation map</li>
+        <li>Bridge to planning next week</li>
+        </ul>`
+    },
+    {
+        title: "From AI to Agent",
+        content: `<p>Section: From AI to Agent</p>
+        <p>This section introduces the concept of intelligent agents — the core abstraction used throughout the course.</p>`
+    },
+    {
+        title: "What's an Agent?",
+        content: `<p>An agent follows the <strong>Sense → Think → Act</strong> cycle:</p>
+        <ul>
+        <li><strong>Sense</strong> — perceive the environment (camera, sensors, etc.)</li>
+        <li><strong>Think</strong> — decide what to do (reasoning, planning)</li>
+        <li><strong>Act</strong> — perform actions in the environment</li>
+        </ul>
+        <div class="highlight">An agent is an entity that perceives, decides, and acts in an environment.</div>`
+    },
+    {
+        title: "Environments",
+        content: `<p>The <strong>environment</strong> is the external world in which an agent operates.</p>
+        <p>It provides <strong>percepts</strong> to the agent and changes in response to the agent's <strong>actions</strong>, and sometimes independently of them.</p>
+        <p>The cycle: Agent receives Percepts → Agent sends Actions → Environment changes → repeat.</p>`
+    },
+    {
+        title: "The Environment is Not Just the Map",
+        content: `<p>The environment includes much more than just spatial layout:</p>
+        <ul>
+        <li><strong>Physical world</strong> — terrain, rooms, obstacles</li>
+        <li><strong>Relevant objects</strong> — parcels, keys, doors</li>
+        <li><strong>Other agents or people</strong></li>
+        <li><strong>Anything that could change a task or outcome</strong></li>
+        </ul>`
+    },
+    {
+        title: "Perception",
+        content: `<p>The agent usually does <strong>not see the whole environment</strong> directly.</p>
+        <p>Environments can differ in important ways:</p>
+        <ul>
+        <li><strong>Fully observable</strong> vs <strong>partially observable</strong> — can the agent see everything?</li>
+        <li><strong>Deterministic</strong> vs <strong>stochastic</strong> — are action outcomes certain?</li>
+        <li><strong>Static</strong> vs <strong>dynamic</strong> — does the environment change on its own?</li>
+        <li><strong>Discrete</strong> vs <strong>continuous</strong> — are states countable or continuous?</li>
+        </ul>`
+    },
+    {
+        title: "Running Example: Delivery Robot",
+        content: `<ul>
+        <li><strong>Agent:</strong> delivery robot controller</li>
+        <li><strong>Environment:</strong> office building with rooms, doors, parcels, people</li>
+        <li><strong>Percepts:</strong> location estimate, camera, door status</li>
+        <li><strong>Actions:</strong> move, pick up, deliver</li>
+        </ul>
+        <div class="highlight">"Good AI starts with a good model of the environment."</div>`
+    },
+    {
+        title: "Running Example: Navigation",
+        content: `<p>We start with the simplest version of the problem: <strong>navigation to a goal</strong>.</p>
+        <p>The robot is in the mail room. The goal is to navigate to the lab.</p>
+        <p>Later weeks will make the same environment more difficult: with parcels, keys, doors, uncertainty, and so on.</p>`
+    },
+    {
+        title: "What Makes Something a Search Problem?",
+        content: `<p>We need to define the "ingredients" to our problem:</p>
+        <ul>
+        <li><strong>Initial and current state</strong></li>
+        <li><strong>Actions available / successor function</strong></li>
+        <li><strong>Goal test:</strong> are we there yet?</li>
+        <li><strong>Path cost</strong></li>
+        </ul>
+        <div class="highlight">A <strong>rational agent</strong> selects actions that maximise utility.</div>
+        <p>The representation often matters as much as the search algorithm. It determines what actions the agent can even consider.</p>`
+    },
+    {
+        title: "Problem Formulation Example: Romania",
+        content: `<p>Classic example: finding a route from Arad to Bucharest on a road map.</p>
+        <ul>
+        <li><strong>State space:</strong> Cities</li>
+        <li><strong>Successor function:</strong> Road — go to adjacent city with cost = distance</li>
+        <li><strong>Start state:</strong> Arad</li>
+        <li><strong>Goal test:</strong> Is state == Bucharest?</li>
+        </ul>
+        <p>Cities connected by roads with distances: Arad→Sibiu (140), Arad→Zerind (75), Arad→Timisoara (118), Sibiu→Fagaras (99), Sibiu→Rimnicu Vilcea (80), Fagaras→Bucharest (211), Pitesti→Bucharest (101), etc.</p>`
+    },
+    {
+        title: "State Spaces",
+        content: `<h3>World State</h3>
+        <ul>
+        <li>Agent position on a 7x7 grid</li>
+        <li>Agent direction (NESW)</li>
+        <li>Goal position on a 7x7 grid</li>
+        </ul>
+        <h3>How many are there?</h3>
+        <ul>
+        <li><strong>World states:</strong> 49 x 4 x 49 = <strong>9,604</strong></li>
+        <li>For finding a specific path (goal fixed): 49 x 4 = <strong>196</strong></li>
+        </ul>
+        <div class="highlight">The representation decides what the search has to remember.</div>`
+    },
+    {
+        title: "State Space Graphs",
+        content: `<p>We can represent the problem in state space:</p>
+        <ul>
+        <li>Each world state is a <strong>node</strong></li>
+        <li>Edges represent <strong>successors</strong></li>
+        </ul>
+        <p>Each world state occurs <strong>only once</strong>. Multiple ways to get there.</p>
+        <ul>
+        <li>We may have <strong>loops</strong></li>
+        <li>Graph may become <strong>very big</strong></li>
+        </ul>`
+    },
+    {
+        title: "Search Trees",
+        content: `<p>We can also represent the problem as a <strong>search tree</strong>.</p>
+        <p>Think of it as a tree of "what happens if" ...</p>
+        <ul>
+        <li>Children of a node are <strong>successors</strong></li>
+        <li>A node is a state, corresponding to a <strong>plan how to get there</strong></li>
+        <li>The same state can appear <strong>many times</strong> (different paths)</li>
+        </ul>
+        <div class="highlight">Tree for most problems is infinite. So we never build the whole tree.</div>`
+    },
+    {
+        title: "Searching with a Search Tree",
+        content: `<p>Example: Romania map, starting from Arad</p>
+        <p>Arad expands to: Sibiu, Timisoara, Zerind</p>
+        <p>Sibiu expands to: Arad, Fagaras, Oradea, Rimnicu Vilcea</p>
+        <ul>
+        <li>Expand potential plans (new nodes in tree)</li>
+        <li>Maintain a <strong>frontier (fringe)</strong> of partial plans we still consider</li>
+        <li>Expand as few tree nodes as possible</li>
+        </ul>`
+    },
+    {
+        title: "General Tree Search",
+        content: `<div class="highlight">
+        <strong>function</strong> TREE-SEARCH(problem, strategy) <strong>returns</strong> a solution, or failure<br>
+        &nbsp;&nbsp;initialize the search tree using the initial state of problem<br>
+        &nbsp;&nbsp;<strong>loop do</strong><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<strong>if</strong> there are no candidates for expansion <strong>then return</strong> failure<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;choose a leaf node for expansion according to <em>strategy</em><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<strong>if</strong> the node contains a goal state <strong>then return</strong> the corresponding solution<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<strong>else</strong> expand the node and add the resulting nodes to the search tree<br>
+        &nbsp;&nbsp;<strong>end</strong>
+        </div>
+        <p>Key concepts: <strong>Frontier (fringe)</strong> / Expansion / Exploration strategy</p>
+        <p>Main question: <strong>Which nodes on the frontier to explore next?</strong></p>`
+    },
+    {
+        title: "General Tree Search (continued)",
+        content: `<p>Main question: Which nodes on the frontier to explore next?</p>
+        <div class="formula">Frontier → Choose node → Goal test → Expand → Add successors → Frontier</div>
+        <p>The choice of which node to expand next defines the search algorithm.</p>`
+    },
+    {
+        title: "Example Tree Search",
+        content: `<p>Given a state space graph (S→d, S→e, S→p, d→b, d→c, d→e, e→h, e→r, etc.), the search tree unfolds:</p>
+        <ul>
+        <li>Root: S</li>
+        <li>Level 1: d, e, p</li>
+        <li>Level 2: b, c, e (from d); h, r (from e); q (from p)</li>
+        <li>And so on... same state can appear multiple times</li>
+        </ul>
+        <p>DFS would explore: S → d → b → a → (backtrack) → c → a → (backtrack) → e → h → ... eventually finding G</p>`
+    },
+    {
+        title: "Depth First Search",
+        content: `<h3>Uninformed Search Methods</h3>
+        <p><strong>Strategy:</strong> expand a deepest node first</p>
+        <p><strong>Implementation:</strong> Frontier is a <strong>LIFO stack</strong></p>
+        <p>DFS goes deep down the left side of the tree first, backtracking only when stuck.</p>`
+    },
+    {
+        title: "Properties of Search Algorithms",
+        content: `<p>Four properties to evaluate search algorithms:</p>
+        <ul>
+        <li><strong>Completeness:</strong> Guaranteed to find a solution if one exists?</li>
+        <li><strong>Optimality:</strong> Guaranteed to find the least cost path?</li>
+        <li><strong>Time complexity?</strong></li>
+        <li><strong>Space complexity?</strong></li>
+        </ul>
+        <h3>Search tree structure</h3>
+        <ul>
+        <li><strong>b</strong> = branching factor</li>
+        <li><strong>m</strong> = maximum depth</li>
+        <li>Solutions at various depths</li>
+        </ul>
+        <div class="formula">Total nodes: 1 + b + b&sup2; + ... + b<sup>m</sup> = O(b<sup>m</sup>)</div>`
+    },
+    {
+        title: "Properties of Depth First Search",
+        content: `<p><strong>What nodes does DFS expand?</strong></p>
+        <ul>
+        <li>Some left prefix of the tree</li>
+        <li>Could process the whole tree!</li>
+        <li>If m is finite, takes time <strong>O(b<sup>m</sup>)</strong></li>
+        </ul>
+        <p><strong>Space:</strong> Only has siblings on path to root, so <strong>O(bm)</strong> — this is DFS's main advantage!</p>
+        <p><strong>Complete?</strong> No — m could be infinite (unless we prevent cycles)</p>
+        <p><strong>Optimal?</strong> No — finds the "leftmost" solution, regardless of depth or cost</p>`
+    },
+    {
+        title: "Breadth First Search",
+        content: `<p><strong>Strategy:</strong> expand a shallowest node first</p>
+        <p><strong>Implementation:</strong> Frontier is a <strong>FIFO queue</strong></p>
+        <p>BFS explores all nodes at depth d before any nodes at depth d+1. Shown as colored tiers across the tree.</p>`
+    },
+    {
+        title: "Properties of Breadth-First Search (BFS)",
+        content: `<p><strong>What nodes does BFS expand?</strong></p>
+        <ul>
+        <li>Processes all nodes above the shallowest solution</li>
+        <li>Let depth of shallowest solution be <strong>s</strong></li>
+        <li>Search takes time <strong>O(b<sup>s</sup>)</strong></li>
+        </ul>
+        <p><strong>Space:</strong> At end it has roughly the last tier, so <strong>O(b<sup>s</sup>)</strong></p>
+        <p><strong>Complete?</strong> Yes — s must be finite if a solution exists</p>
+        <p><strong>Optimal?</strong> Only if all costs are 1 (more on costs later)</p>`
+    },
+    {
+        title: "Cost-Sensitive Search",
+        content: `<p>When edges have different costs, BFS is not optimal.</p>
+        <p>BFS finds the shortest path <strong>in terms of number of actions</strong>.</p>
+        <p>It does <em>not</em> find the least-cost path.</p>
+        <p>We need a similar algorithm which does find the least-cost path: <strong>Uniform Cost Search</strong>.</p>`
+    },
+    {
+        title: "Uniform Cost Search",
+        content: `<p><strong>Strategy:</strong> expand the cheapest node first.</p>
+        <ul>
+        <li>Frontier is a <strong>priority queue</strong></li>
+        <li>Priority: <strong>cumulative cost g(n)</strong></li>
+        </ul>
+        <p>UCS explores increasing <strong>cost contours</strong> outward from the start.</p>
+        <p>Example frontier: S→p (cost 1), S→d (cost 3), S→e (cost 9)</p>
+        <p>The numbers in the tree are cumulative costs. UCS always picks the frontier node with the lowest total cost to expand next.</p>`
+    },
+    {
+        title: "Uniform Cost Search (UCS) Properties",
+        content: `<p><strong>What nodes does UCS expand?</strong></p>
+        <ul>
+        <li>Processes all nodes with cost less than cheapest solution!</li>
+        <li>If optimal solution costs <strong>C*</strong> and arcs cost at least <strong>&epsilon;</strong>, then "effective depth" is roughly C*/&epsilon;</li>
+        <li>Takes time <strong>O(b<sup>C*/&epsilon;</sup>)</strong> (exponential in effective depth)</li>
+        </ul>
+        <p><strong>Space:</strong> Has roughly the last tier, so <strong>O(b<sup>C*/&epsilon;</sup>)</strong></p>
+        <p><strong>Complete?</strong> Yes (assuming best solution has finite cost and minimum arc cost is positive)</p>
+        <p><strong>Optimal?</strong> <strong>Yes!</strong></p>`
+    },
+    {
+        title: "Uniform Cost Search Issues",
+        content: `<p>Remember: UCS explores increasing cost contours.</p>
+        <h3>The good:</h3>
+        <p>UCS is <strong>complete and optimal!</strong></p>
+        <h3>The bad:</h3>
+        <ul>
+        <li>Explores options in every "direction"</li>
+        <li><strong>No information about goal location</strong></li>
+        </ul>
+        <p>This motivates <strong>heuristic search</strong> — using knowledge about where the goal is to guide the search.</p>`
+    },
+    {
+        title: "Romania Revisited, with Heuristics",
+        content: `<p>We can add a <strong>heuristic function h(x)</strong> — the straight-line distance to Bucharest:</p>
+        <table>
+        <tr><th>City</th><th>h(x)</th><th>City</th><th>h(x)</th></tr>
+        <tr><td>Arad</td><td>366</td><td>Mehadia</td><td>241</td></tr>
+        <tr><td>Bucharest</td><td>0</td><td>Neamt</td><td>234</td></tr>
+        <tr><td>Craiova</td><td>160</td><td>Oradea</td><td>380</td></tr>
+        <tr><td>Dobreta</td><td>242</td><td>Pitesti</td><td>98</td></tr>
+        <tr><td>Eforie</td><td>161</td><td>Rimnicu Vilcea</td><td>193</td></tr>
+        <tr><td>Fagaras</td><td>178</td><td>Sibiu</td><td>253</td></tr>
+        <tr><td>Giurgiu</td><td>77</td><td>Timisoara</td><td>329</td></tr>
+        <tr><td>Hirsova</td><td>151</td><td>Urziceni</td><td>80</td></tr>
+        <tr><td>Iasi</td><td>226</td><td>Vaslui</td><td>199</td></tr>
+        <tr><td>Lugoj</td><td>244</td><td>Zerind</td><td>374</td></tr>
+        </table>`
+    },
+    {
+        title: "Greedy Search",
+        content: `<p><strong>Strategy:</strong> expand a node that you think is closest to a goal state.</p>
+        <p><strong>Heuristic:</strong> estimate of distance to nearest goal for each state.</p>
+        <h3>Common case:</h3>
+        <ul>
+        <li>Best-first takes you straight to a (suboptimal) goal</li>
+        </ul>
+        <h3>Worst case:</h3>
+        <ul>
+        <li>Like a badly-guided DFS</li>
+        </ul>
+        <p><strong>Not complete, not optimal.</strong></p>`
+    },
+    {
+        title: "Combining Greedy and Uniform",
+        content: `<p>The key insight:</p>
+        <ul>
+        <li><strong>Uniform-cost</strong> orders by path cost, "cost so far" <strong>g(n)</strong></li>
+        <li><strong>Greedy</strong> orders by goal proximity, "estimated cost to goal" <strong>h(n)</strong></li>
+        </ul>
+        <div class="formula">A* Search orders by: f(n) = g(n) + h(n)</div>
+        <p>A* combines the best of both: it considers both the cost already paid AND the estimated remaining cost.</p>`
+    },
+    {
+        title: "Heuristics and A*",
+        content: `<p>Does every heuristic work? For A* optimality, the heuristic <strong>must not overestimate</strong> the true remaining costs.</p>
+        <p>A heuristic h is <strong>admissible</strong> (optimistic) if:</p>
+        <div class="formula">0 &le; h(n) &le; h*(n)</div>
+        <p>where h*(n) is the true cost to the nearest goal.</p>
+        <p><strong>Example:</strong> The straight-line distance is an admissible heuristic for finding the route on the map (you can't drive shorter than a straight line).</p>`
+    },
+    {
+        title: "Optimality of A* — Setup",
+        content: `<p><strong>Assume:</strong></p>
+        <ul>
+        <li>A is an <strong>optimal</strong> goal node</li>
+        <li>B is a <strong>suboptimal</strong> goal node</li>
+        <li>h is <strong>admissible</strong></li>
+        </ul>
+        <p><strong>Claim:</strong> A will be chosen for expansion before B.</p>`
+    },
+    {
+        title: "Optimality of A* — Proof (Step 1)",
+        content: `<p><strong>Proof:</strong> Imagine B is on the frontier.</p>
+        <p>Some ancestor n of A is on the frontier, too (maybe A itself!).</p>
+        <p><strong>Claim:</strong> n will be expanded before B</p>
+        <p><strong>Step 1:</strong> f(n) &le; f(A)</p>
+        <ul>
+        <li>f(n) = g(n) + h(n) — definition of f-cost</li>
+        <li>f(n) &le; f(A) — by admissibility of h</li>
+        <li>g(A) = f(A) — because h = 0 at the goal</li>
+        </ul>`
+    },
+    {
+        title: "Optimality of A* — Proof (Step 2)",
+        content: `<p><strong>Step 2:</strong> f(A) &lt; f(B)</p>
+        <ul>
+        <li>g(A) &lt; g(B) — because B is suboptimal</li>
+        <li>f(A) &lt; f(B) — because h = 0 at the goal</li>
+        </ul>`
+    },
+    {
+        title: "Optimality of A* — Proof (Conclusion)",
+        content: `<p><strong>Combining the steps:</strong></p>
+        <div class="formula">f(n) &le; f(A) &lt; f(B)</div>
+        <p><strong>Therefore:</strong></p>
+        <ul>
+        <li>n is expanded before B</li>
+        <li><strong>All ancestors of A</strong> are expanded before B</li>
+        <li>A is expanded before B</li>
+        </ul>
+        <div class="highlight"><strong>A* tree search is optimal</strong> (when h is admissible).</div>`
+    },
+    {
+        title: "From Search to Planning",
+        content: `<p>Today's problem was deliberately simple:</p>
+        <ul>
+        <li><strong>State:</strong> location</li>
+        <li><strong>Actions:</strong> move to the next place</li>
+        <li><strong>Goal:</strong> reach the destination</li>
+        <li><strong>Cost:</strong> number of moves, or distance</li>
+        </ul>
+        <p>This is enough for navigation. <strong>Many problems are not just that.</strong></p>`
+    },
+    {
+        title: "What if the Robot Delivers Something?",
+        content: `<p><strong>Example:</strong></p>
+        <ul>
+        <li>Parcel in one room</li>
+        <li>Door is locked</li>
+        <li>Key card is in another room</li>
+        <li>Robot has to carry parcel to another room</li>
+        </ul>
+        <div class="highlight">Now, finding a path to the goal is not enough.</div>
+        <p>The robot needs a sequence of actions: get key → unlock door → pick up parcel → deliver.</p>`
+    },
+    {
+        title: "Planning — Search over Action Sequences",
+        content: `<h3>This week: search</h3>
+        <ul>
+        <li>States are locations</li>
+        <li>Actions are movements</li>
+        <li>Goal is the destination</li>
+        </ul>
+        <h3>Next week: planning</h3>
+        <ul>
+        <li>States are <strong>facts about the world</strong></li>
+        <li>Actions have <strong>preconditions and effects</strong></li>
+        <li>Goal is a <strong>set of conditions</strong></li>
+        </ul>
+        <p>How do we represent actions and search for a valid plan?</p>`
+    },
+    {
+        title: "What You Should Know After This Week",
+        content: `<ul>
+        <li>What is an agent (in AI)?</li>
+        <li>How do we formulate a problem for search?</li>
+        <li>What is the difference between a state space and a search tree?</li>
+        <li>How do DFS, BFS, and uniform-cost differ?</li>
+        <li>What is a heuristic?</li>
+        <li>What is the intuition behind A*?</li>
+        </ul>`
+    }
+];
+
+let currentSlide = 0;
+
+function renderSlide() {
+    const s = slides[currentSlide];
+    document.getElementById('slide-progress').textContent = `Slide ${currentSlide + 1} / ${slides.length}`;
+    document.getElementById('slide-content').innerHTML = `
+        <div class="slide">
+            <h2>${s.title}</h2>
+            ${s.content}
+            <div class="slide-num">Slide ${currentSlide + 1} of ${slides.length}</div>
+        </div>
+    `;
+}
+
+function nextSlide() {
+    if (currentSlide < slides.length - 1) { currentSlide++; renderSlide(); }
+}
+
+function prevSlide() {
+    if (currentSlide > 0) { currentSlide--; renderSlide(); }
+}
+
 // ==================== MODE SWITCHING ====================
 function switchMode(mode) {
     document.querySelectorAll('.nav-tabs')[0].querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -945,9 +1474,11 @@ function switchMode(mode) {
     document.getElementById('quiz-mode').style.display = mode === 'quiz' ? 'block' : 'none';
     document.getElementById('flashcard-mode').style.display = mode === 'flashcards' ? 'block' : 'none';
     document.getElementById('browse-mode').style.display = mode === 'browse' ? 'block' : 'none';
+    document.getElementById('slides-mode').style.display = mode === 'slides' ? 'block' : 'none';
 
     if (mode === 'flashcards') renderFlashcard();
     if (mode === 'browse') document.getElementById('browse-mode').innerHTML = browseContent;
+    if (mode === 'slides') renderSlide();
 }
 
 // Initialize
