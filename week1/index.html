@@ -11,6 +11,7 @@
             background: #0f0f23;
             color: #e0e0e0;
             min-height: 100vh;
+            font-size: 17px;
         }
         .container {
             max-width: 800px;
@@ -252,20 +253,22 @@
 
         /* Responsive */
         @media (min-width: 768px) {
-            body { font-size: 18px; }
-            .quiz-card .question { font-size: 1.3rem; }
-            .option { font-size: 1.05rem; }
-            .explanation { font-size: 1rem; }
-            .slide p, .slide li { font-size: 1.05rem; }
-            .slide h2 { font-size: 1.6rem; }
-            .slide h3 { font-size: 1.2rem; }
-            .slide .highlight { font-size: 1.05rem; }
-            .slide .formula { font-size: 1.2rem; }
-            .slide table { font-size: 1rem; }
-            .flashcard .front { font-size: 1.35rem; }
-            .flashcard .back { font-size: 1.1rem; }
-            .topic-section li { font-size: 1.05rem; }
-            .nav-tab { font-size: 0.95rem; }
+            body { font-size: 19px; }
+            .quiz-card .question { font-size: 1.4rem; }
+            .option { font-size: 1.1rem; }
+            .explanation { font-size: 1.05rem; }
+            .slide p, .slide li { font-size: 1.1rem; }
+            .slide h2 { font-size: 1.7rem; }
+            .slide h3 { font-size: 1.25rem; }
+            .slide .highlight { font-size: 1.1rem; }
+            .slide .formula { font-size: 1.25rem; }
+            .slide table { font-size: 1.05rem; }
+            .flashcard .front { font-size: 1.4rem; }
+            .flashcard .back { font-size: 1.15rem; }
+            .topic-section li { font-size: 1.1rem; }
+            .topic-section h3 { font-size: 1.2rem; }
+            .nav-tab { font-size: 1rem; }
+            .progress-text { font-size: 0.95rem; }
         }
         @media (max-width: 600px) {
             .container { padding: 12px; }
@@ -1774,7 +1777,7 @@ function switchMode(mode) {
 
 // Keyboard navigation for slides
 document.addEventListener('keydown', function(e) {
-    if (document.getElementById('slides-mode').style.display !== 'none' && document.getElementById('slides-mode').style.display !== '') {
+    if (document.getElementById('slides-mode').offsetParent !== null) {
         if (e.key === 'ArrowRight') { nextSlide(); e.preventDefault(); }
         if (e.key === 'ArrowLeft') { prevSlide(); e.preventDefault(); }
     }
