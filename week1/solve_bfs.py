@@ -120,11 +120,11 @@ def solve_bfs(graph: dict[str, Any]) -> dict[str, Any]:
     adjacency = build_adjacency(graph)
 
     # Data structures
-    queue = deque([start])       # FIFO frontier — pop from left, push to right
-    visited = {start}            # nodes we've already seen (never revisit)
-    parents = {start: None}      # parent pointers for path reconstruction
-    depths = {start: 0}          # track each node's depth for the trace
-    visited_order = [start]      # discovery order for the trace
+    queue = deque([start])  # FIFO frontier — pop from left, push to right
+    visited = {start}  # nodes we've already seen (never revisit)
+    parents = {start: None}  # parent pointers for path reconstruction
+    depths = {start: 0}  # track each node's depth for the trace
+    visited_order = [start]  # discovery order for the trace
     trace = []
     step = 0
 
@@ -133,7 +133,7 @@ def solve_bfs(graph: dict[str, Any]) -> dict[str, Any]:
     step += 1
 
     while queue:
-        node = queue.popleft()   # take the OLDEST node (FIFO = breadth-first)
+        node = queue.popleft()  # take the OLDEST node (FIFO = breadth-first)
 
         # Goal check: if the node we just dequeued is the goal, we're done
         if node == goal:

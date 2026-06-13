@@ -121,10 +121,10 @@ def solve_dfs(graph: dict[str, Any]) -> dict[str, Any]:
     adjacency = build_adjacency(graph)
 
     # datastructures
-    stack = [start]              # the DFS frontier — current path from start
-    visited = {start}            # nodes we've already seen (never revisit)
-    parents = {start: None}      # parent pointers for path reconstruction
-    visited_order = [start]      # discovery order for the trace
+    stack = [start]  # the DFS frontier — current path from start
+    visited = {start}  # nodes we've already seen (never revisit)
+    parents = {start: None}  # parent pointers for path reconstruction
+    visited_order = [start]  # discovery order for the trace
     trace = []
     step = 0
 
@@ -133,7 +133,7 @@ def solve_dfs(graph: dict[str, Any]) -> dict[str, Any]:
     step += 1
 
     while stack:
-        current = stack[-1]      # peek at the top — this is our current node
+        current = stack[-1]  # peek at the top — this is our current node
 
         # Goal check: if the top of the stack is the goal, we're done
         if current == goal:
@@ -152,7 +152,7 @@ def solve_dfs(graph: dict[str, Any]) -> dict[str, Any]:
         for n in neighbors:
             if n not in visited:
                 next_node = n
-                break            # DFS only takes the FIRST unvisited neighbour
+                break  # DFS only takes the FIRST unvisited neighbour
 
         if next_node is not None:
             # EXPAND: push the neighbour and go deeper

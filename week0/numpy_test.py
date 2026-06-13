@@ -11,5 +11,6 @@ def main():
     print("Sum of each column:", np.sum(matrix, axis=0))
     print("Overall sum:", np.sum(matrix))
 
+
 if __name__ == "__main__":
     main()
