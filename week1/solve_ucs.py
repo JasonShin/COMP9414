@@ -107,20 +107,7 @@ def solve_ucs(graph: dict[str, Any]) -> dict[str, Any]:
 
     heapq.heapify(frontier)
 
-    trace = [
-        make_trace_event(
-            0,
-            "start",
-            start,
-            None,
-            0,
-            0.0,
-            [start],
-            0.0,
-            [],
-            None,
-        )
-    ]
+    trace = [make_trace_event(0, "start", start, None, 0, 0.0, [start], 0.0, [], None)]
 
     steps += 1
 
@@ -134,20 +121,7 @@ def solve_ucs(graph: dict[str, Any]) -> dict[str, Any]:
         visited_order.append(node)
 
         if node == goal:
-            trace.append(
-                make_trace_event(
-                    steps,
-                    "found",
-                    node,
-                    parents[node],
-                    len(frontier),
-                    cost,
-                    [node],
-                    cost,
-                    [node],
-                    cost,
-                )
-            )
+            trace.append(make_trace_event(steps, "found", node, parents[node], len(frontier), cost, [node], cost, [node], cost))
             return {
                 "algorithm": "ucs",
                 "status": "found",
@@ -163,21 +137,7 @@ def solve_ucs(graph: dict[str, Any]) -> dict[str, Any]:
                 best_costs[neighbor] = new_cost
                 parents[neighbor] = node
                 heapq.heappush(frontier, (new_cost, neighbor))
-                trace.append(
-                    make_trace_event(
-                        steps,
-                        "expand",
-                        neighbor,
-                        node,
-                        len(frontier),
-                        new_cost,
-                        [neighbor],
-                        new_cost,
-                        reconstruct_path(parents, neighbor),
-                        new_cost,
-                        [node, neighbor],
-                    )
-                )
+                trace.append(make_trace_event(steps, "expand", neighbor, node, len(frontier), new_cost, [neighbor], new_cost, reconstruct_path(parents, neighbor), new_cost, [node, neighbor]))
                 steps += 1
 
     trace.append(make_trace_event(steps, "fail", None, None, 0, 0.0, [], 0.0, [], None))
