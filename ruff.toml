@@ -1,0 +1,30 @@
+# Ruff linter + formatter config for COMP9414
+
+# Target Python version
+target-version = "py314"
+
+# Max line length
+line-length = 120
+
+# Exclude virtual environments
+exclude = [".venv", "__pycache__"]
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort (import sorting)
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific rules
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"

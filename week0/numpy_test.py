@@ -1,5 +1,5 @@
-import sys
 import numpy as np
+
 
 def main():
     n = int(input("enter your number: "))

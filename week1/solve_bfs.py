@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections import deque
-from queue import PriorityQueue
 from typing import Any
 
 from ai9414.search import run_graph_bfs_solver
@@ -87,105 +86,88 @@ def make_trace_event(
 
 
 def solve_bfs(graph: dict[str, Any]) -> dict[str, Any]:
-    """
-    Solve the graph using breadth-first search and return a full result.
+    # Iterative Breadth-First Search (BFS) using a queue (FIFO).
+    #
+    # How it works visually:
+    #
+    #   BFS explores the graph LAYER BY LAYER, like ripples spreading from a stone.
+    #   Unlike DFS (which dives deep), BFS visits ALL nodes at depth d before depth d+1.
+    #   This guarantees the SHORTEST path (by number of edges).
+    #
+    #   Example with start=S, neighbours sorted alphabetically:
+    #
+    #   Step 0 (start):     queue = [S]           depth 0
+    #                       Pop S. Expand its neighbours H, M, N.
+    #
+    #   Step 1 (expand H):  queue = [M, N, H]  →  queue = [M, N, H]
+    #   Step 2 (expand M):  queue = [N, H, M]     depth 1 — all of S's neighbours
+    #   Step 3 (expand N):  queue = [H, M, N]
+    #
+    #   Now pop H (front of queue). Expand H's unvisited neighbours...
+    #   Step 4 (expand E):  queue = [M, N, E]     depth 2 — neighbours of H
+    #   Step 5 (expand K):  queue = [N, E, K]
+    #
+    #   Pop M. Expand M's unvisited neighbours...
+    #   Step 6 (expand A):  queue = [E, K, A]     depth 2 — neighbours of M
+    #
+    #   ... continues layer by layer until goal is found or queue is empty.
+    #
+    #   Key idea: BFS never backtracks. It just drains the queue level by level.
+    #   The queue always holds the frontier — nodes discovered but not yet processed.
 
-    This is the main function you are expected to implement.
-    You should replace the TODO section below with a complete iterative BFS.
-
-    Student responsibilities:
-        - build or use an adjacency structure
-        - run BFS
-        - record visited_order
-        - reconstruct the final path
-        - build the trace list
-
-    ai9414 responsibilities:
-        - start the local web server
-        - expose the /solve endpoint
-        - pass the graph dictionary into this function
-        - validate the result shape
-        - send the result back to the browser
-
-    Required return format:
-        {
-            "algorithm": "bfs",
-            "status": "found" or "not_found",
-            "trace": [...],
-            "path": ["A", "B", "G"],
-            "visited_order": ["A", "B", "D", "G"],
-        }
-
-    Trace actions:
-        - start: emit once at the start node
-        - expand: emit when BFS discovers a new node
-        - found: emit once when the goal is reached
-        - fail: emit once if the frontier empties and no goal path exists
-
-    Suggested plan:
-        1. Parse the start and goal ids.
-        2. Build the adjacency list.
-        3. Initialise a queue, visited set, parents, trace, visited_order, and step.
-        4. Emit the start event.
-        5. While the queue is not empty:
-           - pop the next node from the front of the queue
-           - visit each unvisited neighbour in deterministic order
-           - record its parent, visited_order, and route from the start
-           - emit an expand event and push it onto the queue
-           - if the neighbour is the goal, emit found and return
-        6. If the loop finishes, emit fail and return not_found
-    """
     start = normalise_node_id(graph["start"])
     goal = normalise_node_id(graph["goal"])
-    parents = {start: None}
     adjacency = build_adjacency(graph)
-    step = 0
-    _ = (goal, adjacency, deque)
 
-    trace = [make_trace_event(step, "start", start, None, 0, [start])]
+    # Data structures
+    queue = deque([start])       # FIFO frontier — pop from left, push to right
+    visited = {start}            # nodes we've already seen (never revisit)
+    parents = {start: None}      # parent pointers for path reconstruction
+    depths = {start: 0}          # track each node's depth for the trace
+    visited_order = [start]      # discovery order for the trace
+    trace = []
+    step = 0
+
+    # Emit the initial "start" event — we're at the start node, depth 0
+    trace.append(make_trace_event(step, "start", start, None, 0, [start]))
     step += 1
 
-
-    visited = { start }
-    visited_order = []
-
-    """
-    S -> HMN -> MNAK -> NAKD -> AKDBK -> KDB
-    """
-
-    queue = deque([start])
-
     while queue:
-        node = queue.popleft()
+        node = queue.popleft()   # take the OLDEST node (FIFO = breadth-first)
+
+        # Goal check: if the node we just dequeued is the goal, we're done
         if node == goal:
-            trace.append(make_trace_event(step, "found", node, parents[node], len(queue), list(queue)))
+            path = reconstruct_path(parents, goal)
+            trace.append(make_trace_event(step, "found", node, parents[node], depths[node], path))
             return {
                 "algorithm": "bfs",
                 "status": "found",
                 "trace": trace,
-                "path": reconstruct_path(parents, goal),
+                "path": path,
                 "visited_order": visited_order,
             }
 
-        visited_order.append(node)
+        # Expand: enqueue ALL unvisited neighbours (sorted for determinism)
         neighbors = get_neighbours(adjacency, node)
         for neighbor in neighbors:
             if neighbor not in visited:
                 visited.add(neighbor)
-                queue.append(neighbor)
                 parents[neighbor] = node
-                trace.append(make_trace_event(step, "expand", neighbor, node, len(queue), list(queue)))
+                depths[neighbor] = depths[node] + 1
+                queue.append(neighbor)
+                visited_order.append(neighbor)
+                route = reconstruct_path(parents, neighbor)
+                trace.append(make_trace_event(step, "expand", neighbor, node, depths[neighbor], route))
                 step += 1
 
-
-
+    # Queue is empty — we explored everything reachable and never found the goal
+    trace.append(make_trace_event(step, "fail", None, None, 0, []))
     return {
         "algorithm": "bfs",
         "status": "not_found",
-        "message": "Replace the placeholder code inside solve_bfs with your full BFS implementation.",
         "trace": trace,
         "path": [],
-        "visited_order": [start],
+        "visited_order": visited_order,
     }
 
 
