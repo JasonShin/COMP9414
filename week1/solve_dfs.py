@@ -85,25 +85,57 @@ def make_trace_event(
 
 
 def solve_dfs(graph: dict[str, Any]) -> dict[str, Any]:
+    # Iterative Depth-First Search (DFS) using a stack (LIFO).
+    #
+    # How it works visually:
+    #
+    #   Stack grows downward. We always look at the TOP (last element).
+    #
+    #   Step 0 (start):     stack = [S]
+    #                       Peek at S. It's not the goal.
+    #
+    #   Step 1 (expand H):  stack = [S, H]
+    #                       S's first unvisited neighbour is H. Push H.
+    #                       The graph highlights the S -> H edge.
+    #
+    #   Step 2 (expand E):  stack = [S, H, E]
+    #                       H's first unvisited neighbour is E. Push E.
+    #                       DFS dives deeper — always going down one branch.
+    #
+    #   Step 3 (backtrack): stack = [S, H]
+    #                       E has no unvisited neighbours — dead end!
+    #                       Pop E off. We retreat back to H to try another branch.
+    #
+    #   Step 4 (expand K):  stack = [S, H, K]
+    #                       H's next unvisited neighbour is K. Push K.
+    #                       DFS tries the next branch from H.
+    #
+    #   ... continues until goal is found or stack is empty.
+    #
+    #   Key idea: DFS explores as DEEP as possible before backtracking.
+    #   The stack represents the current path from start to the active node.
+    #   depth = len(stack) - 1  (start node is depth 0).
+
     start = normalise_node_id(graph["start"])
     goal = normalise_node_id(graph["goal"])
     adjacency = build_adjacency(graph)
 
     # datastructures
-    stack = [start]
-    visited = { start }
-    parents = {start: None}
-    visited_order = [start]
+    stack = [start]              # the DFS frontier — current path from start
+    visited = {start}            # nodes we've already seen (never revisit)
+    parents = {start: None}      # parent pointers for path reconstruction
+    visited_order = [start]      # discovery order for the trace
     trace = []
     step = 0
 
-    # Replace the placeholder result below with a full iterative DFS.
+    # Emit the initial "start" event — we're at the start node, depth 0
     trace.append(make_trace_event(step, "start", start, None, 0, stack))
     step += 1
 
     while stack:
-        current = stack[-1]
+        current = stack[-1]      # peek at the top — this is our current node
 
+        # Goal check: if the top of the stack is the goal, we're done
         if current == goal:
             trace.append(make_trace_event(step, "found", current, parents[current], len(stack) - 1, stack))
             return {
@@ -114,14 +146,16 @@ def solve_dfs(graph: dict[str, Any]) -> dict[str, Any]:
                 "visited_order": visited_order,
             }
 
+        # Find the first unvisited neighbour (sorted order for determinism)
         neighbors = get_neighbours(adjacency, current)
         next_node = None
         for n in neighbors:
             if n not in visited:
                 next_node = n
-                break
+                break            # DFS only takes the FIRST unvisited neighbour
 
         if next_node is not None:
+            # EXPAND: push the neighbour and go deeper
             stack.append(next_node)
             visited.add(next_node)
             parents[next_node] = current
@@ -130,18 +164,19 @@ def solve_dfs(graph: dict[str, Any]) -> dict[str, Any]:
             step += 1
 
         else:
+            # BACKTRACK: no unvisited neighbours — dead end, pop and retreat
             stack.pop()
             trace.append(make_trace_event(step, "backtrack", current, parents[current], len(stack) - 1, stack))
             step += 1
 
-
+    # Stack is empty — we explored everything reachable and never found the goal
+    trace.append(make_trace_event(step, "fail", None, None, 0, []))
     return {
         "algorithm": "dfs",
         "status": "not_found",
-        "message": "Replace the placeholder code inside solve_dfs with your full DFS implementation.",
         "trace": trace,
         "path": [],
-        "visited_order": [start],
+        "visited_order": visited_order,
     }
 
 
