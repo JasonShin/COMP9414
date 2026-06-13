@@ -1438,6 +1438,63 @@ const slides = [
         <p><strong>Optimal?</strong> No — finds the "leftmost" solution, regardless of depth or cost</p>`
     },
     {
+        title: "DFS — How It Works (Implementation)",
+        content: `<p>DFS uses a <strong>stack (LIFO)</strong>. We always peek at the top, expand or backtrack.</p>
+        <h3>Step-by-step on a graph with Start=S, Goal=G</h3>
+        <table>
+        <tr><th>Step</th><th>Action</th><th>Stack</th><th>What happens</th></tr>
+        <tr><td>0</td><td>start</td><td>[S]</td><td>Begin at S</td></tr>
+        <tr><td>1</td><td>expand H</td><td>[S, H]</td><td>S's first unvisited neighbour (alphabetical) is H — push it</td></tr>
+        <tr><td>2</td><td>expand E</td><td>[S, H, E]</td><td>H's first unvisited neighbour is E — push it. DFS dives deeper</td></tr>
+        <tr><td>3</td><td>backtrack E</td><td>[S, H]</td><td>E has no unvisited neighbours — dead end! Pop E off</td></tr>
+        <tr><td>4</td><td>expand K</td><td>[S, H, K]</td><td>Back at H, try next unvisited neighbour K — push it</td></tr>
+        <tr><td>...</td><td>...</td><td>...</td><td>Continue until goal is found or stack is empty</td></tr>
+        </table>
+        <h3>Key implementation details</h3>
+        <ul>
+        <li><code>stack[-1]</code> = current node (peek, don't pop yet)</li>
+        <li><strong>depth</strong> = <code>len(stack) - 1</code> (start is depth 0)</li>
+        <li><strong>Expand:</strong> found unvisited neighbour → push onto stack, mark visited, record parent</li>
+        <li><strong>Backtrack:</strong> no unvisited neighbours → pop the top off the stack</li>
+        <li>Only take the <strong>first</strong> unvisited neighbour each time (that's what makes it DFS, not BFS)</li>
+        <li>Use a <code>visited</code> set to prevent cycles</li>
+        <li>Use a <code>parents</code> dict to reconstruct the path once goal is found</li>
+        </ul>
+        <div class="highlight">The stack IS the current path from start to the active node. When you backtrack, you're literally retracing your steps.</div>`
+    },
+    {
+        title: "DFS — Python Pseudocode",
+        content: `<pre style="background:#0f1a2a;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;overflow-x:auto;color:#ccc">
+stack = [start]
+visited = {start}
+parents = {start: None}
+
+while stack:
+    current = stack[-1]           # peek at top
+
+    if current == goal:
+        return reconstruct_path(parents, goal)
+
+    # Find first unvisited neighbour (sorted)
+    next_node = None
+    for n in neighbours(current):
+        if n not in visited:
+            next_node = n
+            break
+
+    if next_node is not None:
+        # EXPAND — go deeper
+        stack.append(next_node)
+        visited.add(next_node)
+        parents[next_node] = current
+    else:
+        # BACKTRACK — dead end, retreat
+        stack.pop()
+
+# Stack empty → no path found</pre>
+        <div class="highlight"><strong>Remember:</strong> DFS is NOT complete (can loop forever without cycle prevention) and NOT optimal (finds leftmost path, not shortest/cheapest).</div>`
+    },
+    {
         title: "Breadth First Search",
         content: `<p><strong>Strategy:</strong> expand a shallowest node first</p>
         <p><strong>Implementation:</strong> Frontier is a <strong>FIFO queue</strong></p>
@@ -1471,6 +1528,95 @@ const slides = [
         </ul>
         <p><strong>Complete?</strong> Yes — s must be finite if a solution exists</p>
         <p><strong>Optimal?</strong> Only if all costs are 1 (more on costs later)</p>`
+    },
+    {
+        title: "BFS — How It Works (Implementation)",
+        content: `<p>BFS uses a <strong>queue (FIFO)</strong>. It explores layer by layer, like ripples from a stone.</p>
+        <h3>Step-by-step on a graph with Start=S, Goal=G</h3>
+        <table>
+        <tr><th>Step</th><th>Action</th><th>Queue (front → back)</th><th>What happens</th></tr>
+        <tr><td>0</td><td>start</td><td>[S]</td><td>Begin at S</td></tr>
+        <tr><td>1</td><td>expand H</td><td>[M, N, H]</td><td>Pop S. Enqueue all of S's unvisited neighbours: H, M, N</td></tr>
+        <tr><td>2</td><td>expand M</td><td>[N, H, M]</td><td>(continued from S's neighbours)</td></tr>
+        <tr><td>3</td><td>expand N</td><td>[H, M, N]</td><td>Depth 1 complete. All of S's neighbours are in the queue</td></tr>
+        <tr><td>4</td><td>expand E</td><td>[M, N, E]</td><td>Pop H (front). Enqueue H's unvisited neighbours: E, K</td></tr>
+        <tr><td>5</td><td>expand K</td><td>[N, E, K]</td><td>(continued from H's neighbours)</td></tr>
+        <tr><td>...</td><td>...</td><td>...</td><td>Continue until goal is dequeued</td></tr>
+        </table>
+        <h3>Key differences from DFS</h3>
+        <table>
+        <tr><th></th><th>DFS</th><th>BFS</th></tr>
+        <tr><td>Data structure</td><td>Stack (LIFO)</td><td>Queue (FIFO)</td></tr>
+        <tr><td>Exploration</td><td>Deep first, one branch at a time</td><td>Wide first, layer by layer</td></tr>
+        <tr><td>Backtracking</td><td>Yes — pops dead-end nodes</td><td>No — just drains the queue</td></tr>
+        <tr><td>Neighbours per step</td><td>Only the FIRST unvisited</td><td>ALL unvisited neighbours enqueued</td></tr>
+        <tr><td>Goal check</td><td>When peeking at stack top</td><td>When dequeuing from front</td></tr>
+        <tr><td>Guarantees shortest path?</td><td>No</td><td>Yes (by edge count)</td></tr>
+        </table>
+        <div class="highlight"><strong>BFS never backtracks.</strong> It simply processes the queue front-to-back. The queue always holds the frontier — nodes discovered but not yet fully processed.</div>`
+    },
+    {
+        title: "BFS — Python Pseudocode",
+        content: `<pre style="background:#0f1a2a;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;overflow-x:auto;color:#ccc">
+from collections import deque
+
+queue = deque([start])
+visited = {start}
+parents = {start: None}
+depths = {start: 0}
+
+while queue:
+    node = queue.popleft()        # take the OLDEST node (FIFO)
+
+    if node == goal:
+        return reconstruct_path(parents, goal)
+
+    # Enqueue ALL unvisited neighbours
+    for neighbour in neighbours(node):  # sorted for determinism
+        if neighbour not in visited:
+            visited.add(neighbour)
+            parents[neighbour] = node
+            depths[neighbour] = depths[node] + 1
+            queue.append(neighbour)
+
+# Queue empty → no path found</pre>
+        <h3>Why use <code>deque</code> instead of a list?</h3>
+        <ul>
+        <li><code>list.pop(0)</code> is <strong>O(n)</strong> — shifts every element</li>
+        <li><code>deque.popleft()</code> is <strong>O(1)</strong> — constant time</li>
+        <li>For BFS with thousands of nodes, this matters a lot</li>
+        </ul>
+        <div class="highlight"><strong>Remember:</strong> BFS is complete and finds the shortest path by edge count. But it is NOT optimal when edges have different costs — that's where UCS comes in.</div>`
+    },
+    {
+        title: "DFS vs BFS — Visual Comparison",
+        content: `<p>Both algorithms search the same graph, but explore in completely different orders:</p>
+        <svg viewBox="0 0 500 220" style="width:100%;max-width:500px;margin:16px auto;display:block;background:#0f1a2a;border-radius:12px;padding:12px">
+          <style>.cmp{font-size:11px;fill:#ccc;text-anchor:middle}.cmph{font-size:13px;font-weight:bold;text-anchor:middle}</style>
+          <!-- DFS side -->
+          <text x="125" y="20" class="cmph" fill="#7cb7ff">DFS (Stack)</text>
+          <rect x="25" y="30" width="200" height="30" rx="6" fill="#1a2a4a" stroke="#7cb7ff" stroke-width="1"/>
+          <text x="125" y="50" class="cmp" fill="#7cb7ff">Goes DEEP, then backtracks</text>
+          <text x="40" y="80" fill="#888" font-size="10">Visit order:</text>
+          <text x="40" y="100" fill="#ccc" font-size="11">S → H → E → (back) → K →</text>
+          <text x="40" y="116" fill="#ccc" font-size="11">A → B → (back) → ...</text>
+          <rect x="25" y="130" width="200" height="70" rx="6" fill="none" stroke="#333" stroke-width="1"/>
+          <text x="125" y="150" class="cmp">Space: O(bm) - low!</text>
+          <text x="125" y="168" class="cmp">Complete: No</text>
+          <text x="125" y="186" class="cmp">Optimal: No</text>
+          <!-- BFS side -->
+          <text x="375" y="20" class="cmph" fill="#4ade80">BFS (Queue)</text>
+          <rect x="275" y="30" width="200" height="30" rx="6" fill="#0f2a1a" stroke="#4ade80" stroke-width="1"/>
+          <text x="375" y="50" class="cmp" fill="#4ade80">Goes WIDE, layer by layer</text>
+          <text x="290" y="80" fill="#888" font-size="10">Visit order:</text>
+          <text x="290" y="100" fill="#ccc" font-size="11">S → H, M, N → E, K,</text>
+          <text x="290" y="116" fill="#ccc" font-size="11">A, D, J → B, F, ...</text>
+          <rect x="275" y="130" width="200" height="70" rx="6" fill="none" stroke="#333" stroke-width="1"/>
+          <text x="375" y="150" class="cmp">Space: O(b^s) - high!</text>
+          <text x="375" y="168" class="cmp">Complete: Yes</text>
+          <text x="375" y="186" class="cmp">Optimal: If costs = 1</text>
+        </svg>
+        <div class="highlight"><strong>Trade-off:</strong> DFS uses much less memory (great for deep graphs), but BFS guarantees the shortest path. Choose based on your problem.</div>`
     },
     {
         title: "Cost-Sensitive Search",
