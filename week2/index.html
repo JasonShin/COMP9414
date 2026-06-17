@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMP9414 Week 2 - Planning Quiz</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            min-height: 100vh;
+            font-size: 17px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            color: #7cb7ff;
+            margin-bottom: 8px;
+        }
+        header p { color: #888; font-size: 0.95rem; }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #1a1a3e;
+            border: 1px solid #333;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .nav-tab:hover { border-color: #7cb7ff; color: #7cb7ff; }
+        .nav-tab.active { background: #7cb7ff; color: #0f0f23; border-color: #7cb7ff; font-weight: 600; }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1a1a3e;
+            border-radius: 3px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7cb7ff, #a78bfa);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .progress-text {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        /* Quiz card */
+        .quiz-card {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .quiz-card .category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a78bfa;
+            margin-bottom: 12px;
+        }
+        .quiz-card .question {
+            font-size: 1.2rem;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        /* Options */
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            padding: 14px 18px;
+            background: #0f0f23;
+            border: 1px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .option:hover { border-color: #7cb7ff; background: #151535; }
+        .option.selected { border-color: #7cb7ff; background: #1a2a4a; }
+        .option.correct { border-color: #4ade80; background: #0f2a1a; color: #4ade80; }
+        .option.incorrect { border-color: #f87171; background: #2a0f0f; color: #f87171; }
+        .option.show-correct { border-color: #4ade80; background: #0f2a1a; }
+        .option.disabled { pointer-events: none; }
+
+        /* Explanation */
+        .explanation {
+            margin-top: 20px;
+            padding: 16px;
+            background: #0f1a2a;
+            border-left: 3px solid #7cb7ff;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: none;
+            color: #ccc;
+        }
+        .explanation.visible { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #7cb7ff; color: #0f0f23; }
+        .btn-primary:hover { background: #5a9fee; }
+        .btn-secondary { background: #2a2a5a; color: #ccc; }
+        .btn-secondary:hover { background: #3a3a6a; }
+        .btn-reset { background: #f87171; color: #fff; }
+        .btn-reset:hover { background: #dc2626; }
+
+        /* Score */
+        .score-display {
+            text-align: center;
+            padding: 40px;
+        }
+        .score-display h2 { font-size: 2rem; color: #7cb7ff; margin-bottom: 12px; }
+        .score-display .score-num { font-size: 3.5rem; font-weight: 700; color: #4ade80; margin: 16px 0; }
+        .score-display .score-num.low { color: #f87171; }
+        .score-display .score-num.mid { color: #fbbf24; }
+        .score-breakdown { margin-top: 20px; font-size: 0.9rem; color: #aaa; }
+
+        /* Topic section in browse mode */
+        .topic-section { margin-bottom: 32px; }
+        .topic-section h3 { color: #7cb7ff; margin-bottom: 12px; font-size: 1.1rem; }
+        .topic-section ul { padding-left: 20px; }
+        .topic-section li { margin-bottom: 8px; line-height: 1.5; color: #ccc; }
+        .topic-section code { background: #2a2a5a; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Flashcard mode */
+        .flashcard {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .flashcard:hover { border-color: #7cb7ff; }
+        .flashcard .front { font-size: 1.2rem; font-weight: 500; }
+        .flashcard .back { font-size: 1rem; color: #4ade80; line-height: 1.6; display: none; }
+        .flashcard.flipped .front { display: none; }
+        .flashcard.flipped .back { display: block; }
+        .flashcard .hint { font-size: 0.8rem; color: #666; margin-top: 12px; }
+
+        /* Slide mode */
+        .slide {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .slide h2 {
+            font-size: 1.4rem;
+            color: #7cb7ff;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #2a2a5a;
+            padding-bottom: 12px;
+        }
+        .slide h3 { font-size: 1.1rem; color: #a78bfa; margin: 16px 0 8px; }
+        .slide p { line-height: 1.7; margin-bottom: 12px; color: #ccc; }
+        .slide ul, .slide ol { padding-left: 20px; margin-bottom: 12px; }
+        .slide li { margin-bottom: 6px; line-height: 1.6; color: #ccc; }
+        .slide .highlight {
+            background: #0f1a2a;
+            border-left: 3px solid #7cb7ff;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 0.95rem;
+        }
+        .slide .formula {
+            background: #0f1a2a;
+            border: 1px solid #2a2a5a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #4ade80;
+        }
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.9rem;
+        }
+        .slide th, .slide td {
+            padding: 8px 12px;
+            border: 1px solid #2a2a5a;
+            text-align: left;
+        }
+        .slide th { background: #0f1a2a; color: #7cb7ff; }
+        .slide td { color: #ccc; }
+        .slide .slide-num { font-size: 0.75rem; color: #555; text-align: right; }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            body { font-size: 19px; }
+            .quiz-card .question { font-size: 1.4rem; }
+            .option { font-size: 1.1rem; }
+            .explanation { font-size: 1.05rem; }
+            .slide p, .slide li { font-size: 1.1rem; }
+            .slide h2 { font-size: 1.7rem; }
+            .slide h3 { font-size: 1.25rem; }
+            .slide .highlight { font-size: 1.1rem; }
+            .slide .formula { font-size: 1.25rem; }
+            .slide table { font-size: 1.05rem; }
+            .flashcard .front { font-size: 1.4rem; }
+            .flashcard .back { font-size: 1.15rem; }
+            .topic-section li { font-size: 1.1rem; }
+            .topic-section h3 { font-size: 1.2rem; }
+            .nav-tab { font-size: 1rem; }
+            .progress-text { font-size: 0.95rem; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .quiz-card { padding: 20px; }
+            header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>COMP9414 Week 2: Planning</h1>
+        <p>Interactive quiz to master key concepts</p>
+    </header>
+
+    <div class="nav-tabs">
+        <div class="nav-tab active" onclick="switchMode('slides')">Slides</div>
+        <div class="nav-tab" onclick="switchMode('quiz')">Quiz Mode</div>
+        <div class="nav-tab" onclick="switchMode('flashcards')">Flashcards</div>
+        <div class="nav-tab" onclick="switchMode('browse')">Browse Topics</div>
+    </div>
+
+    <div id="quiz-mode" style="display:none">
+        <div class="nav-tabs" id="topic-filter" style="margin-bottom:16px">
+            <div class="nav-tab active" data-topic="all" onclick="filterTopic('all')">All Topics</div>
+            <div class="nav-tab" data-topic="motivation" onclick="filterTopic('motivation')">Why Planning?</div>
+            <div class="nav-tab" data-topic="strips" onclick="filterTopic('strips')">STRIPS</div>
+            <div class="nav-tab" data-topic="forward" onclick="filterTopic('forward')">Forward Planning</div>
+            <div class="nav-tab" data-topic="limits" onclick="filterTopic('limits')">Limits & Extensions</div>
+        </div>
+        <div class="progress-text" id="progress-text">Question 1 / 25</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div id="quiz-content"></div>
+        <div class="btn-row" id="quiz-buttons">
+            <button class="btn btn-secondary" onclick="prevQuestion()">Previous</button>
+            <button class="btn btn-primary" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+
+    <div id="flashcard-mode" style="display:none">
+        <div class="progress-text" id="flash-progress">Card 1 / 20</div>
+        <div id="flashcard-content"></div>
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevFlash()">Previous</button>
+            <button class="btn btn-primary" onclick="nextFlash()">Next</button>
+            <button class="btn btn-secondary" onclick="shuffleFlash()">Shuffle</button>
+        </div>
+    </div>
+
+    <div id="browse-mode" style="display:none"></div>
+
+    <div id="slides-mode">
+        <div class="progress-text" id="slide-progress">Slide 1 / 20</div>
+        <div id="slide-content"></div>
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevSlide()">Previous</button>
+            <button class="btn btn-primary" onclick="nextSlide()">Next</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== QUIZ DATA ====================
+const questions = [
+    // WHY PLANNING?
+    {
+        topic: "motivation",
+        category: "Why Planning?",
+        question: "Why is simple path search (DFS/BFS/UCS) not enough for a delivery robot with locked doors?",
+        options: [
+            "Because the robot moves too slowly",
+            "Because the state is more than just location — it includes objects, door states, and what the robot is carrying",
+            "Because DFS can't handle graphs with cycles",
+            "Because the goal is always unreachable"
+        ],
+        correct: 1,
+        explanation: "Path search only considers location. Planning represents states as sets of facts (e.g. at(robot, corridor), locked(lab_door), handempty(robot)) and actions have preconditions and effects. The robot must get a key, unlock a door, pick up a parcel — not just navigate."
+    },
+    {
+        topic: "motivation",
+        category: "Why Planning?",
+        question: "What is the key difference between a search problem and a planning problem?",
+        options: [
+            "Search uses graphs, planning uses trees",
+            "Search finds paths through locations; planning finds sequences of actions that transform world states",
+            "Planning is always faster than search",
+            "Search uses heuristics, planning does not"
+        ],
+        correct: 1,
+        explanation: "In search, states are locations and actions are movements. In planning, states are sets of facts about the world, actions have preconditions (what must be true) and effects (what changes), and the goal is a set of conditions to satisfy."
+    },
+    {
+        topic: "motivation",
+        category: "Why Planning?",
+        question: "What assumptions does classical planning make about the environment?",
+        options: [
+            "Partially observable, stochastic, dynamic",
+            "Fully observable, deterministic, static, closed-world",
+            "Fully observable, stochastic, dynamic",
+            "Partially observable, deterministic, static"
+        ],
+        correct: 1,
+        explanation: "Classical planning assumes: fully observable (we know all facts), deterministic (actions have guaranteed outcomes), static (world only changes via our actions), and closed-world (anything not stated as true is false)."
+    },
+    {
+        topic: "motivation",
+        category: "Why Planning?",
+        question: "What is the closed-world assumption?",
+        options: [
+            "The agent operates in a closed room",
+            "Any fact not explicitly stated as true is assumed to be false",
+            "The world never changes",
+            "All doors in the environment are closed"
+        ],
+        correct: 1,
+        explanation: "Under the closed-world assumption, if a fact is not in the current state, it is false. For example, if at(parcel, lab) is not in the state, then the parcel is NOT at the lab. This avoids having to list every false fact."
+    },
+    {
+        topic: "motivation",
+        category: "Why Planning?",
+        question: "A planning problem P = (O, s0, g) consists of:",
+        options: [
+            "Operators, start state, goal conditions",
+            "Objects, states, graphs",
+            "Observations, sensors, goals",
+            "Operators, search tree, goal node"
+        ],
+        correct: 0,
+        explanation: "A planning problem is defined by: O = set of operators (action schemas with variables), s0 = initial state (set of facts), g = goal conditions (subset of facts that must be true). A plan is a sequence of actions that transforms s0 into a state satisfying g."
+    },
+
+    // STRIPS
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "What does STRIPS stand for?",
+        options: [
+            "Structured Transition Rules for Intelligent Problem Solving",
+            "Stanford Research Institute Problem Solver",
+            "State Transition and Reduction in Planning Systems",
+            "Symbolic Transformation of Rules in Planning Scenarios"
+        ],
+        correct: 1,
+        explanation: "STRIPS = Stanford Research Institute Problem Solver. It provides a restricted action language with simple preconditions and add/delete effects."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "In STRIPS, an action has three components. What are they?",
+        options: [
+            "Input, output, cost",
+            "Preconditions, add list, delete list",
+            "Start state, transition, end state",
+            "Variables, constants, predicates"
+        ],
+        correct: 1,
+        explanation: "Each STRIPS action has: Preconditions (facts that must be true for the action to apply), Add list (facts made true by the action), and Delete list (facts made false by the action). This is the action model — the planner's causal knowledge."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "What is the state transition rule in STRIPS?",
+        options: [
+            "Result(s, a) = s + Add(a)",
+            "Result(s, a) = (s - Del(a)) + Add(a)",
+            "Result(s, a) = Add(a) - Del(a)",
+            "Result(s, a) = s - Del(a)"
+        ],
+        correct: 1,
+        explanation: "Result(s, a) = (s - Del(a)) ∪ Add(a). First remove the delete list facts, then add the add list facts. All other facts persist (frame assumption)."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "When is an action applicable in STRIPS?",
+        options: [
+            "When the goal is satisfied",
+            "When Pre(a) ⊆ s — all preconditions are in the current state",
+            "When the add list is non-empty",
+            "When no other action has been applied yet"
+        ],
+        correct: 1,
+        explanation: "An action a is applicable in state s when Pre(a) ⊆ s — every precondition of the action is present in the current state. If any precondition is missing, the action cannot be applied."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "For the action move(robot, corridor, office_a), what are the preconditions?",
+        options: [
+            "at(robot, office_a), connected(corridor, office_a)",
+            "at(robot, corridor), connected(corridor, office_a)",
+            "at(robot, corridor), at(robot, office_a)",
+            "connected(corridor, office_a) only"
+        ],
+        correct: 1,
+        explanation: "To move from corridor to office_a, the robot must be at the corridor (at(robot, corridor)) and the rooms must be connected (connected(corridor, office_a)). The add list is {at(robot, office_a)} and the delete list is {at(robot, corridor)}."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "The robot applies pickup_parcel(robot, parcel, mail_room). Which facts should be deleted?",
+        options: [
+            "at(robot, mail_room)",
+            "at(parcel, mail_room) and handempty(robot)",
+            "connected(mail_room, corridor)",
+            "locked(lab_door)"
+        ],
+        correct: 1,
+        explanation: "After picking up the parcel: the parcel is no longer sitting in the mail room (delete at(parcel, mail_room)), and the robot's hand is no longer empty (delete handempty(robot)). The robot is still in the mail room, room connectivity and door locks are unchanged."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "What is the frame assumption?",
+        options: [
+            "All actions must be framed within a time window",
+            "Facts not in the add or delete list persist unchanged",
+            "The environment is bounded by physical walls",
+            "Only one action can happen at a time"
+        ],
+        correct: 1,
+        explanation: "The frame assumption says STRIPS updates only the facts named in the add and delete lists. Everything else stays the same. For example, after unlock_door: locked(lab_door) is removed, unlocked(lab_door) is added, but at(robot, corridor) and has(robot, keycard) persist."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "What is the difference between an operator and an action?",
+        options: [
+            "There is no difference",
+            "An operator is a schema with variables; an action is a ground instance with specific values",
+            "An operator deletes facts; an action adds facts",
+            "Operators are used in BFS; actions in DFS"
+        ],
+        correct: 1,
+        explanation: "An operator (schema) uses variables: move(?robot, ?from, ?to). An action (ground instance) has specific values: move(robot, corridor, office_a). The operator defines the pattern; actions are the concrete instances that can be applied."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "For unlock_door(robot, keycard, lab_door, corridor, lab), what are the effects?",
+        options: [
+            "Add: unlocked(lab_door); Delete: locked(lab_door)",
+            "Add: at(robot, lab); Delete: at(robot, corridor)",
+            "Add: has(robot, keycard); Delete: handempty(robot)",
+            "Delete all facts not mentioned in the action"
+        ],
+        correct: 0,
+        explanation: "unlock_door adds unlocked(lab_door) and deletes locked(lab_door). The robot stays where it is (corridor), still has the keycard. After this action, crossing from corridor to lab becomes applicable."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "Suppose the state includes at(robot, corridor), has(robot, keycard), locked(lab_door). After applying unlock_door, which update is correct?",
+        options: [
+            "Add unlocked(lab_door); delete locked(lab_door)",
+            "Add at(robot, lab); delete at(robot, corridor)",
+            "Add has(robot, keycard); delete handempty(robot)",
+            "Delete all facts not mentioned in the action"
+        ],
+        correct: 0,
+        explanation: "STRIPS updates only the facts named in the add and delete lists. locked(lab_door) is removed, unlocked(lab_door) is added. at(robot, corridor) persists, the robot still has the keycard."
+    },
+    {
+        topic: "strips",
+        category: "STRIPS Representation",
+        question: "What does PDDL stand for and how does it relate to STRIPS?",
+        options: [
+            "Planning Domain Definition Language — a standard text format using the same preconditions/effects idea",
+            "Parallel Decision and Deduction Logic",
+            "Probabilistic Domain Description Language",
+            "Planning Data Description Library"
+        ],
+        correct: 0,
+        explanation: "PDDL (Planning Domain Definition Language) is a standard text format for writing planning domains and problems. It uses the same idea as STRIPS: preconditions plus effects (add/delete). The same domain can be described as STRIPS operators, PDDL actions, or Python data structures."
+    },
+
+    // FORWARD PLANNING
+    {
+        topic: "forward",
+        category: "Forward State-Space Planning",
+        question: "What is forward state-space planning?",
+        options: [
+            "Start from the goal and work backwards",
+            "Start from the initial state, generate applicable actions, apply them to get successor states, stop when goal is satisfied",
+            "Try all possible action orderings simultaneously",
+            "Use heuristics to skip directly to the goal"
+        ],
+        correct: 1,
+        explanation: "Forward planning starts from s0, generates all applicable actions, applies each to get successor states, and searches (e.g. with BFS) until a state satisfying the goal is found. A plan is a path through the space of symbolic states."
+    },
+    {
+        topic: "forward",
+        category: "Forward State-Space Planning",
+        question: "In forward planning as BFS, what does each node in the search tree represent?",
+        options: [
+            "A single fact",
+            "A state (set of facts) plus the plan prefix to reach it",
+            "An operator schema",
+            "A heuristic estimate"
+        ],
+        correct: 1,
+        explanation: "Each node is a (state, plan-prefix) pair. The state is a set of facts, and the plan prefix is the sequence of actions taken so far. BFS expands states layer by layer, finding a shortest action sequence."
+    },
+    {
+        topic: "forward",
+        category: "Forward State-Space Planning",
+        question: "From the initial state with at(robot, corridor) and locked(lab_door), which movement is NOT applicable?",
+        options: [
+            "move(robot, corridor, office_a)",
+            "move(robot, corridor, mail_room)",
+            "move(robot, corridor, lab)",
+            "move(robot, corridor, office_b)"
+        ],
+        correct: 2,
+        explanation: "move(robot, corridor, lab) requires unlocked(lab_door) as a precondition, but the lab door is locked. The other three moves only need at(robot, corridor) and connected(corridor, X), which are satisfied."
+    },
+    {
+        topic: "forward",
+        category: "Forward State-Space Planning",
+        question: "After expanding the initial state with BFS, which set best describes the next frontier?",
+        options: [
+            "States reached by moving to office A, mail room, and office B",
+            "States reached by picking up the keycard, parcel, and lab door",
+            "Only the state reached by moving to the lab",
+            "Every possible state in the whole planning domain"
+        ],
+        correct: 0,
+        explanation: "BFS expands all states at depth 1 before depth 2. From the initial state, the applicable movement actions take the robot to office A, mail room, and office B. The lab is not on the frontier because the locked-door precondition blocks that move."
+    },
+    {
+        topic: "forward",
+        category: "Forward State-Space Planning",
+        question: "Why does a naive route (corridor -> mail_room -> corridor -> lab) fail for the delivery problem?",
+        options: [
+            "The corridor doesn't connect to the mail room",
+            "The planner must handle preconditions: locked door needs keycard, picking up parcel removes handempty, getting keycard first avoids extra trips",
+            "BFS cannot find paths longer than 5 steps",
+            "The parcel is too heavy"
+        ],
+        correct: 1,
+        explanation: "The lab door is locked (need keycard to unlock). Picking up the parcel removes handempty(robot). Getting the keycard first (from office_a) avoids having to put the parcel down to pick up the keycard later. The planner must reason about these interactions."
+    },
+    {
+        topic: "forward",
+        category: "Forward State-Space Planning",
+        question: "What is the correct 9-step plan for the office delivery robot?",
+        options: [
+            "Go to mail_room, pickup parcel, go to lab, drop parcel",
+            "Move to office_a, pickup keycard, return to corridor, unlock door, go to mail_room, pickup parcel, return to corridor, go to lab, drop parcel",
+            "Unlock door, go to lab, go to mail_room, pickup parcel, go to lab, drop parcel",
+            "Pickup parcel, pickup keycard, unlock door, move to lab, drop parcel"
+        ],
+        correct: 1,
+        explanation: "The 9-step plan: 1. move(corridor->office_a) 2. pickup_keycard 3. move(office_a->corridor) 4. unlock_door 5. move(corridor->mail_room) 6. pickup_parcel 7. move(mail_room->corridor) 8. move(corridor->lab) 9. drop_parcel. The final state satisfies at(parcel, lab)."
+    },
+    {
+        topic: "forward",
+        category: "Forward State-Space Planning",
+        question: "In the unlocked_lab variant, which action disappears from the plan?",
+        options: [
+            "pickup_keycard and unlock_door",
+            "pickup_parcel",
+            "unlock_door (and pickup_keycard becomes unnecessary)",
+            "drop_parcel"
+        ],
+        correct: 2,
+        explanation: "If the door is already unlocked, unlock_door is no longer applicable. In the current ai9414 STRIPS example, this also means the keycard action is no longer useful for reaching at(parcel, lab). Changing one initial fact changes which actions are useful."
+    },
+
+    // LIMITS & EXTENSIONS
+    {
+        topic: "limits",
+        category: "Limits & Extensions",
+        question: "What is the Sussman anomaly?",
+        options: [
+            "A bug in the STRIPS algorithm",
+            "A blocks-world problem where goals interact — solving one goal first undoes it when solving the other",
+            "A situation where the planner runs forever",
+            "An anomaly in heuristic estimates"
+        ],
+        correct: 1,
+        explanation: "The Sussman anomaly: initial state has on(C,A) and ontable(B); goal is on(A,B) and on(B,C). If you achieve on(A,B) first, you need clear(B) for on(B,C), which requires removing A from B — undoing your first goal. The solution: interleave the goals."
+    },
+    {
+        topic: "limits",
+        category: "Limits & Extensions",
+        question: "Why does the subgoal order matter in the blocks world?",
+        options: [
+            "Because blocks have different weights",
+            "Because achieving on(A,B) requires clear(B), but stacking A on B makes clear(B) false, blocking on(B,C)",
+            "Because the table has limited space",
+            "Because DFS processes goals in alphabetical order"
+        ],
+        correct: 1,
+        explanation: "After stack(A,B): on(A,B) is true but clear(B) is false. The only way to make clear(B) true is to remove A — which deletes on(A,B). Goals are not independent: delete effects reveal goal interactions. A planner should reason over the whole state and goal set."
+    },
+    {
+        topic: "limits",
+        category: "Limits & Extensions",
+        question: "What are the limits of classical planning?",
+        options: [
+            "It only works for block-stacking problems",
+            "Initial state may be incomplete/wrong, actions may have unmodelled preconditions, effects may be nondeterministic, other agents may change the world",
+            "It cannot handle more than 10 actions",
+            "It requires a neural network to function"
+        ],
+        correct: 1,
+        explanation: "Classical planning assumes a perfect model. In reality: the initial state may be incomplete, actions may have unmodelled preconditions (qualification problem), effects may be nondeterministic, and other agents may change the world during execution."
+    },
+    {
+        topic: "limits",
+        category: "Limits & Extensions",
+        question: "What is the qualification problem?",
+        options: [
+            "The problem of qualifying the planner for certification",
+            "It is impossible to list every condition that must hold for an action to work",
+            "The problem of choosing which planning algorithm to use",
+            "The problem of grading student solutions"
+        ],
+        correct: 1,
+        explanation: "For unlock_door, unmodelled preconditions include: keycard is valid, door has power, robot can reach the reader, reader software is working, no emergency override. Planning needs a model, but every model is an abstraction. A plan is only as reliable as the knowledge encoded in it."
+    },
+    {
+        topic: "limits",
+        category: "Limits & Extensions",
+        question: "What is backward regression in planning?",
+        options: [
+            "Searching from the initial state forward",
+            "Starting with the goal and asking which action could have made it true, generating prior subgoals",
+            "Running the plan in reverse order",
+            "Removing actions from an existing plan"
+        ],
+        correct: 1,
+        explanation: "Backward regression starts with the goal g and asks: which action has g in its add list? That action's preconditions become new subgoals. For g = {at(parcel, lab)}, a relevant last action is drop_parcel(robot, parcel, lab), giving subgoals at(robot, lab) and carrying(robot, parcel)."
+    },
+];
+
+// ==================== FLASHCARD DATA ====================
+const flashcards = [
+    { front: "Why is path search not enough for planning?", back: "Path search only handles location. Planning needs states as sets of facts, actions with preconditions & effects, and goals as conditions.\nExample: robot needs key -> unlock door -> carry parcel -> deliver." },
+    { front: "What is the closed-world assumption?", back: "Any fact not explicitly stated as true is assumed false.\nExample: if at(parcel, lab) is not in the state, the parcel is NOT at the lab." },
+    { front: "Planning problem P = (O, s0, g)?", back: "O = operators (action schemas with variables)\ns0 = initial state (set of facts)\ng = goal conditions (facts that must be true)\nA plan transforms s0 into a state where g holds." },
+    { front: "What does STRIPS stand for?", back: "Stanford Research Institute Problem Solver.\nA restricted action language: preconditions + add/delete effects." },
+    { front: "3 components of a STRIPS action?", back: "1. Preconditions: facts that must be true\n2. Add list: facts made true\n3. Delete list: facts made false\nThis is the planner's causal knowledge." },
+    { front: "STRIPS state transition rule?", back: "Result(s, a) = (s - Del(a)) ∪ Add(a)\n1. Remove delete list facts\n2. Add the add list facts\n3. All other facts persist (frame assumption)" },
+    { front: "When is an action applicable?", back: "When Pre(a) ⊆ s\nAll preconditions must be present in the current state." },
+    { front: "What is the frame assumption?", back: "Facts not mentioned in add or delete lists persist unchanged after an action.\nOnly explicitly named facts change." },
+    { front: "Operator vs Action?", back: "Operator = schema with variables: move(?robot, ?from, ?to)\nAction = ground instance: move(robot, corridor, office_a)\nOperator defines the pattern; actions are concrete instances." },
+    { front: "What is forward state-space planning?", back: "Start from s0.\nGenerate applicable actions.\nApply each to get successor states.\nStop when a state satisfies the goal.\nA plan is a path through symbolic states." },
+    { front: "Forward planning as BFS?", back: "1. Put I on frontier with empty plan\n2. Pop next state + plan prefix\n3. If state satisfies G, return plan\n4. For each applicable action: add Result(s,a) with extended plan\n5. Avoid revisiting states already seen" },
+    { front: "Why can't the robot move to the lab initially?", back: "move(robot, corridor, lab) requires unlocked(lab_door).\nBut locked(lab_door) is in s0 and unlocked(lab_door) is not.\nMust first: get keycard -> unlock door." },
+    { front: "Office delivery robot: 9-step plan?", back: "1. move corridor->office_a\n2. pickup_keycard\n3. move office_a->corridor\n4. unlock_door\n5. move corridor->mail_room\n6. pickup_parcel\n7. move mail_room->corridor\n8. move corridor->lab\n9. drop_parcel" },
+    { front: "pickup_parcel: Pre, Add, Del?", back: "Pre: at(robot,r), at(parcel,r), handempty(robot)\nAdd: carrying(robot,parcel)\nDel: at(parcel,r), handempty(robot)" },
+    { front: "drop_parcel: Pre, Add, Del?", back: "Pre: at(robot,r), carrying(robot,parcel)\nAdd: at(parcel,r), handempty(robot)\nDel: carrying(robot,parcel)" },
+    { front: "What is the Sussman anomaly?", back: "Blocks world: initial on(C,A), ontable(B).\nGoal: on(A,B) and on(B,C).\nSolving on(A,B) first blocks on(B,C) because clear(B) is destroyed.\nSolution: interleave goals - do on(B,C) first." },
+    { front: "What is backward regression?", back: "Start with goal g.\nAsk: which action has g in its add list?\nThat action's preconditions become new subgoals.\nHelps explain relevance and identify goal interactions." },
+    { front: "Limits of classical planning?", back: "1. Initial state may be incomplete/wrong\n2. Actions may have unmodelled preconditions\n3. Effects may be nondeterministic\n4. Other agents may change the world\nA plan is only as reliable as its model." },
+    { front: "What is the qualification problem?", back: "It is impossible to list every condition for an action to work.\nFor unlock_door: keycard valid? door has power? reader working? no emergency override?\nEvery model is an abstraction." },
+    { front: "What is PDDL?", back: "Planning Domain Definition Language.\nA standard text format for writing planning domains and problems.\nSame idea as STRIPS: preconditions + effects.\nCan describe same domain as STRIPS, PDDL, or Python." },
+];
+
+// ==================== BROWSE DATA ====================
+const browseContent = `
+<div class="topic-section">
+<h3>1. Why Path Search Is Not Enough</h3>
+<ul>
+<li>Path search only considers <strong>location</strong> as state. Planning needs richer state.</li>
+<li>A delivery robot must handle: locked doors, keycards, carrying objects</li>
+<li>Planning state = <strong>set of facts</strong> about the world (e.g., <code>at(robot, corridor)</code>, <code>locked(lab_door)</code>)</li>
+<li>Actions have <strong>preconditions</strong> (what must be true) and <strong>effects</strong> (what changes)</li>
+<li>Goal = set of conditions to satisfy, not just a destination</li>
+<li>Classical planning assumes: <strong>fully observable, deterministic, static, closed-world</strong></li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>2. Planning Domain & Problem</h3>
+<ul>
+<li><strong>Planning problem P = (O, s0, g)</strong>: operators, initial state, goal conditions</li>
+<li><strong>Operators</strong> = action schemas with variables, e.g. <code>move(?robot, ?from, ?to)</code></li>
+<li><strong>Actions</strong> = ground instances, e.g. <code>move(robot, corridor, office_a)</code></li>
+<li><strong>State</strong> = set of facts (closed-world: not stated = false)</li>
+<li><strong>Fact templates</strong> define the vocabulary: <code>at(X, Y)</code>, <code>connected(X, Y)</code>, <code>locked(X)</code></li>
+<li><strong>Transition system</strong>: states as nodes, actions as edges</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>3. STRIPS Representation</h3>
+<ul>
+<li><strong>STRIPS</strong> = Stanford Research Institute Problem Solver</li>
+<li>Each action: <strong>Preconditions, Add list, Delete list</strong></li>
+<li>Action applicable when <strong>Pre(a) ⊆ s</strong> (all preconditions in current state)</li>
+<li>State transition: <code>Result(s, a) = (s - Del(a)) ∪ Add(a)</code></li>
+<li><strong>Frame assumption</strong>: facts not in add/delete lists persist unchanged</li>
+<li><strong>PDDL</strong> = standard text format, same preconditions/effects idea</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>4. Office Delivery Robot Example</h3>
+<ul>
+<li>Rooms: corridor, office_a, office_b, mail_room, lab (lab_door locked)</li>
+<li>Objects: robot, parcel (in mail_room), keycard (in office_a)</li>
+<li>Actions: <code>move</code>, <code>pickup_keycard</code>, <code>pickup_parcel</code>, <code>drop_parcel</code>, <code>unlock_door</code></li>
+<li>Initial state includes: <code>at(robot, corridor)</code>, <code>at(parcel, mail_room)</code>, <code>at(keycard, office_a)</code>, <code>locked(lab_door)</code>, <code>handempty(robot)</code></li>
+<li>Goal: <code>at(parcel, lab)</code></li>
+<li>9-step plan: get keycard -> unlock door -> get parcel -> deliver to lab</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>5. Key Actions (Pre / Add / Del)</h3>
+<ul>
+<li><strong>move(?r, ?from, ?to)</strong> — Pre: at(?r,?from), connected(?from,?to). Add: at(?r,?to). Del: at(?r,?from)</li>
+<li><strong>pickup_keycard(?r, ?k, ?room)</strong> — Pre: at(?r,?room), at(?k,?room), handempty(?r). Add: has(?r,?k). Del: at(?k,?room)</li>
+<li><strong>pickup_parcel(?r, ?p, ?room)</strong> — Pre: at(?r,?room), at(?p,?room), handempty(?r). Add: carrying(?r,?p). Del: at(?p,?room), handempty(?r)</li>
+<li><strong>drop_parcel(?r, ?p, ?room)</strong> — Pre: at(?r,?room), carrying(?r,?p). Add: at(?p,?room), handempty(?r). Del: carrying(?r,?p)</li>
+<li><strong>unlock_door(?r, ?k, ?d, ?from, ?to)</strong> — Pre: at(?r,?from), has(?r,?k), locked(?d), door_between(?d,?from,?to). Add: unlocked(?d). Del: locked(?d)</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>6. Forward State-Space Planning</h3>
+<ul>
+<li>Start from initial state s0</li>
+<li>Generate applicable actions (Pre(a) ⊆ s)</li>
+<li>Apply each action to get successor states</li>
+<li>Stop when a state satisfies the goal</li>
+<li>Can use BFS: finds shortest action sequence (if equal costs, finite state space)</li>
+<li>May expand many irrelevant states; avoid revisiting states already seen</li>
+<li>BFS planning expanded 57 states, generated 62, largest frontier: 14 states</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>7. Backward Regression</h3>
+<ul>
+<li>Start with goal g, ask: which action could have made it true?</li>
+<li>That action's preconditions become new subgoals</li>
+<li>For <code>at(parcel, lab)</code>: relevant action is <code>drop_parcel(robot, parcel, lab)</code></li>
+<li>Prior subgoals: <code>at(robot, lab)</code> and <code>carrying(robot, parcel)</code></li>
+<li>Helps explain relevance and identify goal interactions</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>8. Goal Interactions & Sussman Anomaly</h3>
+<ul>
+<li>Blocks world: on(C,A), ontable(B) -> goal: on(A,B), on(B,C)</li>
+<li>Achieving on(A,B) first: need clear(B) for on(B,C), but A is on B</li>
+<li>Must undo on(A,B) to clear B -> goal interaction</li>
+<li>Solution: interleave goals — do on(B,C) before on(A,B)</li>
+<li>Lesson: goals are not always independent, delete effects reveal interactions</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>9. Limits of Classical Planning</h3>
+<ul>
+<li>Initial state may be incomplete or wrong</li>
+<li>Actions may have unmodelled preconditions (<strong>qualification problem</strong>)</li>
+<li>Effects may be nondeterministic</li>
+<li>Other agents may change the world</li>
+<li>A plan is only as reliable as the knowledge encoded in state and action representation</li>
+<li>Heuristics make forward planning practical: relax the problem, ignore delete effects, abstract away details</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>10. ai9414 Demo: STRIPS Planner</h3>
+<ul>
+<li>Launch: <code>uv run ai9414 demo strips</code></li>
+<li>Variants: canonical_delivery, robot_starts_mail_room, keycard_in_office_b, unlocked_lab</li>
+<li>Inspect: initial state facts, applicable actions, plan trace, solver stats</li>
+<li>The planner searches over sets of facts, not pixels on a map</li>
+</ul>
+</div>
+`;
+
+// ==================== SLIDES DATA ====================
+const slides = [
+    {
+        title: "Planning",
+        content: `<p>COMP9414 Week 2 — Oliver Obst, UNSW</p>
+        <p>Material based on:</p>
+        <ul>
+        <li><em>Artificial Intelligence: A Modern Approach</em> by Norvig & Russell (Ch. 11)</li>
+        <li>U Pittsburgh "Planning and Search / Classical Planning" by Jan Wiebe</li>
+        <li><em>Automated Planning: Theory and Practice</em> by Dana Nau (Ch. 2 & 4)</li>
+        <li>JHU Planning slides by Philipp Koehn</li>
+        <li>The ai9414 python package</li>
+        </ul>`
+    },
+    {
+        title: "Week 2 Content",
+        content: `<ul>
+        <li>Why path search is not enough</li>
+        <li>Planning problems: initial state, goal, actions</li>
+        <li>Preconditions and effects</li>
+        <li>STRIPS-style action representation</li>
+        <li>Forward state-space planning</li>
+        <li>Example: office delivery robot</li>
+        <li>Limits of planning and the need for explicit knowledge representation</li>
+        </ul>`
+    },
+    {
+        title: "Why Path Search Is Not Enough",
+        content: `<p>Last week, the robot just needed to <strong>navigate to a location</strong>. State = position.</p>
+        <p>But what if the robot needs to:</p>
+        <ul>
+        <li>Pick up a keycard from office A</li>
+        <li>Unlock a locked door</li>
+        <li>Carry a parcel from the mail room</li>
+        <li>Deliver the parcel to the lab</li>
+        </ul>
+        <div class="highlight">Path search can't handle this. The state is more than just "where am I?" — it includes what objects exist, what the robot is carrying, and whether doors are locked.</div>`
+    },
+    {
+        title: "Search vs Planning",
+        content: `<table>
+        <tr><th>Aspect</th><th>Search (Week 1)</th><th>Planning (Week 2)</th></tr>
+        <tr><td>State</td><td>Location (node in graph)</td><td>Set of facts about the world</td></tr>
+        <tr><td>Actions</td><td>Move along edges</td><td>Preconditions + effects</td></tr>
+        <tr><td>Goal</td><td>Reach destination node</td><td>Set of conditions to satisfy</td></tr>
+        <tr><td>Solution</td><td>Path (sequence of moves)</td><td>Plan (sequence of actions)</td></tr>
+        </table>
+        <div class="highlight">Planning = search through a richer state space where actions transform world states.</div>`
+    },
+    {
+        title: "Planning Assumptions",
+        content: `<p>Classical planning makes simplifying assumptions:</p>
+        <ul>
+        <li><strong>Fully observable</strong> — we know all facts in the current state</li>
+        <li><strong>Deterministic</strong> — actions have guaranteed outcomes</li>
+        <li><strong>Static</strong> — the world only changes when the agent acts</li>
+        <li><strong>Closed-world assumption</strong> — anything not stated as true is false</li>
+        </ul>
+        <div class="highlight">If <code>at(parcel, lab)</code> is not in the state, then the parcel is NOT at the lab.</div>`
+    },
+    {
+        title: "Planning Domain",
+        content: `<p>A planning domain defines:</p>
+        <ul>
+        <li><strong>Fact templates</strong> — vocabulary of predicates: <code>at(X,Y)</code>, <code>connected(X,Y)</code>, <code>locked(X)</code></li>
+        <li><strong>Operators</strong> — action schemas with variables and their preconditions/effects</li>
+        <li><strong>Transition system</strong> — states as nodes, actions as edges</li>
+        </ul>
+        <h3>Planning Problem P = (O, s0, g)</h3>
+        <ul>
+        <li><strong>O</strong> = set of operators</li>
+        <li><strong>s0</strong> = initial state (set of ground facts)</li>
+        <li><strong>g</strong> = goal conditions (facts that must be true)</li>
+        </ul>`
+    },
+    {
+        title: "Office Delivery Domain",
+        content: `<p>Rooms: corridor, office_a, office_b, mail_room, lab</p>
+        <p>Objects: robot, parcel, keycard, lab_door</p>
+        <h3>Initial State s0</h3>
+        <div class="formula">at(robot, corridor), at(parcel, mail_room), at(keycard, office_a),<br>
+        locked(lab_door), handempty(robot),<br>
+        connected(corridor, office_a), connected(corridor, mail_room), ...,<br>
+        door_between(lab_door, corridor, lab)</div>
+        <h3>Goal</h3>
+        <div class="formula">at(parcel, lab)</div>`
+    },
+    {
+        title: "Preconditions and Effects",
+        content: `<table>
+        <tr><th>Preconditions</th><th>Effects</th></tr>
+        <tr><td>Facts that must already hold for the action to be legal</td><td>Facts made true or false by the action</td></tr>
+        <tr><td>If a precondition is false, the action cannot be applied</td><td>Positive effects are added; negative effects are deleted</td></tr>
+        </table>
+        <div class="highlight">The action model is the planner's causal knowledge about the world.</div>`
+    },
+    {
+        title: "STRIPS Action Representation",
+        content: `<p><strong>STRIPS</strong> = Stanford Research Institute Problem Solver</p>
+        <h3>Example: move(robot, corridor, office_a)</h3>
+        <table>
+        <tr><th>Component</th><th>Content</th></tr>
+        <tr><td>Preconditions</td><td><code>at(robot, corridor)</code>, <code>connected(corridor, office_a)</code></td></tr>
+        <tr><td>Add list</td><td><code>at(robot, office_a)</code></td></tr>
+        <tr><td>Delete list</td><td><code>at(robot, corridor)</code></td></tr>
+        </table>
+        <p>STRIPS gives a tidy, restricted action language: simple preconditions and add/delete effects.</p>`
+    },
+    {
+        title: "State Transition Rule",
+        content: `<div class="formula">Result(s, a) = (s - Del(a)) ∪ Add(a)</div>
+        <h3>Applicable if:</h3>
+        <ul>
+        <li>Pre(a) ⊆ s — all preconditions are in the current state</li>
+        </ul>
+        <h3>Then update:</h3>
+        <ul>
+        <li>Remove the delete list facts</li>
+        <li>Add the add list facts</li>
+        <li>All other facts persist (<strong>frame assumption</strong>)</li>
+        </ul>`
+    },
+    {
+        title: "All Office Domain Actions",
+        content: `<table>
+        <tr><th>Action</th><th>Pre</th><th>Add</th><th>Del</th></tr>
+        <tr><td><code>move(?r,?from,?to)</code></td><td>at(?r,?from), connected(?from,?to)</td><td>at(?r,?to)</td><td>at(?r,?from)</td></tr>
+        <tr><td><code>pickup_keycard(?r,?k,?room)</code></td><td>at(?r,?room), at(?k,?room), handempty(?r)</td><td>has(?r,?k)</td><td>at(?k,?room)</td></tr>
+        <tr><td><code>pickup_parcel(?r,?p,?room)</code></td><td>at(?r,?room), at(?p,?room), handempty(?r)</td><td>carrying(?r,?p)</td><td>at(?p,?room), handempty(?r)</td></tr>
+        <tr><td><code>drop_parcel(?r,?p,?room)</code></td><td>at(?r,?room), carrying(?r,?p)</td><td>at(?p,?room), handempty(?r)</td><td>carrying(?r,?p)</td></tr>
+        <tr><td><code>unlock_door(?r,?k,?d,?from,?to)</code></td><td>at(?r,?from), has(?r,?k), locked(?d), door_between(?d,?from,?to)</td><td>unlocked(?d)</td><td>locked(?d)</td></tr>
+        </table>`
+    },
+    {
+        title: "Forward State-Space Planning",
+        content: `<h3>Idea</h3>
+        <ul>
+        <li>Start from the initial state s0</li>
+        <li>Generate applicable actions</li>
+        <li>Apply each action to get successor states</li>
+        <li>Stop when a state satisfies the goal</li>
+        </ul>
+        <div class="highlight">A plan is a path through the space of symbolic states.</div>
+        <h3>As BFS:</h3>
+        <ol>
+        <li>Put I on the frontier with an empty plan</li>
+        <li>Pop the next state and plan prefix</li>
+        <li>If the state satisfies G, return the plan</li>
+        <li>For each applicable action: add Result(s,a) with extended plan</li>
+        <li>Avoid revisiting states already seen</li>
+        </ol>
+        <p>If all actions have equal cost and the state space is finite, BFS finds a shortest action sequence.</p>`
+    },
+    {
+        title: "First Expansion in the Office Domain",
+        content: `<p>From the initial state: s0 ⊃ {at(robot, corridor), locked(lab_door)}</p>
+        <h3>Applicable movement actions:</h3>
+        <ul>
+        <li><code>move(robot, corridor, office_a)</code></li>
+        <li><code>move(robot, corridor, mail_room)</code></li>
+        <li><code>move(robot, corridor, office_b)</code></li>
+        </ul>
+        <h3>Not applicable yet:</h3>
+        <div class="formula">move(robot, corridor, lab)</div>
+        <p>because <code>unlocked(lab_door) ∉ s0</code></p>`
+    },
+    {
+        title: "Found Plan: Office Delivery Robot",
+        content: `<table>
+        <tr><th>#</th><th>Action</th><th>Location</th></tr>
+        <tr><td>1</td><td>move</td><td>corridor -> office_a</td></tr>
+        <tr><td>2</td><td>pickup_keycard</td><td>office_a</td></tr>
+        <tr><td>3</td><td>move</td><td>office_a -> corridor</td></tr>
+        <tr><td>4</td><td>unlock_door</td><td>corridor/lab</td></tr>
+        <tr><td>5</td><td>move</td><td>corridor -> mail_room</td></tr>
+        <tr><td>6</td><td>pickup_parcel</td><td>mail_room</td></tr>
+        <tr><td>7</td><td>move</td><td>mail_room -> corridor</td></tr>
+        <tr><td>8</td><td>move</td><td>corridor -> lab</td></tr>
+        <tr><td>9</td><td>drop_parcel</td><td>lab</td></tr>
+        </table>
+        <div class="highlight">The final state satisfies: <code>at(parcel, lab)</code></div>
+        <p>Solver stats: 57 expanded states, 62 generated, largest frontier: 14 states.</p>`
+    },
+    {
+        title: "Why Naive Route Fails",
+        content: `<p>A naive route (corridor -> mail_room -> corridor -> lab) looks simple but fails:</p>
+        <ul>
+        <li>The lab door is <strong>locked</strong></li>
+        <li>Unlocking requires the <strong>keycard</strong> (in office_a)</li>
+        <li>Picking up the parcel removes <code>handempty(robot)</code></li>
+        <li>Getting the keycard first avoids having to put the parcel down</li>
+        </ul>
+        <div class="highlight">The planner reasons about preconditions and effects — it doesn't just follow a path on a map.</div>`
+    },
+    {
+        title: "Backward Regression",
+        content: `<table>
+        <tr><th>Forward Progression</th><th>Backward Regression</th></tr>
+        <tr><td>Start with s0, apply actions, test goal</td><td>Start with goal, ask which action could have made it true</td></tr>
+        </table>
+        <h3>Office example</h3>
+        <p>For g = {at(parcel, lab)}, a relevant last action is:</p>
+        <div class="formula">drop_parcel(robot, parcel, lab)</div>
+        <p>Giving prior subgoals: <code>at(robot, lab)</code> and <code>carrying(robot, parcel)</code></p>`
+    },
+    {
+        title: "Interacting Goals: Blocks World",
+        content: `<p>The <strong>Sussman anomaly</strong> — a blocks-world problem where goals interact:</p>
+        <h3>Initial state</h3>
+        <div class="formula">on(C,A), ontable(A), ontable(B)</div>
+        <h3>Goal</h3>
+        <div class="formula">on(A,B), on(B,C)</div>
+        <h3>Problem</h3>
+        <p>If you achieve on(A,B) first (unstack C, put down C, pick up A, stack A on B):</p>
+        <ul>
+        <li>on(A,B) is true, but clear(B) is false</li>
+        <li>To make on(B,C), you need clear(B) — must undo on(A,B)!</li>
+        </ul>
+        <p><strong>Solution:</strong> Interleave — do on(B,C) before on(A,B). Goals are not always independent.</p>`
+    },
+    {
+        title: "Heuristics Make Forward Planning Practical",
+        content: `<h3>Problem</h3>
+        <ul>
+        <li>Forward search can have a large branching factor</li>
+        <li>Many legal actions do not help the goal</li>
+        <li>BFS memory grows quickly with plan length</li>
+        </ul>
+        <h3>Common ideas</h3>
+        <ul>
+        <li>Relax the problem to estimate distance to goal</li>
+        <li>Ignore some delete effects</li>
+        <li>Abstract away details</li>
+        <li>Search with a goal-directed heuristic</li>
+        </ul>`
+    },
+    {
+        title: "Limits of Classical Planning",
+        content: `<table>
+        <tr><th>What can go wrong</th><th>Office example</th></tr>
+        <tr><td>Initial state may be incomplete or wrong</td><td>The keycard is not really in office A</td></tr>
+        <tr><td>An action may have unmodelled preconditions</td><td>The door reader is offline</td></tr>
+        <tr><td>Effects may be nondeterministic</td><td>The parcel is too large for the robot's hand</td></tr>
+        <tr><td>Other agents may change the world</td><td>Someone moves the parcel during execution</td></tr>
+        </table>
+        <h3>The Qualification Problem</h3>
+        <p>It is impossible to list every condition that must hold for an action to work.</p>
+        <div class="highlight">Planning needs a model, but every model is an abstraction. A plan is only as reliable as the knowledge encoded in the state and action representation.</div>`
+    },
+    {
+        title: "ai9414 Demo: STRIPS Planner",
+        content: `<div class="formula">uv run ai9414 demo strips</div>
+        <h3>Useful variants</h3>
+        <ul>
+        <li><code>canonical_delivery</code> — standard 9-step plan</li>
+        <li><code>robot_starts_mail_room</code> — different start location</li>
+        <li><code>keycard_in_office_b</code> — keycard elsewhere</li>
+        <li><code>unlocked_lab</code> — lab door starts unlocked (no need for keycard/unlock)</li>
+        </ul>
+        <h3>What to inspect</h3>
+        <ul>
+        <li>Initial state facts</li>
+        <li>Applicable actions at each step</li>
+        <li>The plan trace, one action at a time</li>
+        <li>Compare solver stats across variants</li>
+        </ul>
+        <div class="highlight">The planner is not using pixels on a map. It searches over sets of facts. The room diagram is only a rendering of those facts for humans.</div>`
+    },
+];
+
+// ==================== QUIZ LOGIC ====================
+let currentQuestion = 0;
+let answers = {};
+let filteredQuestions = [...questions];
+let currentTopic = 'all';
+let currentFlash = 0;
+let shuffledFlash = [...flashcards];
+
+function filterTopic(topic) {
+    currentTopic = topic;
+    document.querySelectorAll('#topic-filter .nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`#topic-filter [data-topic="${topic}"]`).classList.add('active');
+    if (topic === 'all') {
+        filteredQuestions = [...questions];
+    } else {
+        filteredQuestions = questions.filter(q => q.topic === topic);
+    }
+    currentQuestion = 0;
+    answers = {};
+    renderQuiz();
+}
+
+function renderQuiz() {
+    if (filteredQuestions.length === 0) {
+        document.getElementById('quiz-content').innerHTML = '<div class="quiz-card"><p>No questions for this topic.</p></div>';
+        return;
+    }
+    const total = filteredQuestions.length;
+    const answered = Object.keys(answers).length;
+
+    if (answered === total && answered > 0) {
+        showScore();
+        return;
+    }
+
+    const q = filteredQuestions[currentQuestion];
+    document.getElementById('progress-text').textContent = `Question ${currentQuestion + 1} / ${total}`;
+    document.getElementById('progress-fill').style.width = `${((currentQuestion + 1) / total) * 100}%`;
+
+    const hasAnswered = answers[currentQuestion] !== undefined;
+    const optionsHtml = q.options.map((opt, i) => {
+        let cls = 'option';
+        if (hasAnswered) {
+            cls += ' disabled';
+            if (i === q.correct) cls += ' correct';
+            else if (i === answers[currentQuestion] && i !== q.correct) cls += ' incorrect';
+        }
+        return `<div class="${cls}" onclick="selectAnswer(${i})">${opt}</div>`;
+    }).join('');
+
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="quiz-card">
+            <div class="category">${q.category}</div>
+            <div class="question">${q.question}</div>
+            <div class="options">${optionsHtml}</div>
+            <div class="explanation ${hasAnswered ? 'visible' : ''}">${q.explanation}</div>
+        </div>
+    `;
+}
+
+function selectAnswer(idx) {
+    if (answers[currentQuestion] !== undefined) return;
+    answers[currentQuestion] = idx;
+    renderQuiz();
+}
+
+function nextQuestion() {
+    if (currentQuestion < filteredQuestions.length - 1) {
+        currentQuestion++;
+        renderQuiz();
+    } else if (Object.keys(answers).length === filteredQuestions.length) {
+        showScore();
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuiz();
+    }
+}
+
+function showScore() {
+    const total = filteredQuestions.length;
+    let correct = 0;
+    for (let i = 0; i < total; i++) {
+        if (answers[i] === filteredQuestions[i].correct) correct++;
+    }
+    const pct = Math.round((correct / total) * 100);
+    let cls = pct >= 80 ? '' : pct >= 50 ? 'mid' : 'low';
+
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="score-display">
+            <h2>Quiz Complete!</h2>
+            <div class="score-num ${cls}">${correct}/${total}</div>
+            <p>${pct}% correct</p>
+            <div class="score-breakdown">
+                ${pct >= 80 ? 'Excellent! You have a strong grasp of the material.' :
+                  pct >= 50 ? 'Good effort! Review the topics you missed.' :
+                  'Keep studying! Try the flashcards to reinforce concepts.'}
+            </div>
+            <div class="btn-row" style="margin-top:24px">
+                <button class="btn btn-primary" onclick="resetQuiz()">Try Again</button>
+                <button class="btn btn-secondary" onclick="reviewMissed()">Review Missed</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('progress-text').textContent = `Completed: ${correct}/${total} correct`;
+}
+
+function resetQuiz() {
+    answers = {};
+    currentQuestion = 0;
+    renderQuiz();
+}
+
+function reviewMissed() {
+    const missed = [];
+    for (let i = 0; i < filteredQuestions.length; i++) {
+        if (answers[i] !== filteredQuestions[i].correct) missed.push(i);
+    }
+    if (missed.length === 0) { resetQuiz(); return; }
+    currentQuestion = missed[0];
+    answers = {};
+    renderQuiz();
+}
+
+// ==================== FLASHCARD LOGIC ====================
+function renderFlashcard() {
+    const f = shuffledFlash[currentFlash];
+    document.getElementById('flash-progress').textContent = `Card ${currentFlash + 1} / ${shuffledFlash.length}`;
+    document.getElementById('flashcard-content').innerHTML = `
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="front">${f.front}<div class="hint">Click to reveal answer</div></div>
+            <div class="back">${f.back.replace(/\n/g, '<br>')}</div>
+        </div>
+    `;
+}
+
+function nextFlash() {
+    currentFlash = (currentFlash + 1) % shuffledFlash.length;
+    renderFlashcard();
+}
+
+function prevFlash() {
+    currentFlash = (currentFlash - 1 + shuffledFlash.length) % shuffledFlash.length;
+    renderFlashcard();
+}
+
+function shuffleFlash() {
+    for (let i = shuffledFlash.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledFlash[i], shuffledFlash[j]] = [shuffledFlash[j], shuffledFlash[i]];
+    }
+    currentFlash = 0;
+    renderFlashcard();
+}
+
+// ==================== SLIDES LOGIC ====================
+let currentSlide = 0;
+
+function renderSlide() {
+    const s = slides[currentSlide];
+    document.getElementById('slide-progress').textContent = `Slide ${currentSlide + 1} / ${slides.length}`;
+    document.getElementById('slide-content').innerHTML = `
+        <div class="slide">
+            <h2>${s.title}</h2>
+            ${s.content}
+            <div class="slide-num">Slide ${currentSlide + 1} / ${slides.length}</div>
+        </div>
+    `;
+}
+
+function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        renderSlide();
+    }
+}
+
+function prevSlide() {
+    if (currentSlide > 0) {
+        currentSlide--;
+        renderSlide();
+    }
+}
+
+// ==================== BROWSE LOGIC ====================
+function renderBrowse() {
+    document.getElementById('browse-mode').innerHTML = browseContent;
+}
+
+// ==================== MODE SWITCHING ====================
+function switchMode(mode) {
+    document.querySelectorAll('.nav-tabs:first-of-type .nav-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    document.getElementById('quiz-mode').style.display = mode === 'quiz' ? 'block' : 'none';
+    document.getElementById('flashcard-mode').style.display = mode === 'flashcards' ? 'block' : 'none';
+    document.getElementById('browse-mode').style.display = mode === 'browse' ? 'block' : 'none';
+    document.getElementById('slides-mode').style.display = mode === 'slides' ? 'block' : 'none';
+
+    if (mode === 'quiz') renderQuiz();
+    if (mode === 'flashcards') renderFlashcard();
+    if (mode === 'browse') renderBrowse();
+    if (mode === 'slides') renderSlide();
+}
+
+// ==================== KEYBOARD NAVIGATION ====================
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') {
+        if (document.getElementById('slides-mode').style.display !== 'none') nextSlide();
+        else if (document.getElementById('quiz-mode').style.display !== 'none') nextQuestion();
+        else if (document.getElementById('flashcard-mode').style.display !== 'none') nextFlash();
+    } else if (e.key === 'ArrowLeft') {
+        if (document.getElementById('slides-mode').style.display !== 'none') prevSlide();
+        else if (document.getElementById('quiz-mode').style.display !== 'none') prevQuestion();
+        else if (document.getElementById('flashcard-mode').style.display !== 'none') prevFlash();
+    } else if (e.key === ' ' && document.getElementById('flashcard-mode').style.display !== 'none') {
+        e.preventDefault();
+        const card = document.querySelector('.flashcard');
+        if (card) card.classList.toggle('flipped');
+    }
+});
+
+// ==================== INIT ====================
+renderSlide();
+</script>
+</body>
+</html>

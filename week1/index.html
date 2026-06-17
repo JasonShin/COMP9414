@@ -1678,6 +1678,85 @@ while queue:
         <p>This motivates <strong>heuristic search</strong>.</p>`
     },
     {
+        title: "UCS — How It Works (Implementation)",
+        content: `<p>UCS uses a <strong>priority queue (min-heap)</strong> ordered by cumulative path cost <strong>g(n)</strong>.</p>
+        <h3>Step-by-step example</h3>
+        <table>
+        <tr><th>Step</th><th>Action</th><th>Popped</th><th>Cost</th><th>Heap (cost, node)</th></tr>
+        <tr><td>0</td><td>start</td><td>—</td><td>—</td><td>[(0, S)]</td></tr>
+        <tr><td>1</td><td>expand</td><td>S (cost 0)</td><td>—</td><td>[(1, H), (3, M), (5, N)]</td></tr>
+        <tr><td>2</td><td>expand</td><td>H (cost 1)</td><td>—</td><td>[(3, M), (4, E), (5, N), (6, K)]</td></tr>
+        <tr><td>3</td><td>expand</td><td>M (cost 3)</td><td>—</td><td>[(4, E), (5, N), (5, A), (6, K)]</td></tr>
+        <tr><td>...</td><td>...</td><td>...</td><td>...</td><td>Always pops the CHEAPEST next</td></tr>
+        </table>
+        <h3>Key differences from BFS</h3>
+        <table>
+        <tr><th></th><th>BFS</th><th>UCS</th></tr>
+        <tr><td>Data structure</td><td>FIFO Queue</td><td>Priority Queue (min-heap)</td></tr>
+        <tr><td>Ordering</td><td>By discovery time</td><td>By cumulative cost g(n)</td></tr>
+        <tr><td>Optimal?</td><td>Only if all costs = 1</td><td>Yes, always!</td></tr>
+        <tr><td>Goal check</td><td>When dequeued</td><td>When popped from heap</td></tr>
+        <tr><td>Relaxation</td><td>No — first path is final</td><td>Yes — can find cheaper path later</td></tr>
+        </table>
+        <h3>The "relaxation" concept</h3>
+        <p>When you discover a neighbour, you might already have a path to it. If the <strong>new cost is cheaper</strong>, you <em>relax</em> — update the best cost and parent, then push again to the heap. The old (more expensive) entry stays in the heap but gets skipped via the <code>visited</code> set when popped.</p>
+        <div class="highlight"><strong>Key insight:</strong> When a node is POPPED from the min-heap, that's guaranteed to be its cheapest path. That's why UCS is optimal.</div>`
+    },
+    {
+        title: "UCS — Python Pseudocode",
+        content: `<pre style="background:#0f1a2a;padding:16px;border-radius:8px;font-size:0.85rem;line-height:1.6;overflow-x:auto;color:#ccc">
+import heapq
+
+frontier = [(0, start)]          # (cost, node) min-heap
+visited = set()                  # nodes already finalized
+best_costs = {start: 0.0}       # cheapest known cost to each node
+parents = {start: None}
+
+while frontier:
+    cost, node = heapq.heappop(frontier)  # always pop cheapest
+
+    if node in visited:
+        continue                 # already found cheaper path, skip
+    visited.add(node)
+
+    if node == goal:
+        return reconstruct_path(parents, goal), cost
+
+    for neighbour, edge_cost in neighbours(node):
+        new_cost = cost + edge_cost
+        if neighbour not in best_costs or new_cost < best_costs[neighbour]:
+            best_costs[neighbour] = new_cost    # relax
+            parents[neighbour] = node
+            heapq.heappush(frontier, (new_cost, neighbour))
+
+# Frontier empty → no path found</pre>
+        <h3>Why <code>heapq</code>?</h3>
+        <ul>
+        <li>Python's <code>heapq</code> implements a <strong>min-heap</strong> on a plain list</li>
+        <li><code>heappush</code> and <code>heappop</code> are both <strong>O(log n)</strong></li>
+        <li>The tuple <code>(cost, node)</code> ensures sorting by cost first</li>
+        <li><code>while frontier:</code> works because an empty list is falsy</li>
+        </ul>
+        <h3>Common pitfall</h3>
+        <p>Don't use <code>best_costs</code> as both a "visited" check and a cost tracker. Use a separate <code>visited</code> set — <code>best_costs</code> gets updated during relaxation <em>before</em> a node is popped, so checking <code>node in best_costs</code> can skip the start node.</p>
+        <div class="highlight"><strong>Remember:</strong> UCS is complete and optimal. Its weakness: it explores in ALL directions equally because it has no idea where the goal is. That's what A* fixes by adding a heuristic h(n).</div>`
+    },
+    {
+        title: "DFS vs BFS vs UCS — Summary",
+        content: `<table>
+        <tr><th></th><th>DFS</th><th>BFS</th><th>UCS</th></tr>
+        <tr><td><strong>Data structure</strong></td><td>Stack (LIFO)</td><td>Queue (FIFO)</td><td>Priority Queue</td></tr>
+        <tr><td><strong>Ordering</strong></td><td>Most recent</td><td>Oldest</td><td>Cheapest g(n)</td></tr>
+        <tr><td><strong>Complete?</strong></td><td>No</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td><strong>Optimal?</strong></td><td>No</td><td>If costs = 1</td><td>Yes!</td></tr>
+        <tr><td><strong>Time</strong></td><td>O(b<sup>m</sup>)</td><td>O(b<sup>s</sup>)</td><td>O(b<sup>C*/&epsilon;</sup>)</td></tr>
+        <tr><td><strong>Space</strong></td><td>O(bm)</td><td>O(b<sup>s</sup>)</td><td>O(b<sup>C*/&epsilon;</sup>)</td></tr>
+        <tr><td><strong>Backtracks?</strong></td><td>Yes</td><td>No</td><td>No</td></tr>
+        <tr><td><strong>Handles weights?</strong></td><td>No</td><td>No</td><td>Yes</td></tr>
+        </table>
+        <div class="highlight"><strong>Progression:</strong> DFS → BFS (add completeness) → UCS (add optimality with costs) → A* (add goal direction with heuristic)</div>`
+    },
+    {
         title: "Romania Revisited, with Heuristics",
         content: `<p>We can add a <strong>heuristic function h(x)</strong> — the straight-line distance to Bucharest:</p>
         <table>
