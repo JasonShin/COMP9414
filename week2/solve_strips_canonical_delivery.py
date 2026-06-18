@@ -45,7 +45,7 @@ def state_id(facts):
     Suggested one-line solution:
         return tuple(sorted(facts))
     """
-    raise NotImplementedError("TODO: implement state_id")
+    return tuple(sorted(facts))
 
 
 def goal_satisfied(facts, goal):
@@ -55,7 +55,7 @@ def goal_satisfied(facts, goal):
     Suggested approach:
         Convert both lists to sets of tuples, then use issubset(...).
     """
-    raise NotImplementedError("TODO: implement goal_satisfied")
+    return set(goal).issubset(set(facts))
 
 
 def solve_planner(problem):
@@ -69,31 +69,23 @@ def solve_planner(problem):
     where facts is the current state and plan is the list of action strings
     used to reach it.
     """
+
     start = get_initial_facts(problem)
     frontier = [(start, [])]
     visited = {state_id(start)}
 
-    print("checking problem:", problem)
-    # TODO:
-    # Replace this placeholder with the BFS loop.
-    #
-    # Pseudocode:
-    # while frontier is not empty:
-    #     remove the first (facts, plan) pair from frontier
-    #     if facts satisfy problem["goal"], return:
-    #         {"algorithm": "strips_bfs", "status": "found", "plan": plan}
-    #     for each applicable action:
-    #         next_facts = apply_action_signature(problem, facts, action)
-    #         if next_facts has not been visited:
-    #             remember it
-    #             add (next_facts, plan + [action]) to the frontier
-    #
-    # If the loop finishes, return:
-    #     {"algorithm": "strips_bfs", "status": "not_found", "plan": []}
-    _ = (frontier, visited)
+    while frontier:
+        facts, plan = frontier.pop(0)
+        if goal_satisfied(facts, problem["goal"]):
+            return {"algorithm": "strips_bfs", "status": "found", "plan": plan}
+        for action in get_applicable_actions(problem, facts):
+            next_facts = apply_action_signature(problem, facts, action)
+            next_state_id = state_id(next_facts)
+            if next_state_id not in visited:
+                visited.add(next_state_id)
+                frontier.append((next_facts, plan + [action]))
 
-    return build_unimplemented_strips_result("TODO: implement forward STRIPS BFS planning.")
-
+    return {"algorithm": "strips_bfs", "status": "not_found", "plan": []}
 
 if __name__ == "__main__":
     run_strips_solver(solve_planner)
