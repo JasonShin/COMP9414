@@ -59,33 +59,34 @@ def goal_satisfied(facts, goal):
 
 
 def solve_planner(problem):
-    """
-    Run forward STRIPS BFS.
-
-    Each frontier item is:
-
-        (facts, plan)
-
-    where facts is the current state and plan is the list of action strings
-    used to reach it.
-    """
 
     start = get_initial_facts(problem)
     frontier = [(start, [])]
     visited = {state_id(start)}
 
+    stats = {
+        "expanded_states": 0,
+        "frontier_peak": 1,
+        "generated_states": 1,
+    }
+
     while frontier:
+        if len(frontier) > stats["frontier_peak"]:
+            stats["frontier_peak"] = len(frontier)
+
         facts, plan = frontier.pop(0)
+        stats["expanded_states"] += 1
         if goal_satisfied(facts, problem["goal"]):
-            return {"algorithm": "strips_bfs", "status": "found", "plan": plan}
+            return {"algorithm": "strips_bfs", "status": "found", "plan": plan, "stats": stats}
         for action in get_applicable_actions(problem, facts):
             next_facts = apply_action_signature(problem, facts, action)
             next_state_id = state_id(next_facts)
             if next_state_id not in visited:
                 visited.add(next_state_id)
                 frontier.append((next_facts, plan + [action]))
+                stats["generated_states"] += 1
 
-    return {"algorithm": "strips_bfs", "status": "not_found", "plan": []}
+    return {"algorithm": "strips_bfs", "status": "not_found", "plan": [], "stats": stats}
 
 if __name__ == "__main__":
     run_strips_solver(solve_planner)
