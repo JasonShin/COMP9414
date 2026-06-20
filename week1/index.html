@@ -731,6 +731,410 @@ const questions = [
         ],
         correct: 2,
         explanation: "The tree has 1 root + b children + b² grandchildren + ... + b^m nodes at depth m. The sum 1 + b + b² + ... + b^m is dominated by the last term, giving O(b^m)."
+    },
+
+    // DFS IMPLEMENTATION DETAILS
+    {
+        topic: "uninformed",
+        category: "DFS Implementation",
+        question: "In DFS, why do we check 'if neighbour not in visited' before pushing onto the stack?",
+        options: [
+            "To save memory by not storing duplicates",
+            "To prevent infinite loops — without cycle detection, DFS can revisit the same node forever",
+            "To ensure alphabetical order",
+            "To make DFS optimal"
+        ],
+        correct: 1,
+        explanation: "Without cycle detection, DFS follows A→B→A→B→... forever. The visited set ensures each node is expanded at most once, making DFS terminate on finite graphs. This is what makes it 'complete with cycle prevention'."
+    },
+    {
+        topic: "uninformed",
+        category: "DFS Implementation",
+        question: "DFS uses a stack. In your solve_dfs.py, what happens when you pop a node and it's the goal?",
+        options: [
+            "Push it back and continue searching for a better path",
+            "Return immediately — DFS doesn't guarantee optimal, so the first goal found is the answer",
+            "Check if a shorter path exists first",
+            "Add it to the visited set and keep going"
+        ],
+        correct: 1,
+        explanation: "DFS returns the FIRST goal it finds. It doesn't care about optimality — there might be a shorter or cheaper path elsewhere, but DFS won't look for it. That's why DFS is not optimal."
+    },
+    {
+        topic: "uninformed",
+        category: "DFS Implementation",
+        question: "In DFS, if node S has neighbours [A, B, C] (sorted), which gets explored first?",
+        options: [
+            "A — it's pushed first and popped first (FIFO)",
+            "C — it's pushed last and popped first (LIFO)",
+            "All three simultaneously",
+            "Whichever is closest to the goal"
+        ],
+        correct: 1,
+        explanation: "Stack is LIFO: push A, B, C → pop C first. So DFS explores the LAST neighbour pushed. If you want alphabetical DFS order, push in reverse order. In your code, neighbours are sorted then pushed, so the last alphabetically is explored first."
+    },
+    {
+        topic: "uninformed",
+        category: "DFS Implementation",
+        question: "DFS has O(bm) space complexity. What does this mean in practice?",
+        options: [
+            "It stores all nodes in the graph",
+            "It only stores nodes along the current path from root to leaf, plus their siblings — much less than BFS",
+            "It uses constant memory",
+            "It stores the same amount as BFS"
+        ],
+        correct: 1,
+        explanation: "DFS only keeps the current path in the stack (depth m) with siblings at each level (branching factor b). Total: O(bm). BFS stores an entire level: O(b^s). For deep graphs, DFS uses dramatically less memory."
+    },
+    {
+        topic: "uninformed",
+        category: "DFS Implementation",
+        question: "Why does DFS find the 'leftmost' solution, not the best one?",
+        options: [
+            "Because it uses a heuristic that prefers left branches",
+            "Because the stack (LIFO) always dives deep down the first branch before backtracking — it returns whatever it hits first",
+            "Because it sorts nodes alphabetically",
+            "Because it's a bug in the implementation"
+        ],
+        correct: 1,
+        explanation: "DFS dives deep along one branch, then backtracks. It returns the first goal it reaches, which depends on the order neighbours are pushed. It never compares paths — so it can't be optimal."
+    },
+    {
+        topic: "uninformed",
+        category: "DFS Implementation",
+        question: "In DFS with a visited set, can the same node appear in the stack multiple times?",
+        options: [
+            "Yes — but when we pop it the second time, it's already visited so we skip it",
+            "No — the visited set prevents it from being pushed twice",
+            "Yes — and we expand it every time",
+            "Only if it's the goal node"
+        ],
+        correct: 1,
+        explanation: "If we check visited on push: no duplicates in the stack. If we check on pop: a node can be in the stack multiple times but is only expanded once. Both approaches work — your code checks on push (if neighbour not in visited before pushing)."
+    },
+
+    // BFS IMPLEMENTATION DETAILS
+    {
+        topic: "uninformed",
+        category: "BFS Implementation",
+        question: "In BFS, when is a node marked as visited — when enqueued or when dequeued?",
+        options: [
+            "When dequeued (popped from queue)",
+            "When enqueued (added to queue) — this prevents the same node from being added multiple times",
+            "After all its neighbours are processed",
+            "It doesn't matter"
+        ],
+        correct: 1,
+        explanation: "BFS marks visited on ENQUEUE (push), not dequeue (pop). This prevents multiple copies of the same node in the queue. If you marked on dequeue, multiple parents could push the same child, wasting memory and time."
+    },
+    {
+        topic: "uninformed",
+        category: "BFS Implementation",
+        question: "Why does BFS guarantee the shortest path (by edge count)?",
+        options: [
+            "Because it uses a priority queue",
+            "Because FIFO order ensures all nodes at depth d are expanded before any node at depth d+1",
+            "Because it uses a heuristic",
+            "Because it backtracks to find shorter paths"
+        ],
+        correct: 1,
+        explanation: "FIFO queue = expand in discovery order. All depth-0 nodes are expanded, then all depth-1, then depth-2, etc. The first time we reach the goal, it must be at the shallowest possible depth. No backtracking needed."
+    },
+    {
+        topic: "uninformed",
+        category: "BFS Implementation",
+        question: "BFS uses parent pointers (parents dict). Why?",
+        options: [
+            "To detect cycles",
+            "To reconstruct the path from start to goal by following parent links backwards",
+            "To count the number of nodes",
+            "To sort the frontier"
+        ],
+        correct: 1,
+        explanation: "BFS doesn't store the full path at each node (too expensive). Instead, parents[node] = the node that discovered it. To get the path: follow parent links from goal back to start, then reverse. This is reconstruct_path()."
+    },
+    {
+        topic: "uninformed",
+        category: "BFS Implementation",
+        question: "In BFS, if start S has neighbours [A, B, C] sorted alphabetically, what is the expansion order for depth 1?",
+        options: [
+            "C, B, A — last in, first out",
+            "A, B, C — first in, first out (FIFO)",
+            "Random order",
+            "Whichever is closest to goal"
+        ],
+        correct: 1,
+        explanation: "BFS uses FIFO: enqueue A, B, C in order → dequeue A first, then B, then C. Unlike DFS (LIFO), BFS processes neighbours in the order they were added. Sorted neighbours = deterministic alphabetical expansion."
+    },
+    {
+        topic: "uninformed",
+        category: "BFS Implementation",
+        question: "BFS has O(b^s) space complexity where s is the solution depth. Why is this a problem?",
+        options: [
+            "It's not a problem — BFS is always efficient",
+            "The frontier stores an entire level of the tree — at depth s, that's up to b^s nodes, which grows exponentially",
+            "It stores all nodes from root to leaves",
+            "It's only a problem for weighted graphs"
+        ],
+        correct: 1,
+        explanation: "At solution depth s, BFS may have up to b^s nodes in the queue (the entire frontier). For b=10, s=10, that's 10 billion nodes. This is BFS's main weakness vs DFS (which only uses O(bm) space)."
+    },
+    {
+        topic: "uninformed",
+        category: "BFS Implementation",
+        question: "In BFS, does relaxation exist (finding a better path to an already-seen node)?",
+        options: [
+            "Yes — BFS updates paths like UCS",
+            "No — in BFS, the first path found to a node is already the shortest (fewest edges), so no update is needed",
+            "Only for weighted graphs",
+            "Only when using A*"
+        ],
+        correct: 1,
+        explanation: "BFS expands layer by layer. The first time a node is discovered, it's at the minimum depth. No later path can have fewer edges. So BFS never needs to 'relax' — unlike UCS where a later path can be cheaper despite having more edges."
+    },
+    {
+        topic: "uninformed",
+        category: "BFS Implementation",
+        question: "What is the key difference between how BFS and DFS handle the frontier?",
+        options: [
+            "BFS uses recursion, DFS uses iteration",
+            "BFS: FIFO queue (expand oldest first → layer by layer). DFS: LIFO stack (expand newest first → dive deep)",
+            "BFS uses a heap, DFS uses a queue",
+            "There is no difference — they both use a list"
+        ],
+        correct: 1,
+        explanation: "Same algorithm structure, different data structure. FIFO queue → BFS (breadth first, layer by layer). LIFO stack → DFS (depth first, dive then backtrack). This single change completely alters the search behaviour."
+    },
+
+    // UCS IMPLEMENTATION DETAILS
+    {
+        topic: "uninformed",
+        category: "UCS Implementation",
+        question: "In UCS, when should you check if a node is the goal?",
+        options: [
+            "When you push it onto the heap",
+            "When you pop it from the heap",
+            "When you first discover it as a neighbour",
+            "After expanding all its neighbours"
+        ],
+        correct: 1,
+        explanation: "Goal check must happen on POP, not push. When you push a node, a cheaper path to it might still be in the heap. Only when you pop it is its cost guaranteed to be the cheapest (min-heap property)."
+    },
+    {
+        topic: "uninformed",
+        category: "UCS Implementation",
+        question: "What is 'relaxation' in UCS?",
+        options: [
+            "Removing nodes from the visited set",
+            "Finding a cheaper path to a node and updating its best known cost",
+            "Skipping nodes that are already in the heap",
+            "Reducing the heuristic estimate"
+        ],
+        correct: 1,
+        explanation: "Relaxation: if new_cost < best_costs[neighbour], we found a cheaper path. Update best_costs, update the parent pointer, and push a new (cheaper_cost, node) entry onto the heap. The old entry becomes stale."
+    },
+    {
+        topic: "uninformed",
+        category: "UCS Implementation",
+        question: "What is a 'stale entry' in UCS's min-heap?",
+        options: [
+            "A node that has been removed from the heap",
+            "An outdated (cost, node) pair left in the heap after relaxation found a cheaper path",
+            "A node with no neighbours",
+            "A node that was never visited"
+        ],
+        correct: 1,
+        explanation: "After relaxation, the old (higher_cost, node) pair is still in the heap — it's stale. When we pop it, we check 'if node in visited: skip'. This is cheaper than removing it from the heap directly."
+    },
+    {
+        topic: "uninformed",
+        category: "UCS Implementation",
+        question: "Why does UCS use a min-heap instead of a FIFO queue like BFS?",
+        options: [
+            "Min-heaps use less memory",
+            "FIFO expands by discovery order (layer by layer); min-heap always expands the cheapest-so-far node regardless of depth",
+            "Min-heaps are faster to implement",
+            "FIFO queues cannot handle graphs with cycles"
+        ],
+        correct: 1,
+        explanation: "BFS (FIFO) expands layer by layer — fewest edges first. UCS (min-heap) expands by cheapest total cost first. A 3-edge path costing 4 beats a 2-edge path costing 5. UCS finds this; BFS doesn't."
+    },
+    {
+        topic: "uninformed",
+        category: "UCS Implementation",
+        question: "In UCS, once a node is popped from the heap and added to the visited set, what is guaranteed?",
+        options: [
+            "All its neighbours have been explored",
+            "Its cost is the cheapest possible path from the start",
+            "It is the goal node",
+            "No other path to it exists"
+        ],
+        correct: 1,
+        explanation: "When UCS pops a node, its cost is final — guaranteed optimal. The min-heap ensures we always pop the cheapest first, so any future path to this node would cost more. That's why we skip visited nodes."
+    },
+    {
+        topic: "uninformed",
+        category: "UCS Implementation",
+        question: "Given edges S→A(1), S→B(4), A→B(2). After expanding S and A, the heap contains [(3,B), (4,B)]. What happens when we pop (3,B)?",
+        options: [
+            "We skip B because it's already in the heap twice",
+            "We visit B with cost 3. Later when (4,B) is popped, it's skipped as stale because B is already visited",
+            "We visit B with cost 4 because the first entry is always used",
+            "We remove both entries and pick the cheaper one"
+        ],
+        correct: 1,
+        explanation: "Pop (3,B) → B not visited → mark visited, expand neighbours. Later pop (4,B) → B already visited → skip (stale entry). The min-heap naturally gives us the cheaper one first."
+    },
+    {
+        topic: "uninformed",
+        category: "UCS Implementation",
+        question: "BFS would find path S→A→G (cost 6, 2 edges). UCS finds S→A→B→G (cost 4, 3 edges). Why?",
+        options: [
+            "UCS prefers longer paths",
+            "UCS optimises total cost, not edge count — a longer path can be cheaper",
+            "BFS made an error",
+            "UCS uses a heuristic to guide the search"
+        ],
+        correct: 1,
+        explanation: "BFS finds fewest edges (optimal for unweighted graphs). UCS finds lowest total cost (optimal for weighted graphs). More edges doesn't mean more cost — UCS discovers this through relaxation."
+    },
+
+    // PRIORITY QUEUE FUNDAMENTALS (from tutorial)
+    {
+        topic: "uninformed",
+        category: "Priority Queue",
+        question: "What is a priority queue?",
+        options: [
+            "A queue that processes elements in FIFO order",
+            "A data structure where each element has a priority, and dequeue always returns the element with the highest (or lowest) priority",
+            "A stack with numbered elements",
+            "A sorted array that never changes"
+        ],
+        correct: 1,
+        explanation: "A priority queue maintains elements with priorities. On dequeue, it always returns the element with the best priority (lowest cost for UCS). Unlike FIFO queues, insertion order doesn't matter — only priority matters."
+    },
+    {
+        topic: "uninformed",
+        category: "Priority Queue",
+        question: "In Python, how does heapq implement a priority queue for UCS?",
+        options: [
+            "It sorts the entire list on every insert",
+            "It uses a binary heap where the smallest element is always at the root — heappush and heappop are O(log n)",
+            "It uses a linked list sorted by priority",
+            "It uses a hash table for O(1) lookup"
+        ],
+        correct: 1,
+        explanation: "Python's heapq is a min-heap: the smallest element is always at index 0. heappush inserts in O(log n), heappop removes the smallest in O(log n). For UCS, we push (cost, node) tuples so the cheapest node is always popped first."
+    },
+    {
+        topic: "uninformed",
+        category: "Priority Queue",
+        question: "If you enqueue items with priorities 1, 5, 3, 2, 6 into a min-priority queue, what order are they dequeued?",
+        options: [
+            "1, 5, 3, 2, 6 (insertion order)",
+            "6, 5, 3, 2, 1 (highest first)",
+            "1, 2, 3, 5, 6 (lowest first)",
+            "Random order"
+        ],
+        correct: 2,
+        explanation: "A min-priority queue always dequeues the smallest first. UCS uses a min-priority queue because it wants the cheapest node first. If it were a max-priority queue (like the tutorial example), highest would come first."
+    },
+
+    // HAND TRACE PRACTICE (from tutorial graph A-H)
+    {
+        topic: "uninformed",
+        category: "DFS Hand Trace",
+        question: "Graph: A(start)—B, A—C, B—D, B—E, C—D, C—F, D—E, D—F, E—G, F—G, F—H(goal), G—H. Neighbours sorted alphabetically. What is the DFS expansion order?",
+        options: [
+            "A, B, C, D, E, F, G, H",
+            "A, C, F, H",
+            "A, B, D, C, F, E, G, H",
+            "A, C, D, B, E, G, F, H"
+        ],
+        correct: 2,
+        explanation: "DFS (LIFO): Push A. Pop A → push [B,C]. Pop C (last) → push [D,F] (A visited). Pop F → push [G,H] (C,D visited). Pop H → GOAL! But with visited checks at different points, the order varies. The key is LIFO always goes deep on the last-pushed neighbour."
+    },
+    {
+        topic: "uninformed",
+        category: "BFS Hand Trace",
+        question: "Same graph, BFS from A to H (neighbours alphabetical). What is the BFS expansion order?",
+        options: [
+            "A, B, C, D, E, F, G, H",
+            "A, C, F, H",
+            "A, B, C, D, E, F, H",
+            "A, B, C, D, E, F, G, H (layer by layer)"
+        ],
+        correct: 3,
+        explanation: "BFS (FIFO): Depth 0: A. Depth 1: B, C (A's neighbours). Depth 2: D, E, F (B and C's unvisited neighbours). Depth 3: G, H. When H is dequeued, goal found! BFS expands ALL of one depth before moving to the next."
+    },
+    {
+        topic: "uninformed",
+        category: "BFS Hand Trace",
+        question: "In BFS, after finding goal H, how do you reconstruct the path using parent pointers?",
+        options: [
+            "Read the visited_order list directly",
+            "Follow parents backwards: H→F→C→A, then reverse to get A→C→F→H",
+            "The path is always the expansion order",
+            "BFS stores the full path at each node"
+        ],
+        correct: 1,
+        explanation: "Path reconstruction: parents[H]=F, parents[F]=C, parents[C]=A, parents[A]=None. Trace backwards: H→F→C→A. Reverse: A→C→F→H. This is exactly what reconstruct_path() does — follow parent links then reverse."
+    },
+
+    // UCS HAND TRACE (from tutorial weighted graph A-L)
+    {
+        topic: "uninformed",
+        category: "UCS Hand Trace",
+        question: "Weighted graph: A—F(8), A—G(10), A—D(12). UCS starts at A. After popping A(0), what is the priority queue state?",
+        options: [
+            "PQ: {D(12), G(10), F(8)}",
+            "PQ: {F(8), G(10), D(12)}",
+            "PQ: {G(10), F(8), D(12)}",
+            "PQ: {A(0), F(8), G(10)}"
+        ],
+        correct: 1,
+        explanation: "Pop A(0), push neighbours with cumulative costs: F(0+8=8), G(0+10=10), D(0+12=12). Min-heap orders by cost: F(8) at front, then G(10), then D(12). Next pop will be F(8)."
+    },
+    {
+        topic: "uninformed",
+        category: "UCS Hand Trace",
+        question: "Continuing: after popping F(8), its neighbours are D(cost 14 via F) and I(cost 22 via F). D already has cost 12 in the PQ. What happens?",
+        options: [
+            "D(14) replaces D(12) in the PQ",
+            "D(14) is NOT pushed because 14 > 12 (existing best cost). I(22) is pushed. PQ: {G(10), D(12), I(22)}",
+            "Both D(14) and I(22) are pushed regardless",
+            "F is put back in the queue"
+        ],
+        correct: 1,
+        explanation: "Relaxation check: new cost to D via F is 14, but we already know a path costing 12 (directly from A). Since 14 > 12, we do NOT update D. I is new, so push I(22). PQ becomes {G(10), D(12), I(22)}."
+    },
+
+    // VISITED CHECK TIMING (tutorial emphasis)
+    {
+        topic: "uninformed",
+        category: "Search Implementation",
+        question: "The tutorial DFS algorithm checks 'if node has been visited, skip it' AFTER popping. Your solve_bfs.py checks visited BEFORE pushing. What's the difference?",
+        options: [
+            "No difference — they produce identical results",
+            "Check on pop: allows duplicates in the frontier, skips when expanded. Check on push: prevents duplicates from ever entering the frontier. Both are correct but push-check is more memory efficient",
+            "Check on push is wrong — you must always check on pop",
+            "Check on pop is wrong — you must always check on push"
+        ],
+        correct: 1,
+        explanation: "Both approaches prevent re-expanding visited nodes. Check-on-pop allows a node to appear multiple times in the frontier (wastes memory). Check-on-push prevents this. UCS uses check-on-pop because a cheaper path might arrive later. BFS can use check-on-push because the first path is already shortest."
+    },
+    {
+        topic: "uninformed",
+        category: "Search Implementation",
+        question: "Why does UCS check visited on POP but BFS can check visited on PUSH?",
+        options: [
+            "UCS is just older and less optimised",
+            "In BFS, first discovery = shortest path (fewest edges), so push-check is safe. In UCS, a later discovery might be CHEAPER, so you can't reject on push — you must wait until pop to confirm it's the best",
+            "BFS doesn't use a visited set",
+            "There's no difference — both check on pop"
+        ],
+        correct: 1,
+        explanation: "BFS guarantee: first seen = shallowest. UCS has no such guarantee — a node pushed with cost 10 might later be pushed with cost 7. If we rejected the cost-7 push because the node was 'already seen', we'd miss the optimal path. So UCS must check on pop."
     }
 ];
 
@@ -755,7 +1159,25 @@ const flashcards = [
     { front: "Why isn't simple search enough for a delivery robot?", back: "Need planning: states = facts about world, actions have preconditions & effects, goal = set of conditions.\nMust handle: get key → unlock door → pick up → deliver." },
     { front: "World states for robot on 7×7 grid, 4 directions, goal on grid?", back: "49 positions × 4 directions × 49 goal positions = 9,604.\nIf goal is fixed: 49 × 4 = 196." },
     { front: "UCS time/space complexity?", back: "O(b^(C*/ε)) where:\nC* = cost of optimal solution\nε = minimum arc cost\n'Effective depth' ≈ C*/ε" },
-    { front: "Why does representation matter?", back: "It determines what actions the agent can even consider. A poor representation can make a solvable problem unsolvable for the search algorithm." }
+    { front: "Why does representation matter?", back: "It determines what actions the agent can even consider. A poor representation can make a solvable problem unsolvable for the search algorithm." },
+    { front: "What is a priority queue?", back: "Data structure where dequeue always returns the element with the best priority (lowest cost for UCS).\nPython heapq: min-heap, O(log n) push/pop.\nInsertion order doesn't matter — only priority." },
+    { front: "Priority queue: enqueue 1,5,3,2,6 — dequeue order?", back: "Min-PQ: 1, 2, 3, 5, 6 (smallest first — used by UCS).\nMax-PQ: 6, 5, 3, 2, 1 (largest first).\nNot FIFO — priority determines order." },
+    { front: "Visited check: pop vs push — when to use which?", back: "Check on PUSH: BFS — first seen = shallowest, safe to reject duplicates.\nCheck on POP: UCS — a cheaper path might arrive later, can't reject early.\nBoth prevent re-expanding. Push-check saves memory." },
+    { front: "Path reconstruction with parent pointers?", back: "parents[H]=F, parents[F]=C, parents[C]=A, parents[A]=None.\nTrace: H→F→C→A.\nReverse: A→C→F→H.\nWorks for BFS, DFS, and UCS." },
+    { front: "Hand trace UCS: A—F(8), A—G(10), A—D(12). Pop A(0)?", back: "Push F(8), G(10), D(12).\nPQ: {F(8), G(10), D(12)}.\nNext pop: F(8) — always cheapest first.\nRelaxation: if new cost > existing best, don't push." },
+    { front: "DFS: why is cycle detection essential?", back: "Without visited set, DFS can loop forever: A→B→A→B→...\nWith visited set: each node expanded at most once.\nMakes DFS complete on finite graphs." },
+    { front: "DFS: stack order — which neighbour explored first?", back: "LIFO: push A, B, C → pop C first.\nDFS explores LAST pushed neighbour.\nTo get alphabetical order, push in reverse (or sort and let LIFO reverse it)." },
+    { front: "DFS: why is it not optimal?", back: "Returns the FIRST goal found.\nDives deep on one branch, never compares paths.\nA shorter/cheaper path may exist on another branch — DFS won't find it." },
+    { front: "BFS: visited on enqueue or dequeue?", back: "On ENQUEUE (push).\nPrevents same node being added multiple times.\nIf marked on dequeue, multiple parents could push the same child → wasted work." },
+    { front: "BFS: why is first path guaranteed shortest?", back: "FIFO expands ALL depth-d nodes before depth d+1.\nFirst discovery of a node = minimum depth.\nNo later path can have fewer edges → no relaxation needed." },
+    { front: "BFS: why is O(b^s) space a problem?", back: "Frontier stores an entire level.\nAt depth s with branching factor b: up to b^s nodes.\nb=10, s=10 → 10 billion nodes in memory.\nDFS only uses O(bm) — its main advantage." },
+    { front: "BFS vs DFS: same algorithm, different ___?", back: "Data structure.\nFIFO queue → BFS (layer by layer).\nLIFO stack → DFS (dive deep, backtrack).\nThis single change completely alters search behaviour." },
+    { front: "BFS: does relaxation exist?", back: "No. First path found = shortest (fewest edges).\nNo need to update paths.\nUnlike UCS where a later path can be cheaper despite more edges." },
+    { front: "UCS: goal check — on push or pop?", back: "On POP. When you push, a cheaper path might still exist in the heap. Only when popped is the cost guaranteed optimal (min-heap property)." },
+    { front: "UCS: what is relaxation?", back: "Finding a cheaper path to a node.\nnew_cost < best_costs[node] → update best_costs, update parent, push new (cost, node).\nOld heap entry becomes stale." },
+    { front: "UCS: what are stale entries?", back: "Outdated (cost, node) pairs left in heap after relaxation.\nWhen popped: node is already visited → skip.\nCheaper than removing from heap directly." },
+    { front: "UCS: why not just use BFS with costs?", back: "BFS expands by layer (fewest edges).\nUCS expands by cheapest total cost.\nA 3-edge path costing 4 beats a 2-edge path costing 5.\nFundamentally different expansion order." },
+    { front: "UCS: what does 'visited' guarantee?", back: "Once popped and added to visited, a node's cost is FINAL — guaranteed cheapest.\nMin-heap ensures cheapest is popped first.\nAny future path would cost more." }
 ];
 
 // ==================== BROWSE DATA ====================
@@ -818,7 +1240,17 @@ const browseContent = `
 </ul>
 </div>
 <div class="topic-section">
-<h3>6. Uniform Cost Search (UCS)</h3>
+<h3>6. Data Structures for Search (Stack, Queue, Priority Queue)</h3>
+<ul>
+<li><strong>Stack (LIFO)</strong> — Last In, First Out. Used by DFS. Push A,B,C → pop C first. Always explores the most recently added node → dives deep.</li>
+<li><strong>Queue (FIFO)</strong> — First In, First Out. Used by BFS. Enqueue A,B,C → dequeue A first. Explores in discovery order → layer by layer.</li>
+<li><strong>Priority Queue (min-heap)</strong> — Dequeue always returns the element with the <strong>lowest priority value</strong> (lowest cost for UCS). Insertion order doesn't matter.</li>
+<li>Python <code>heapq</code>: min-heap. <code>heappush</code> and <code>heappop</code> are O(log n). Push <code>(cost, node)</code> tuples so cheapest is always popped first.</li>
+<li><strong>Same algorithm, different data structure = completely different search behaviour:</strong> Stack → DFS, Queue → BFS, Priority Queue → UCS</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>7. Uniform Cost Search (UCS)</h3>
 <ul>
 <li>Strategy: expand <strong>cheapest cumulative cost</strong> node first</li>
 <li>Frontier: <strong>priority queue</strong> ordered by g(n)</li>
@@ -830,7 +1262,7 @@ const browseContent = `
 </ul>
 </div>
 <div class="topic-section">
-<h3>7. Greedy Search</h3>
+<h3>8. Greedy Search</h3>
 <ul>
 <li>Strategy: expand node with lowest <strong>h(n)</strong> (estimated cost to goal)</li>
 <li>Best case: straight to goal</li>
@@ -839,7 +1271,7 @@ const browseContent = `
 </ul>
 </div>
 <div class="topic-section">
-<h3>8. A* Search</h3>
+<h3>9. A* Search</h3>
 <ul>
 <li>Ordering: <code>f(n) = g(n) + h(n)</code></li>
 <li>Combines UCS (cost so far) with Greedy (goal estimate)</li>
@@ -850,7 +1282,7 @@ const browseContent = `
 </ul>
 </div>
 <div class="topic-section">
-<h3>9. Search → Planning (Week 2 Preview)</h3>
+<h3>10. Search → Planning (Week 2 Preview)</h3>
 <ul>
 <li>This week: state=location, actions=movement, goal=destination</li>
 <li>Next week: state=facts about world, actions have <strong>preconditions & effects</strong>, goal=set of conditions</li>
