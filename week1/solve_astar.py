@@ -103,7 +103,7 @@ def solve_astar(graph: dict[str, Any]) -> dict[str, Any]:
     goal = normalise_node_id(graph["goal"])
     adjacency = build_adjacency(graph)
 
-    h_start = heuristic_to_goal(graph, "start")
+    h_start = heuristic_to_goal(graph, start)
     frontier = [(h_start, 0.0, 0, start, [start])]
     best_costs = {start: 0.0}
     visited = set()
@@ -128,14 +128,25 @@ def solve_astar(graph: dict[str, Any]) -> dict[str, Any]:
             "considered_edge": edge,
         })
 
+    add_step("start", start, None, 0, [start], 0.0)
+
     while frontier:
         _, cost, _, node, path = heapq.heappop(frontier)
-        if cost != best_costs.get(node):
+
+        # Skip stale entries — same as UCS
+        if node in visited:
             continue
 
+        # Mark visited on POP — cost is now guaranteed optimal
+        visited.add(node)
+        visited_order.append(node)
+
         depth = len(path) - 1
-        add_step("expanded", node, path[-2] if depth else None, depth, path, cost)
+        add_step("expand", node, path[-2] if depth else None, depth, path, cost)
+
+        # Goal check on POP — same as UCS
         if node == goal:
+            add_step("found", node, path[-2] if depth else None, depth, path, cost)
             return {
                 "algorithm": "astar",
                 "status": "found",
@@ -145,23 +156,16 @@ def solve_astar(graph: dict[str, Any]) -> dict[str, Any]:
                 "visited_order": visited_order,
             }
 
-        visited.add(node)
+        # Relaxation — same as UCS, but push f = g + h
         for neighbour, edge_cost in get_neighbours(adjacency, node):
             new_cost = cost + edge_cost
             new_path = path + [neighbour]
             add_step("consider_edge", node, path[-2] if depth else None, depth, path, cost, [node, neighbour])
-            too_expensive = new_cost >= best_costs.get(neighbour, float("inf"))
-
-            if neighbour in visited and too_expensive:
-                continue
 
             if new_cost < best_costs.get(neighbour, float("inf")):
                 best_costs[neighbour] = new_cost
-                if neighbour not in visited:
-                    visited.add(neighbour)
-                    visited_order.append(neighbour)
                 add_step("relax", neighbour, node, depth + 1, new_path, new_cost)
-                priority = new_cost + heuristic_to_goal(adjacency, neighbour)
+                priority = new_cost + heuristic_to_goal(graph, neighbour)
                 heapq.heappush(frontier, (priority, new_cost, counter, neighbour, new_path))
                 counter += 1
 
@@ -183,7 +187,7 @@ def solve_astar(graph: dict[str, Any]) -> dict[str, Any]:
     )
     return {
         "algorithm": "astar",
-        "status": "not_founded",
+        "status": "not_found",
         "trace": trace,
         "path": [],
         "best_cost": None,
