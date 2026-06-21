@@ -1,0 +1,82 @@
+{
+  "nodes": [
+    {
+      "id": "corridor",
+      "x": 0.0,
+      "y": 0.0
+    },
+    {
+      "id": "mail_room",
+      "x": -1.0,
+      "y": 0.0
+    },
+    {
+      "id": "office_a",
+      "x": 0.0,
+      "y": 1.0
+    },
+    {
+      "id": "office_b",
+      "x": 1.0,
+      "y": 0.0
+    },
+    {
+      "id": "storage",
+      "x": -2.0,
+      "y": 0.0
+    },
+    {
+      "id": "lab",
+      "x": 2.0,
+      "y": 0.0
+    }
+  ],
+  "edges": [
+    {
+      "u": "corridor",
+      "v": "mail_room",
+      "cost": 2.0
+    },
+    {
+      "u": "corridor",
+      "v": "office_a",
+      "cost": 2.0
+    },
+    {
+      "u": "corridor",
+      "v": "office_b",
+      "cost": 3.0
+    },
+    {
+      "u": "mail_room",
+      "v": "storage",
+      "cost": 2.0
+    },
+    {
+      "u": "storage",
+      "v": "lab",
+      "cost": 7.0
+    },
+    {
+      "u": "office_a",
+      "v": "lab",
+      "cost": 8.0
+    },
+    {
+      "u": "office_b",
+      "v": "lab",
+      "cost": 3.0
+    },
+    {
+      "u": "office_a",
+      "v": "office_b",
+      "cost": 2.0
+    }
+  ],
+  "start": "corridor",
+  "goal": "lab",
+  "metadata": {
+    "source": "assignment1_hand_specified",
+    "description": "Hand-specified office graph from Part A."
+  }
+}

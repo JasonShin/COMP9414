@@ -1,0 +1,50 @@
+{
+  "title": "Lab reachable through office B",
+  "subtitle": "The locked door now sits between office B and the lab rather than between the corridor and the lab.",
+  "domain": "delivery",
+  "rooms": [
+    "corridor",
+    "mail_room",
+    "office_a",
+    "office_b",
+    "lab"
+  ],
+  "robot_start": "corridor",
+  "parcel_start": "mail_room",
+  "keycard_start": "office_a",
+  "locked_edge": [
+    "office_b",
+    "lab"
+  ],
+  "door_locked": true,
+  "goal": [
+    [
+      "at",
+      "parcel",
+      "lab"
+    ]
+  ],
+  "blocks": [
+    "a",
+    "b",
+    "c"
+  ],
+  "initial_stacks": [
+    [
+      "c",
+      "a"
+    ],
+    [
+      "b"
+    ]
+  ],
+  "supports": [
+    "table"
+  ],
+  "initial_stack_supports": [],
+  "metadata": {
+    "source": "course_supplied",
+    "example": "lab_via_office_b",
+    "description": "Changing the map connectivity changes the whole plan structure."
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "created_by": "course_staff",
+  "graph_cases": [
+    {
+      "file": "graphs/office.json",
+      "description": "Hand-specified office graph from Part A.",
+      "source": "assignment1_hand_specified",
+      "size": null,
+      "seed": null
+    },
+    {
+      "file": "graphs/graph1.json",
+      "description": "Supplied small weighted graph for search and heuristic comparison.",
+      "source": "course_supplied",
+      "size": "small",
+      "seed": 17
+    },
+    {
+      "file": "graphs/graph2.json",
+      "description": "Supplied large weighted graph for search and heuristic comparison.",
+      "source": "course_supplied",
+      "size": "large",
+      "seed": 31
+    },
+    {
+      "file": "graphs/graph3.json",
+      "description": "Supplied weighted graph where BFS returns a shallow but not cheapest path.",
+      "source": "course_supplied",
+      "size": "small",
+      "seed": 1
+    }
+  ],
+  "planning_cases": [
+    {
+      "file": "planning/canonical_delivery.json",
+      "description": "Fetch the keycard, collect the parcel, unlock the lab door, and deliver the parcel.",
+      "source": "course_supplied",
+      "example": "canonical_delivery"
+    },
+    {
+      "file": "planning/unlocked_lab.json",
+      "description": "Without the lock, the plan no longer needs the keycard or the unlock action.",
+      "source": "course_supplied",
+      "example": "unlocked_lab"
+    },
+    {
+      "file": "planning/lab_via_office_b.json",
+      "description": "Changing the map connectivity changes the whole plan structure.",
+      "source": "course_supplied",
+      "example": "lab_via_office_b"
+    }
+  ]
+}

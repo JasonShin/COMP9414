@@ -1,0 +1,50 @@
+{
+  "title": "Unlocked-door baseline",
+  "subtitle": "Without the lock, the plan no longer needs the keycard or unlock action.",
+  "domain": "delivery",
+  "rooms": [
+    "corridor",
+    "mail_room",
+    "office_a",
+    "office_b",
+    "lab"
+  ],
+  "robot_start": "corridor",
+  "parcel_start": "mail_room",
+  "keycard_start": "office_a",
+  "locked_edge": [
+    "corridor",
+    "lab"
+  ],
+  "door_locked": false,
+  "goal": [
+    [
+      "at",
+      "parcel",
+      "lab"
+    ]
+  ],
+  "blocks": [
+    "a",
+    "b",
+    "c"
+  ],
+  "initial_stacks": [
+    [
+      "c",
+      "a"
+    ],
+    [
+      "b"
+    ]
+  ],
+  "supports": [
+    "table"
+  ],
+  "initial_stack_supports": [],
+  "metadata": {
+    "source": "course_supplied",
+    "example": "unlocked_lab",
+    "description": "Without the lock, the plan no longer needs the keycard or the unlock action."
+  }
+}

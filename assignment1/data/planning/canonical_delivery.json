@@ -1,0 +1,50 @@
+{
+  "title": "Canonical delivery",
+  "subtitle": "A compact office world with one parcel, one keycard, and one locked door.",
+  "domain": "delivery",
+  "rooms": [
+    "corridor",
+    "mail_room",
+    "office_a",
+    "office_b",
+    "lab"
+  ],
+  "robot_start": "corridor",
+  "parcel_start": "mail_room",
+  "keycard_start": "office_a",
+  "locked_edge": [
+    "corridor",
+    "lab"
+  ],
+  "door_locked": true,
+  "goal": [
+    [
+      "at",
+      "parcel",
+      "lab"
+    ]
+  ],
+  "blocks": [
+    "a",
+    "b",
+    "c"
+  ],
+  "initial_stacks": [
+    [
+      "c",
+      "a"
+    ],
+    [
+      "b"
+    ]
+  ],
+  "supports": [
+    "table"
+  ],
+  "initial_stack_supports": [],
+  "metadata": {
+    "source": "course_supplied",
+    "example": "canonical_delivery",
+    "description": "Fetch the keycard, collect the parcel, unlock the lab door, and deliver the parcel."
+  }
+}
