@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMP9414 Week 3 - Knowledge Representation Quiz</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            min-height: 100vh;
+            font-size: 17px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            color: #7cb7ff;
+            margin-bottom: 8px;
+        }
+        header p { color: #888; font-size: 0.95rem; }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #1a1a3e;
+            border: 1px solid #333;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .nav-tab:hover { border-color: #7cb7ff; color: #7cb7ff; }
+        .nav-tab.active { background: #7cb7ff; color: #0f0f23; border-color: #7cb7ff; font-weight: 600; }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1a1a3e;
+            border-radius: 3px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7cb7ff, #a78bfa);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .progress-text {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        /* Quiz card */
+        .quiz-card {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .quiz-card .category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a78bfa;
+            margin-bottom: 12px;
+        }
+        .quiz-card .question {
+            font-size: 1.2rem;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        /* Options */
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            padding: 14px 18px;
+            background: #0f0f23;
+            border: 1px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .option:hover { border-color: #7cb7ff; background: #151535; }
+        .option.selected { border-color: #7cb7ff; background: #1a2a4a; }
+        .option.correct { border-color: #4ade80; background: #0f2a1a; color: #4ade80; }
+        .option.incorrect { border-color: #f87171; background: #2a0f0f; color: #f87171; }
+        .option.show-correct { border-color: #4ade80; background: #0f2a1a; }
+        .option.disabled { pointer-events: none; }
+
+        /* Explanation */
+        .explanation {
+            margin-top: 20px;
+            padding: 16px;
+            background: #0f1a2a;
+            border-left: 3px solid #7cb7ff;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: none;
+            color: #ccc;
+        }
+        .explanation.visible { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #7cb7ff; color: #0f0f23; }
+        .btn-primary:hover { background: #5a9fee; }
+        .btn-secondary { background: #2a2a5a; color: #ccc; }
+        .btn-secondary:hover { background: #3a3a6a; }
+        .btn-reset { background: #f87171; color: #fff; }
+        .btn-reset:hover { background: #dc2626; }
+
+        /* Score */
+        .score-display {
+            text-align: center;
+            padding: 40px;
+        }
+        .score-display h2 { font-size: 2rem; color: #7cb7ff; margin-bottom: 12px; }
+        .score-display .score-num { font-size: 3.5rem; font-weight: 700; color: #4ade80; margin: 16px 0; }
+        .score-display .score-num.low { color: #f87171; }
+        .score-display .score-num.mid { color: #fbbf24; }
+        .score-breakdown { margin-top: 20px; font-size: 0.9rem; color: #aaa; }
+
+        /* Topic section in browse mode */
+        .topic-section { margin-bottom: 32px; }
+        .topic-section h3 { color: #7cb7ff; margin-bottom: 12px; font-size: 1.1rem; }
+        .topic-section ul { padding-left: 20px; }
+        .topic-section li { margin-bottom: 8px; line-height: 1.5; color: #ccc; }
+        .topic-section code { background: #2a2a5a; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Flashcard mode */
+        .flashcard {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .flashcard:hover { border-color: #7cb7ff; }
+        .flashcard .front { font-size: 1.2rem; font-weight: 500; }
+        .flashcard .back { font-size: 1rem; color: #4ade80; line-height: 1.6; display: none; }
+        .flashcard.flipped .front { display: none; }
+        .flashcard.flipped .back { display: block; }
+        .flashcard .hint { font-size: 0.8rem; color: #666; margin-top: 12px; }
+
+        /* Slide mode */
+        .slide {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .slide h2 {
+            font-size: 1.4rem;
+            color: #7cb7ff;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #2a2a5a;
+            padding-bottom: 12px;
+        }
+        .slide h3 { font-size: 1.1rem; color: #a78bfa; margin: 16px 0 8px; }
+        .slide p { line-height: 1.7; margin-bottom: 12px; color: #ccc; }
+        .slide ul, .slide ol { padding-left: 20px; margin-bottom: 12px; }
+        .slide li { margin-bottom: 6px; line-height: 1.6; color: #ccc; }
+        .slide .highlight {
+            background: #0f1a2a;
+            border-left: 3px solid #7cb7ff;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 0.95rem;
+        }
+        .slide .formula {
+            background: #0f1a2a;
+            border: 1px solid #2a2a5a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 12px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: #4ade80;
+        }
+        .slide table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.9rem;
+        }
+        .slide th, .slide td {
+            padding: 8px 12px;
+            border: 1px solid #2a2a5a;
+            text-align: left;
+        }
+        .slide th { background: #0f1a2a; color: #7cb7ff; }
+        .slide td { color: #ccc; }
+        .slide .slide-num { font-size: 0.75rem; color: #555; text-align: right; }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            body { font-size: 19px; }
+            .quiz-card .question { font-size: 1.4rem; }
+            .option { font-size: 1.1rem; }
+            .explanation { font-size: 1.05rem; }
+            .slide p, .slide li { font-size: 1.1rem; }
+            .slide h2 { font-size: 1.7rem; }
+            .slide h3 { font-size: 1.25rem; }
+            .slide .highlight { font-size: 1.1rem; }
+            .slide .formula { font-size: 1.25rem; }
+            .slide table { font-size: 1.05rem; }
+            .flashcard .front { font-size: 1.4rem; }
+            .flashcard .back { font-size: 1.15rem; }
+            .topic-section li { font-size: 1.1rem; }
+            .topic-section h3 { font-size: 1.2rem; }
+            .nav-tab { font-size: 1rem; }
+            .progress-text { font-size: 0.95rem; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .quiz-card { padding: 20px; }
+            header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>COMP9414 Week 3: Knowledge Representation</h1>
+        <p>Propositional logic, entailment, DPLL, resolution, forward chaining</p>
+    </header>
+
+    <div class="nav-tabs">
+        <div class="nav-tab active" onclick="switchMode('slides')">Slides</div>
+        <div class="nav-tab" onclick="switchMode('quiz')">Quiz Mode</div>
+        <div class="nav-tab" onclick="switchMode('flashcards')">Flashcards</div>
+        <div class="nav-tab" onclick="switchMode('browse')">Browse Topics</div>
+    </div>
+
+    <div id="quiz-mode" style="display:none">
+        <div class="nav-tabs" id="topic-filter" style="margin-bottom:16px">
+            <div class="nav-tab active" data-topic="all" onclick="filterTopic('all')">All Topics</div>
+            <div class="nav-tab" data-topic="propositional" onclick="filterTopic('propositional')">Propositional Logic</div>
+            <div class="nav-tab" data-topic="entailment" onclick="filterTopic('entailment')">Entailment</div>
+            <div class="nav-tab" data-topic="inference" onclick="filterTopic('inference')">Inference</div>
+            <div class="nav-tab" data-topic="forward" onclick="filterTopic('forward')">Forward Chaining</div>
+            <div class="nav-tab" data-topic="cnf" onclick="filterTopic('cnf')">CNF</div>
+            <div class="nav-tab" data-topic="dpll" onclick="filterTopic('dpll')">DPLL</div>
+            <div class="nav-tab" data-topic="resolution" onclick="filterTopic('resolution')">Resolution</div>
+            <div class="nav-tab" data-topic="comparing" onclick="filterTopic('comparing')">Comparing Methods</div>
+        </div>
+        <div class="progress-text" id="progress-text">Question 1 / 38</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div id="quiz-content"></div>
+        <div class="btn-row" id="quiz-buttons">
+            <button class="btn btn-secondary" onclick="prevQuestion()">Previous</button>
+            <button class="btn btn-primary" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+
+    <div id="flashcard-mode" style="display:none">
+        <div class="progress-text" id="flash-progress">Card 1 / 15</div>
+        <div id="flashcard-content"></div>
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevFlash()">Previous</button>
+            <button class="btn btn-primary" onclick="nextFlash()">Next</button>
+            <button class="btn btn-secondary" onclick="shuffleFlash()">Shuffle</button>
+        </div>
+    </div>
+
+    <div id="browse-mode" style="display:none"></div>
+
+    <div id="slides-mode">
+        <div class="progress-text" id="slide-progress">Slide 1 / 9</div>
+        <div id="slide-content"></div>
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevSlide()">Previous</button>
+            <button class="btn btn-primary" onclick="nextSlide()">Next</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== QUIZ DATA ====================
+const questions = [
+    // PROPOSITIONAL LOGIC
+    {
+        topic: "propositional",
+        category: "PROPOSITIONAL LOGIC",
+        question: "What are the five logical connectives in propositional logic?",
+        options: [
+            "&not; (negation), &and; (conjunction), &or; (disjunction), &rarr; (implication), &harr; (biconditional)",
+            "&not; (negation), &and; (conjunction), &or; (disjunction), &oplus; (exclusive or), &rarr; (implication)",
+            "&and; (conjunction), &or; (disjunction), &rarr; (implication), &harr; (biconditional), &oplus; (exclusive or)",
+            "= (equality), &not; (negation), &and; (conjunction), &or; (disjunction), &rarr; (implication)"
+        ],
+        correct: 0,
+        explanation: "The five standard logical connectives in propositional logic are: &not; (negation), &and; (conjunction), &or; (disjunction), &rarr; (implication), and &harr; (biconditional). Exclusive or (&oplus;) and equality (=) are not among the standard five."
+    },
+    {
+        topic: "propositional",
+        category: "PROPOSITIONAL LOGIC",
+        question: "Given K=T, O=F, B<sub>1,1</sub>=F, P<sub>1,2</sub>=T, what is the truth value of K &rarr; O?",
+        options: [
+            "True &mdash; both sides are defined so implication holds",
+            "False &mdash; K is true and O is false, the only case where implication is false",
+            "True &mdash; implication is always true when the consequent is false",
+            "Undefined &mdash; implication requires both sides to be true"
+        ],
+        correct: 1,
+        explanation: "An implication p &rarr; q is false only when p is true and q is false. Here K=T and O=F, so K &rarr; O = F. This is the only combination that makes an implication false."
+    },
+    {
+        topic: "propositional",
+        category: "PROPOSITIONAL LOGIC",
+        question: "Given K=T, O=F, B<sub>1,1</sub>=F, P<sub>1,2</sub>=T, what is the truth value of P<sub>1,2</sub> &rarr; B<sub>1,1</sub>?",
+        options: [
+            "True &mdash; P<sub>1,2</sub> being true makes implication true",
+            "False &mdash; P<sub>1,2</sub> is true but B<sub>1,1</sub> is false",
+            "True &mdash; B<sub>1,1</sub> being false makes the implication vacuously true",
+            "Undefined"
+        ],
+        correct: 1,
+        explanation: "P<sub>1,2</sub> &rarr; B<sub>1,1</sub>: P<sub>1,2</sub>=T and B<sub>1,1</sub>=F. Since the antecedent is true and the consequent is false, the implication is false. An implication is vacuously true only when the antecedent is false."
+    },
+    {
+        topic: "propositional",
+        category: "PROPOSITIONAL LOGIC",
+        question: "Given K=T, O=F, B<sub>1,1</sub>=F, P<sub>1,2</sub>=T, is (K &or; O) &and; &not;B<sub>1,1</sub> true or false?",
+        options: [
+            "True &mdash; (T &or; F)=T, &not;F=T, T &and; T = T",
+            "False &mdash; O is false so the whole expression is false",
+            "False &mdash; &not;B<sub>1,1</sub> is false",
+            "True &mdash; because K is true, nothing else matters"
+        ],
+        correct: 0,
+        explanation: "Step by step: K &or; O = T &or; F = T. Then &not;B<sub>1,1</sub> = &not;F = T. Finally T &and; T = T. The expression is true."
+    },
+    {
+        topic: "propositional",
+        category: "PROPOSITIONAL LOGIC",
+        question: "How many possible models exist for n propositional symbols?",
+        options: [
+            "2<sup>n</sup>",
+            "n<sup>2</sup>",
+            "2n",
+            "n!"
+        ],
+        correct: 0,
+        explanation: "Each propositional symbol can be either true or false (2 choices). With n symbols, the total number of possible truth assignments (models) is 2<sup>n</sup>."
+    },
+    {
+        topic: "propositional",
+        category: "PROPOSITIONAL LOGIC",
+        question: "What is a model in propositional logic?",
+        options: [
+            "A complete truth assignment to all propositional symbols",
+            "A formula that is always true (a tautology)",
+            "A set of inference rules",
+            "A proof procedure"
+        ],
+        correct: 0,
+        explanation: "A model is a complete truth assignment &mdash; it assigns true or false to every propositional symbol in the language. We say a model satisfies a formula if the formula evaluates to true under that assignment."
+    },
+    // ENTAILMENT
+    {
+        topic: "entailment",
+        category: "ENTAILMENT",
+        question: "What does KB &#8872; &alpha; mean?",
+        options: [
+            "Every model that satisfies KB also satisfies &alpha;",
+            "&alpha; implies KB",
+            "KB and &alpha; are logically equivalent",
+            "&alpha; is explicitly listed in the KB"
+        ],
+        correct: 0,
+        explanation: "KB &#8872; &alpha; (KB entails &alpha;) means that in every model where all sentences in KB are true, &alpha; is also true. Equivalently, M(KB) &sube; M(&alpha;) &mdash; the set of models of KB is a subset of the models of &alpha;."
+    },
+    {
+        topic: "entailment",
+        category: "ENTAILMENT",
+        question: "KB = {B<sub>1,1</sub> &harr; (P<sub>1,2</sub> &or; P<sub>2,1</sub>), &not;B<sub>1,1</sub>}. Which query is entailed?",
+        options: [
+            "P<sub>1,2</sub>",
+            "P<sub>2,1</sub>",
+            "&not;P<sub>1,2</sub> &and; &not;P<sub>2,1</sub>",
+            "P<sub>1,2</sub> &or; P<sub>2,1</sub>"
+        ],
+        correct: 2,
+        explanation: "From &not;B<sub>1,1</sub> and the biconditional B<sub>1,1</sub> &harr; (P<sub>1,2</sub> &or; P<sub>2,1</sub>), we get &not;(P<sub>1,2</sub> &or; P<sub>2,1</sub>), which by De Morgan's law gives &not;P<sub>1,2</sub> &and; &not;P<sub>2,1</sub>. Neither pit is present."
+    },
+    {
+        topic: "entailment",
+        category: "ENTAILMENT",
+        question: "KB = {K, K&rarr;O, O&rarr;E}. Which queries are entailed?",
+        options: [
+            "E only",
+            "K &or; P only",
+            "P",
+            "Both E and K &or; P"
+        ],
+        correct: 3,
+        explanation: "From K and K&rarr;O we derive O. From O and O&rarr;E we derive E. So E is entailed. K &or; P is also entailed because K is true (and a disjunction is true if at least one disjunct is true). P alone is not entailed &mdash; we have no information about P."
+    },
+    {
+        topic: "entailment",
+        category: "ENTAILMENT",
+        question: "How does adding a fact to a knowledge base affect the set of models?",
+        options: [
+            "It can only shrink (or keep the same) the set of models, never grow it",
+            "It always grows the set of models",
+            "It stays exactly the same",
+            "It can grow or shrink unpredictably"
+        ],
+        correct: 0,
+        explanation: "Adding a sentence to KB adds a constraint. The models of KB &and; &alpha; are those models that satisfy both KB and &alpha;, which is a subset of (or equal to) the models of KB alone. More knowledge = fewer (or equal) models."
+    },
+    {
+        topic: "entailment",
+        category: "ENTAILMENT",
+        question: "KB &#8872; &alpha; is equivalent to saying that KB &and; &not;&alpha; is:",
+        options: [
+            "Unsatisfiable",
+            "Valid",
+            "Satisfiable",
+            "A tautology"
+        ],
+        correct: 0,
+        explanation: "If every model of KB is a model of &alpha;, then no model can satisfy KB while also satisfying &not;&alpha;. Therefore KB &and; &not;&alpha; is unsatisfiable. This is the basis of proof by refutation."
+    },
+    // INFERENCE
+    {
+        topic: "inference",
+        category: "INFERENCE",
+        question: "What is the difference between semantic entailment (&#8872;) and syntactic derivability (&#8866;)?",
+        options: [
+            "&#8872; is about truth in all models (semantics); &#8866; is about derivation via proof rules (syntax)",
+            "&#8872; is about syntax; &#8866; is about semantics",
+            "They are the same thing with different notation",
+            "&#8872; applies only to propositional logic; &#8866; applies only to first-order logic"
+        ],
+        correct: 0,
+        explanation: "&#8872; (entailment) is a semantic notion: &alpha; is true in every model of KB. &#8866; (derivability) is a syntactic notion: &alpha; can be derived from KB by applying proof rules mechanically. Soundness and completeness link these two concepts."
+    },
+    {
+        topic: "inference",
+        category: "INFERENCE",
+        question: "What does soundness of a proof procedure mean?",
+        options: [
+            "Everything derived is actually entailed: KB &#8866; &alpha; &rArr; KB &#8872; &alpha;",
+            "Everything entailed can be derived: KB &#8872; &alpha; &rArr; KB &#8866; &alpha;",
+            "The procedure always terminates",
+            "The procedure uses minimal memory"
+        ],
+        correct: 0,
+        explanation: "Soundness means the proof procedure never lies: if it derives &alpha; from KB, then &alpha; really is entailed by KB. You never get a false conclusion from true premises."
+    },
+    {
+        topic: "inference",
+        category: "INFERENCE",
+        question: "What does completeness of a proof procedure mean?",
+        options: [
+            "Everything derived is actually entailed: KB &#8866; &alpha; &rArr; KB &#8872; &alpha;",
+            "Everything entailed can be derived: KB &#8872; &alpha; &rArr; KB &#8866; &alpha;",
+            "The procedure never runs out of memory",
+            "The procedure handles all possible input formats"
+        ],
+        correct: 1,
+        explanation: "Completeness means the proof procedure misses nothing: if &alpha; is entailed by KB, the procedure can derive it. Combined with soundness, the procedure derives exactly what is entailed."
+    },
+    {
+        topic: "inference",
+        category: "INFERENCE",
+        question: "Model checking proves entailment by:",
+        options: [
+            "Enumerating all truth assignments and checking the query is true in every KB model",
+            "Deriving new clauses until a contradiction is found",
+            "Searching partial truth assignments with backtracking",
+            "Repeatedly applying modus ponens to known facts"
+        ],
+        correct: 0,
+        explanation: "Model checking (truth-table enumeration) checks every possible truth assignment (2<sup>n</sup> for n symbols). For each assignment that makes KB true, it verifies &alpha; is also true. If all KB-models satisfy &alpha;, then KB &#8872; &alpha;."
+    },
+    // FORWARD CHAINING
+    {
+        topic: "forward",
+        category: "FORWARD CHAINING",
+        question: "What is modus ponens?",
+        options: [
+            "From p<sub>1</sub>,...,p<sub>k</sub> and (p<sub>1</sub> &and; ... &and; p<sub>k</sub>) &rarr; q, infer q",
+            "From p &or; q and &not;p, infer q",
+            "From p &rarr; q and q, infer p",
+            "From p &rarr; q and &not;q, infer &not;p"
+        ],
+        correct: 0,
+        explanation: "Modus ponens: if all premises p<sub>1</sub> through p<sub>k</sub> are known, and we have the rule (p<sub>1</sub> &and; ... &and; p<sub>k</sub>) &rarr; q, then we can infer q. It is the workhorse of rule-based forward reasoning."
+    },
+    {
+        topic: "forward",
+        category: "FORWARD CHAINING",
+        question: "What is a definite clause?",
+        options: [
+            "A clause with exactly one positive literal, e.g. (p<sub>1</sub> &and; ... &and; p<sub>k</sub>) &rarr; q",
+            "Any disjunction of literals",
+            "A clause with no positive literals",
+            "A clause with all positive literals"
+        ],
+        correct: 0,
+        explanation: "A definite clause has exactly one positive literal. In implication form: (p<sub>1</sub> &and; ... &and; p<sub>k</sub>) &rarr; q. A fact (e.g. K) is a definite clause with zero premises. Forward chaining works on knowledge bases made of definite clauses."
+    },
+    {
+        topic: "forward",
+        category: "FORWARD CHAINING",
+        question: "Why does forward chaining break for Alarm &rarr; Smoke &or; BreakIn?",
+        options: [
+            "The clause has two positive literals &mdash; modus ponens cannot choose between alternatives",
+            "It has no premises",
+            "It is not in CNF",
+            "It has too many symbols"
+        ],
+        correct: 0,
+        explanation: "Alarm &rarr; Smoke &or; BreakIn has two positive literals in the head (disjunctive conclusion). Modus ponens requires exactly one conclusion. Forward chaining cannot determine which of Smoke or BreakIn to assert."
+    },
+    {
+        topic: "forward",
+        category: "FORWARD CHAINING",
+        question: "Trace forward chaining on KB={K&rarr;O, O&rarr;E, P&and;E&rarr;D, K, P}, query D. What is the derivation order?",
+        options: [
+            "{K,P} &rarr; {K,P,O} &rarr; {K,P,O,E} &rarr; {K,P,O,E,D}",
+            "{K,P} &rarr; {K,P,D} immediately",
+            "{K,P} &rarr; {K,P,E} &rarr; {K,P,E,O} &rarr; {K,P,E,O,D}",
+            "{K,P} &rarr; {K,P,O,E,D} in one step"
+        ],
+        correct: 0,
+        explanation: "Start with known facts {K, P}. Fire K&rarr;O to get O. Fire O&rarr;E to get E. Now both P and E are known, so fire P&and;E&rarr;D to get D. The query D is derived."
+    },
+    // CNF
+    {
+        topic: "cnf",
+        category: "CNF",
+        question: "What is Conjunctive Normal Form (CNF)?",
+        options: [
+            "A conjunction of clauses, where each clause is a disjunction of literals",
+            "A disjunction of conjunctions of literals",
+            "A single clause containing all variables",
+            "Any formula that contains both &and; and &or;"
+        ],
+        correct: 0,
+        explanation: "CNF = a conjunction (&and;) of clauses, where each clause is a disjunction (&or;) of literals. Example: (A &or; &not;B) &and; (C &or; D &or; E). Every propositional formula can be converted to an equivalent CNF."
+    },
+    {
+        topic: "cnf",
+        category: "CNF",
+        question: "Which formula is in CNF?<br>A: (A&and;B)&or;C &nbsp; B: (A&or;&not;B)&and;(C&or;D) &nbsp; C: A&rarr;B &nbsp; D: &not;(A&or;B)&and;C",
+        options: [
+            "A &mdash; it has both &and; and &or;",
+            "B &mdash; each top-level part is a clause (disjunction of literals)",
+            "C &mdash; implications are always in CNF",
+            "D &mdash; it starts with a negation"
+        ],
+        correct: 1,
+        explanation: "B: (A &or; &not;B) &and; (C &or; D) is in CNF. It is a conjunction of two clauses, each being a disjunction of literals. A has a conjunction inside a disjunction (not CNF). C uses implication (not CNF). D has negation over a disjunction (not CNF, needs De Morgan)."
+    },
+    {
+        topic: "cnf",
+        category: "CNF",
+        question: "Convert A &rarr; B to CNF.",
+        options: [
+            "&not;A &or; B",
+            "A &and; B",
+            "&not;A &and; B",
+            "A &or; &not;B"
+        ],
+        correct: 0,
+        explanation: "A &rarr; B is equivalent to &not;A &or; B by the definition of implication. This is already a single clause (disjunction of literals), so it is in CNF."
+    },
+    {
+        topic: "cnf",
+        category: "CNF",
+        question: "What are the CNF conversion steps in order?",
+        options: [
+            "Eliminate biconditional &rarr; Eliminate implication &rarr; Move negation inward (De Morgan) &rarr; Remove double negation &rarr; Distribute &or; over &and;",
+            "Distribute &or; over &and; &rarr; Eliminate implication &rarr; Move negation inward &rarr; Remove double negation &rarr; Eliminate biconditional",
+            "Eliminate implication &rarr; Eliminate biconditional &rarr; Distribute &or; over &and; &rarr; De Morgan &rarr; Double negation",
+            "Move negation inward &rarr; Eliminate biconditional &rarr; Eliminate implication &rarr; Distribute &or; over &and; &rarr; Double negation"
+        ],
+        correct: 0,
+        explanation: "The standard order: (1) Eliminate &harr; using (A&harr;B) = (A&rarr;B)&and;(B&rarr;A). (2) Eliminate &rarr; using (A&rarr;B) = &not;A&or;B. (3) Move &not; inward via De Morgan. (4) Remove double negations &not;&not;A = A. (5) Distribute &or; over &and;."
+    },
+    // DPLL
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "What does DPLL stand for?",
+        options: [
+            "Davis-Putnam-Logemann-Loveland",
+            "Deterministic Propositional Logic Learner",
+            "Depth-first Partial Logic Lookup",
+            "Dynamic Programming for Logical Literals"
+        ],
+        correct: 0,
+        explanation: "DPLL stands for Davis-Putnam-Logemann-Loveland, named after the researchers who developed this backtracking SAT-solving algorithm. It searches over partial truth assignments with unit propagation."
+    },
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "What is unit propagation in DPLL?",
+        options: [
+            "When a clause has exactly one unresolved literal, force that literal to be true to satisfy the clause",
+            "Remove all unit clauses from the formula",
+            "Split the clause into two smaller clauses",
+            "Derive the empty clause immediately"
+        ],
+        correct: 0,
+        explanation: "If a clause has exactly one unresolved literal (all others are assigned false), that literal must be true to satisfy the clause. This forced assignment may trigger further unit propagations in other clauses, creating a chain of deductions."
+    },
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "In DPLL, what happens when a clause is contradicted (all its literals are false)?",
+        options: [
+            "Abandon this branch immediately (backtrack)",
+            "Try another literal in the clause",
+            "Derive the empty clause and continue",
+            "Return SAT"
+        ],
+        correct: 0,
+        explanation: "When all literals in a clause are false, the clause is contradicted &mdash; the current partial assignment cannot satisfy the formula along this branch. DPLL backtracks to the most recent choice point and tries the other branch."
+    },
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "Given clauses {A}, {&not;A&or;B}, {&not;B&or;C} and negated query {&not;C}, trace DPLL unit propagation.",
+        options: [
+            "A=T (unit), B=T (&not;A&or;B becomes B), C=T (&not;B&or;C becomes C), contradiction (&not;C forces C=F but C=T)",
+            "A=F, then no propagation, return SAT",
+            "C=T first, then B=T, then A=T, no contradiction",
+            "A=T, C=T, B is left unassigned"
+        ],
+        correct: 0,
+        explanation: "Step 1: {A} is a unit clause, so A=T. Step 2: {&not;A&or;B} &mdash; &not;A is false, so B must be true (unit propagation). Step 3: {&not;B&or;C} &mdash; &not;B is false, so C must be true. Step 4: {&not;C} forces C=F, but C=T. Contradiction! DPLL returns UNSAT."
+    },
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "To prove KB &#8872; &alpha; using DPLL, what do you check?",
+        options: [
+            "Whether CNF(KB &and; &not;&alpha;) is unsatisfiable &mdash; if DPLL returns UNSAT, the entailment holds",
+            "Whether CNF(KB &and; &alpha;) is satisfiable",
+            "Whether CNF(KB) alone is unsatisfiable",
+            "Whether &alpha; is in CNF"
+        ],
+        correct: 0,
+        explanation: "To prove KB &#8872; &alpha;: negate the query to get &not;&alpha;, form KB &and; &not;&alpha;, convert to CNF, and run DPLL. If UNSAT, no model satisfies KB &and; &not;&alpha;, meaning every KB-model satisfies &alpha;. The entailment holds."
+    },
+    // RESOLUTION
+    {
+        topic: "resolution",
+        category: "RESOLUTION",
+        question: "What is the resolution rule?",
+        options: [
+            "From (f<sub>1</sub>&or;...&or;f<sub>n</sub>&or;p) and (&not;p&or;g<sub>1</sub>&or;...&or;g<sub>m</sub>), derive (f<sub>1</sub>&or;...&or;f<sub>n</sub>&or;g<sub>1</sub>&or;...&or;g<sub>m</sub>) by cancelling p/&not;p",
+            "From p and &not;p, derive everything",
+            "From p &rarr; q and q &rarr; r, derive p &rarr; r",
+            "From p &and; q, derive p"
+        ],
+        correct: 0,
+        explanation: "Resolution takes two clauses containing a complementary pair (p in one, &not;p in the other) and produces a new clause combining all remaining literals. The complementary pair cancels out. This is the single inference rule needed for refutation-complete theorem proving."
+    },
+    {
+        topic: "resolution",
+        category: "RESOLUTION",
+        question: "What is the empty clause (&#9633;) in resolution?",
+        options: [
+            "A clause with zero literals &mdash; it means contradiction (false)",
+            "A clause that is always true (a tautology)",
+            "An empty set of clauses",
+            "A valid formula"
+        ],
+        correct: 0,
+        explanation: "The empty clause &#9633; has no literals, so it cannot be satisfied by any truth assignment. Deriving &#9633; means we have reached a contradiction. In refutation proofs, deriving &#9633; from KB &and; &not;&alpha; proves KB &#8872; &alpha;."
+    },
+    {
+        topic: "resolution",
+        category: "RESOLUTION",
+        question: "To prove KB &#8872; C using resolution with KB = {A&rarr;B, B&rarr;C, A}, what clauses are used and what is derived?",
+        options: [
+            "Clauses: {&not;A&or;B, &not;B&or;C, A, &not;C}. Resolve &not;A&or;B with A &rarr; B. Resolve &not;B&or;C with B &rarr; C. Resolve &not;C with C &rarr; &#9633;",
+            "Clauses: {A&and;B, B&and;C, A, &not;C}. No resolution possible",
+            "Clauses: {A, B, C, &not;C}. Resolve C with &not;C &rarr; &#9633;",
+            "Clauses: {&not;A&or;B, &not;B&or;C, A}. Derive C directly without &not;C"
+        ],
+        correct: 0,
+        explanation: "Convert to CNF and add &not;C: {&not;A&or;B, &not;B&or;C, A, &not;C}. Resolve clause 1 (&not;A&or;B) with clause 3 (A): cancel A/&not;A, get B. Resolve clause 2 (&not;B&or;C) with B: cancel B/&not;B, get C. Resolve C with clause 4 (&not;C): cancel C/&not;C, get &#9633;. Proved!"
+    },
+    {
+        topic: "resolution",
+        category: "RESOLUTION",
+        question: "In the Wumpus resolution proof, observation is &not;B<sub>1,1</sub> and query is &not;P<sub>1,2</sub>. What is the negated query added for refutation?",
+        options: [
+            "P<sub>1,2</sub>",
+            "&not;P<sub>1,2</sub>",
+            "B<sub>1,1</sub>",
+            "&not;B<sub>1,1</sub>"
+        ],
+        correct: 0,
+        explanation: "To prove KB &#8872; &not;P<sub>1,2</sub> by refutation, we negate the query: &not;(&not;P<sub>1,2</sub>) = P<sub>1,2</sub>. We add P<sub>1,2</sub> to the clause set and try to derive &#9633;."
+    },
+    // COMPARING METHODS
+    {
+        topic: "comparing",
+        category: "COMPARING METHODS",
+        question: "Match the method to what it operates on: Model checking searches ___; DPLL searches ___; Resolution manipulates ___; Forward chaining applies ___.",
+        options: [
+            "Complete truth assignments; partial truth assignments; clauses and derived clauses; definite-clause rules to known facts",
+            "Partial assignments; complete assignments; facts; clauses",
+            "Clauses; facts; truth assignments; partial assignments",
+            "Rules; clauses; truth assignments; facts"
+        ],
+        correct: 0,
+        explanation: "Model checking enumerates all complete truth assignments (2<sup>n</sup>). DPLL searches partial truth assignments with backtracking and unit propagation. Resolution manipulates clauses, deriving new ones by cancelling complementary literals. Forward chaining fires definite-clause rules whenever their premises are known facts."
+    },
+    // TUTORIAL EXERCISES
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "In the wumpus_no_breeze DPLL demo, what is added as the negated query?",
+        options: [
+            "P<sub>1,2</sub> (the negation of the query &not;P<sub>1,2</sub>)",
+            "&not;P<sub>1,2</sub>",
+            "B<sub>1,1</sub>",
+            "&not;B<sub>1,1</sub>"
+        ],
+        correct: 0,
+        explanation: "The query is &not;P<sub>1,2</sub>. To do refutation, we negate it to get P<sub>1,2</sub> and add it to the CNF clause set. If DPLL finds UNSAT, the query &not;P<sub>1,2</sub> is entailed."
+    },
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "In the wumpus_no_breeze example, which clause forces B<sub>1,1</sub> when P<sub>1,2</sub> is assumed?",
+        options: [
+            "&not;P<sub>1,2</sub> &or; B<sub>1,1</sub> &mdash; with P<sub>1,2</sub>=T, it becomes the unit clause B<sub>1,1</sub>",
+            "P<sub>1,2</sub> &or; B<sub>1,1</sub>",
+            "&not;B<sub>1,1</sub> &or; P<sub>1,2</sub>",
+            "B<sub>1,1</sub> &or; P<sub>2,1</sub>"
+        ],
+        correct: 0,
+        explanation: "The biconditional B<sub>1,1</sub> &harr; (P<sub>1,2</sub> &or; P<sub>2,1</sub>) produces the CNF clause &not;P<sub>1,2</sub> &or; B<sub>1,1</sub> (among others). When P<sub>1,2</sub>=T, &not;P<sub>1,2</sub> is false, leaving B<sub>1,1</sub> as a unit clause that must be true."
+    },
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "For (A&or;B) &and; (&not;A&or;B) &and; (A&or;&not;B) &and; (&not;A&or;&not;B), why is there no immediate unit clause?",
+        options: [
+            "Every clause has exactly 2 unresolved literals &mdash; no clause is unit",
+            "All clauses are already satisfied",
+            "The formula is in DNF, not CNF",
+            "Unit propagation only works with 3+ literal clauses"
+        ],
+        correct: 0,
+        explanation: "Each of the four clauses has exactly 2 literals, and no assignment has been made yet, so all literals are unresolved. A unit clause needs exactly 1 unresolved literal. DPLL must branch (guess) on a variable to begin."
+    },
+    {
+        topic: "dpll",
+        category: "DPLL",
+        question: "What is the final SAT/UNSAT result for (A&or;B) &and; (&not;A&or;B) &and; (A&or;&not;B) &and; (&not;A&or;&not;B)?",
+        options: [
+            "UNSAT &mdash; both branches (A=T and A=F) lead to contradictions",
+            "SAT with A=T, B=T",
+            "SAT with A=F, B=F",
+            "SAT with A=T, B=F"
+        ],
+        correct: 0,
+        explanation: "Branch A=T: clauses become {B}, {B}, {&not;B}, {&not;B}. Unit propagation: B=T from {B}, but then {&not;B} contradicts. Branch A=F: clauses become {B}, {B}, {&not;B}, {&not;B}. Same contradiction. Both branches fail, so UNSAT."
+    },
+    {
+        topic: "resolution",
+        category: "RESOLUTION",
+        question: "In resolution of {&not;A&or;B, &not;B&or;C, A, &not;C}, what clause is derived by resolving clauses &not;A&or;B and A?",
+        options: [
+            "B (resolve &not;A&or;B with A, cancel A/&not;A)",
+            "C",
+            "&not;A",
+            "&#9633; (empty clause)"
+        ],
+        correct: 0,
+        explanation: "Clause &not;A&or;B contains &not;A; clause A contains A. These form a complementary pair. Resolving: cancel A/&not;A, the remaining literal is B. So we derive the unit clause B."
+    },
+    {
+        topic: "forward",
+        category: "FORWARD CHAINING",
+        question: "For {A&rarr;B, B&rarr;C, A} &#8872; C, what would forward chaining do?",
+        options: [
+            "Start with A, fire A&rarr;B to get B, fire B&rarr;C to get C. Query C is derived.",
+            "Start with C, work backwards to find A",
+            "Enumerate all truth assignments and check C",
+            "Add &not;C and derive a contradiction"
+        ],
+        correct: 0,
+        explanation: "Forward chaining starts with known facts {A}. Rule A&rarr;B fires (premise A is known), adding B. Then rule B&rarr;C fires (premise B is now known), adding C. The query C is found among derived facts. Done!"
+    },
+];
+
+// ==================== FLASHCARD DATA ====================
+const flashcards = [
+    { front: "KB &#8872; &alpha;", back: "Every model of KB is also a model of &alpha; (semantic entailment).\nM(KB) &sube; M(&alpha;)." },
+    { front: "KB &#8866; &alpha;", back: "&alpha; can be derived from KB using a proof procedure (syntactic derivability).\nA mechanical, symbol-manipulation process." },
+    { front: "Soundness", back: "KB &#8866; &alpha; &rArr; KB &#8872; &alpha;\nEverything derived is actually entailed.\nThe proof procedure never lies." },
+    { front: "Completeness", back: "KB &#8872; &alpha; &rArr; KB &#8866; &alpha;\nEverything entailed can be derived.\nThe proof procedure misses nothing." },
+    { front: "Model", back: "A complete truth assignment to all propositional symbols.\nWith n symbols there are 2^n possible models." },
+    { front: "CNF (Conjunctive Normal Form)", back: "A conjunction (&and;) of clauses, each a disjunction (&or;) of literals.\nExample: (A &or; &not;B) &and; (C &or; D).\nEvery formula can be converted to CNF." },
+    { front: "Unit clause", back: "A clause with exactly one unresolved literal.\nDPLL must force that literal to be true.\nThis triggers unit propagation." },
+    { front: "Empty clause &#9633;", back: "A clause with zero literals &mdash; contradiction.\nDeriving &#9633; proves unsatisfiability.\nUsed in refutation proofs: KB &and; &not;&alpha; &rarr; &#9633; means KB &#8872; &alpha;." },
+    { front: "Resolution rule", back: "From (X &or; p) and (Y &or; &not;p), derive (X &or; Y) by cancelling the complementary pair p/&not;p.\nThe single rule needed for refutation completeness." },
+    { front: "Refutation", back: "To prove KB &#8872; &alpha;:\n1. Add &not;&alpha; to KB\n2. Convert to CNF\n3. Apply resolution to derive &#9633;\nIf &#9633; is derived, the entailment holds." },
+    { front: "Modus ponens", back: "From p and p &rarr; q, infer q.\nMore generally: from p1,...,pk and (p1 &and; ... &and; pk) &rarr; q, infer q.\nThe workhorse of rule-based reasoning." },
+    { front: "Definite clause", back: "A clause with exactly one positive literal.\nImplication form: (p1 &and; ... &and; pk) &rarr; q.\nA fact (e.g. A) is a definite clause with zero premises." },
+    { front: "Horn clause", back: "A clause with at most one positive literal.\nDefinite clauses are a subset of Horn clauses.\nGoal clauses (zero positive literals) are also Horn." },
+    { front: "Forward chaining", back: "Start with known facts.\nFire rules whose premises are all known.\nAdd conclusions to known facts.\nRepeat until query found or no new facts." },
+    { front: "DPLL", back: "Davis-Putnam-Logemann-Loveland.\nBacktracking SAT search over partial truth assignments.\nKey optimisation: unit propagation.\nReturns SAT or UNSAT." },
+];
+
+// ==================== BROWSE DATA ====================
+const browseContent = `
+<div class="topic-section">
+<h3>1. Propositional Logic Syntax</h3>
+<ul>
+<li><strong>Propositional symbols</strong>: atomic sentences (e.g. P, Q, A, B<sub>1,1</sub>) that are either true or false</li>
+<li><strong>Five connectives</strong>: &not; (negation), &and; (conjunction), &or; (disjunction), &rarr; (implication), &harr; (biconditional)</li>
+<li><strong>Truth conditions</strong>:
+    <br>&not;P is true iff P is false
+    <br>P &and; Q is true iff both are true
+    <br>P &or; Q is true iff at least one is true
+    <br>P &rarr; Q is false only when P is true and Q is false
+    <br>P &harr; Q is true when both have the same truth value</li>
+<li><strong>Parsing</strong>: Precedence (highest to lowest): &not;, &and;, &or;, &rarr;, &harr;. Use parentheses to override.</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>2. Models and Truth Assignments</h3>
+<ul>
+<li>A <strong>model</strong> = a complete truth assignment to all propositional symbols</li>
+<li>With n symbols, there are <strong>2<sup>n</sup></strong> possible models</li>
+<li><strong>Example</strong>: K=T, O=F, B<sub>1,1</sub>=F, P<sub>1,2</sub>=T</li>
+<li>Evaluate: K &rarr; O = T &rarr; F = <strong>F</strong></li>
+<li>Evaluate: (K &or; O) &and; &not;B<sub>1,1</sub> = (T &or; F) &and; &not;F = T &and; T = <strong>T</strong></li>
+<li>A formula is <strong>satisfiable</strong> if at least one model makes it true; <strong>valid</strong> (tautology) if every model makes it true</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>3. Entailment</h3>
+<ul>
+<li><strong>KB &#8872; &alpha;</strong>: every model that satisfies KB also satisfies &alpha;</li>
+<li>Equivalently: <strong>M(KB) &sube; M(&alpha;)</strong> &mdash; the models of KB are a subset of the models of &alpha;</li>
+<li><strong>Adding knowledge shrinks models</strong>: more constraints = fewer satisfying assignments</li>
+<li><strong>Wumpus example</strong>: KB = {B<sub>1,1</sub> &harr; (P<sub>1,2</sub> &or; P<sub>2,1</sub>), &not;B<sub>1,1</sub>}</li>
+<li>From &not;B<sub>1,1</sub> and the biconditional: &not;(P<sub>1,2</sub> &or; P<sub>2,1</sub>), so <strong>&not;P<sub>1,2</sub> &and; &not;P<sub>2,1</sub></strong> is entailed</li>
+<li><strong>KB &#8872; &alpha; iff KB &and; &not;&alpha; is unsatisfiable</strong> (basis of refutation)</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>4. Inference: Model Checking vs Theorem Proving</h3>
+<ul>
+<li><strong>Model checking</strong>: enumerate all 2<sup>n</sup> truth assignments, check &alpha; is true in every KB-model. Sound and complete but exponential.</li>
+<li><strong>Theorem proving</strong>: derive new sentences from KB using proof rules (syntactic approach)</li>
+<li><strong>&#8872; vs &#8866;</strong>: entailment is semantic (truth in all models); derivability is syntactic (mechanical proof steps)</li>
+<li><strong>Soundness</strong>: KB &#8866; &alpha; &rArr; KB &#8872; &alpha; (derived &rArr; entailed)</li>
+<li><strong>Completeness</strong>: KB &#8872; &alpha; &rArr; KB &#8866; &alpha; (entailed &rArr; derivable)</li>
+<li>An ideal proof procedure is both sound and complete: it derives exactly what is entailed</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>5. Modus Ponens &amp; Forward Chaining</h3>
+<ul>
+<li><strong>Modus ponens</strong>: from p<sub>1</sub>,...,p<sub>k</sub> and (p<sub>1</sub> &and; ... &and; p<sub>k</sub>) &rarr; q, infer q</li>
+<li><strong>Definite clause</strong>: exactly one positive literal &mdash; (premises) &rarr; conclusion. Facts are definite clauses with zero premises.</li>
+<li><strong>Forward chaining algorithm</strong>: start with known facts, fire rules whose premises are all known, add conclusions, repeat</li>
+<li><strong>Trace example</strong>: KB = {K, P, K&rarr;O, O&rarr;E, P&and;E&rarr;D}, query D<br>
+    {K,P} &rarr; fire K&rarr;O, get O &rarr; fire O&rarr;E, get E &rarr; fire P&and;E&rarr;D, get D. Query found!</li>
+<li><strong>Limitation</strong>: cannot handle disjunctive conclusions (e.g. Alarm &rarr; Smoke &or; BreakIn has two positive literals)</li>
+<li>Forward chaining on definite clauses is <strong>sound and complete</strong></li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>6. CNF Conversion</h3>
+<ul>
+<li><strong>Literal</strong>: a propositional symbol or its negation (A, &not;A)</li>
+<li><strong>Clause</strong>: a disjunction of literals (A &or; &not;B &or; C)</li>
+<li><strong>CNF</strong>: a conjunction of clauses &mdash; (A &or; &not;B) &and; (C &or; D)</li>
+<li><strong>Conversion steps</strong> (in order):
+    <br>1. Eliminate &harr;: (A&harr;B) becomes (A&rarr;B) &and; (B&rarr;A)
+    <br>2. Eliminate &rarr;: (A&rarr;B) becomes &not;A &or; B
+    <br>3. Move &not; inward (De Morgan): &not;(A&and;B) = &not;A&or;&not;B, &not;(A&or;B) = &not;A&and;&not;B
+    <br>4. Remove double negation: &not;&not;A = A
+    <br>5. Distribute &or; over &and;: A&or;(B&and;C) = (A&or;B)&and;(A&or;C)</li>
+<li><strong>Worked example</strong>: (Summer&rarr;Snow)&rarr;Bizarre
+    <br>&rarr; &not;(&not;Summer &or; Snow) &or; Bizarre
+    <br>&rarr; (Summer &and; &not;Snow) &or; Bizarre
+    <br>&rarr; (Summer &or; Bizarre) &and; (&not;Snow &or; Bizarre)</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>7. DPLL (SAT Search)</h3>
+<ul>
+<li><strong>DPLL</strong> = Davis-Putnam-Logemann-Loveland &mdash; backtracking search over <strong>partial</strong> truth assignments</li>
+<li><strong>Clause statuses</strong> under a partial assignment:
+    <br>&bull; <em>Satisfied</em>: at least one literal is true
+    <br>&bull; <em>Unit</em>: exactly one literal unresolved, rest false &rarr; force it true
+    <br>&bull; <em>Contradicted</em>: all literals false &rarr; backtrack
+    <br>&bull; <em>Unresolved</em>: more than one literal unresolved</li>
+<li><strong>Unit propagation</strong>: when a unit clause appears, assign its literal to true; this may cascade</li>
+<li><strong>Branching</strong>: if no unit clause and no contradiction, pick an unassigned variable and try both values</li>
+<li><strong>Entailment via DPLL</strong>: to prove KB &#8872; &alpha;, check if CNF(KB &and; &not;&alpha;) is UNSAT</li>
+<li><strong>Trace example</strong>: Clauses {A, &not;A&or;B, &not;B&or;C, &not;C}. Unit prop: A=T &rarr; B=T &rarr; C=T &rarr; contradiction with &not;C. UNSAT.</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>8. Resolution</h3>
+<ul>
+<li><strong>Resolution rule</strong>: from (X &or; p) and (Y &or; &not;p), derive (X &or; Y) by cancelling the complementary pair p/&not;p</li>
+<li><strong>Refutation algorithm</strong>: to prove KB &#8872; &alpha;:
+    <br>1. Add &not;&alpha; to KB
+    <br>2. Convert everything to CNF
+    <br>3. Repeatedly apply resolution
+    <br>4. If &#9633; (empty clause) is derived &rarr; KB &#8872; &alpha;</li>
+<li><strong>Worked example</strong>: KB = {A&rarr;B, B&rarr;C, A}, query C
+    <br>CNF + &not;C: {&not;A&or;B, &not;B&or;C, A, &not;C}
+    <br>Resolve &not;A&or;B with A &rarr; B
+    <br>Resolve &not;B&or;C with B &rarr; C
+    <br>Resolve C with &not;C &rarr; &#9633;. Proved!</li>
+<li><strong>Wumpus resolution</strong>: KB includes &not;B<sub>1,1</sub> and clauses from B<sub>1,1</sub>&harr;(P<sub>1,2</sub>&or;P<sub>2,1</sub>). Add P<sub>1,2</sub> (negation of query &not;P<sub>1,2</sub>). Derive &#9633;.</li>
+<li>Resolution is <strong>sound and complete</strong> (refutation-complete) for propositional logic</li>
+</ul>
+</div>
+<div class="topic-section">
+<h3>9. Comparing Proof Methods</h3>
+<ul>
+<li><strong>Model checking</strong>: searches complete truth assignments (2<sup>n</sup>). Sound &amp; complete. Exponential.</li>
+<li><strong>DPLL</strong>: searches partial truth assignments with unit propagation and backtracking. Sound &amp; complete for SAT. Often much faster than brute-force enumeration.</li>
+<li><strong>Resolution</strong>: manipulates clauses, derives new clauses by cancelling complementary literals. Sound &amp; complete (refutation). Works on any CNF.</li>
+<li><strong>Forward chaining</strong>: applies definite-clause rules to known facts. Sound &amp; complete for definite-clause KBs. Linear time in size of KB.</li>
+</ul>
+<table style="width:100%; border-collapse:collapse; margin:12px 0; font-size:0.9rem;">
+<tr style="background:#0f1a2a;"><th style="padding:8px 12px; border:1px solid #2a2a5a; color:#7cb7ff;">Method</th><th style="padding:8px 12px; border:1px solid #2a2a5a; color:#7cb7ff;">Searches/Manipulates</th><th style="padding:8px 12px; border:1px solid #2a2a5a; color:#7cb7ff;">Evidence for entailment</th><th style="padding:8px 12px; border:1px solid #2a2a5a; color:#7cb7ff;">Completeness</th></tr>
+<tr><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Model checking</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Complete truth assignments</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">&alpha; true in all KB-models</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Yes (exponential)</td></tr>
+<tr><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">DPLL</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Partial truth assignments</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">KB &and; &not;&alpha; is UNSAT</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Yes</td></tr>
+<tr><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Resolution</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Clauses (derive new ones)</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Derive &#9633; from KB &and; &not;&alpha;</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Yes (refutation)</td></tr>
+<tr><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Forward chaining</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Definite-clause rules + facts</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Query derived as a fact</td><td style="padding:8px 12px; border:1px solid #2a2a5a; color:#ccc;">Yes (definite clauses)</td></tr>
+</table>
+</div>
+`;
+
+// ==================== SLIDES DATA ====================
+const slides = [
+    {
+        title: "Knowledge Representation",
+        content: `<p>COMP9414 Week 3 &mdash; Propositional Logic and Inference</p>
+        <ul>
+        <li>Propositional logic syntax and semantics</li>
+        <li>Models and truth assignments</li>
+        <li>Entailment (KB &#8872; &alpha;)</li>
+        <li>Inference methods: model checking, forward chaining, DPLL, resolution</li>
+        <li>Soundness and completeness</li>
+        <li>CNF conversion</li>
+        </ul>`
+    },
+    {
+        title: "Propositional Logic",
+        content: `<h3>Syntax</h3>
+        <ul>
+        <li><strong>Propositional symbols</strong>: P, Q, A, B<sub>1,1</sub>, P<sub>1,2</sub>, etc.</li>
+        <li><strong>Connectives</strong>: &not; (negation), &and; (conjunction), &or; (disjunction), &rarr; (implication), &harr; (biconditional)</li>
+        </ul>
+        <h3>Semantics (Truth Conditions)</h3>
+        <table>
+        <tr><th>Formula</th><th>True when...</th></tr>
+        <tr><td>&not;P</td><td>P is false</td></tr>
+        <tr><td>P &and; Q</td><td>Both P and Q are true</td></tr>
+        <tr><td>P &or; Q</td><td>At least one of P, Q is true</td></tr>
+        <tr><td>P &rarr; Q</td><td>P is false, or Q is true (false only when P=T, Q=F)</td></tr>
+        <tr><td>P &harr; Q</td><td>P and Q have the same truth value</td></tr>
+        </table>
+        <div class="highlight">A <strong>model</strong> is a complete truth assignment to all symbols. With n symbols there are 2<sup>n</sup> models.</div>`
+    },
+    {
+        title: "Entailment",
+        content: `<div class="formula">KB &#8872; &alpha; &mdash; every model of KB is also a model of &alpha;</div>
+        <h3>Key Properties</h3>
+        <ul>
+        <li>M(KB) &sube; M(&alpha;) &mdash; the set of models of KB is a subset of those of &alpha;</li>
+        <li>Adding a sentence to KB can only <strong>shrink</strong> (or keep) the model set</li>
+        <li>KB &#8872; &alpha; iff KB &and; &not;&alpha; is <strong>unsatisfiable</strong></li>
+        </ul>
+        <h3>Wumpus Example</h3>
+        <p>KB = {B<sub>1,1</sub> &harr; (P<sub>1,2</sub> &or; P<sub>2,1</sub>), &not;B<sub>1,1</sub>}</p>
+        <p>From &not;B<sub>1,1</sub> and the biconditional: &not;(P<sub>1,2</sub> &or; P<sub>2,1</sub>) &mdash; so <strong>&not;P<sub>1,2</sub> &and; &not;P<sub>2,1</sub></strong> is entailed.</p>`
+    },
+    {
+        title: "Inference: Soundness & Completeness",
+        content: `<table>
+        <tr><th>Concept</th><th>Definition</th></tr>
+        <tr><td>&#8872; (Entailment)</td><td>Semantic: &alpha; is true in every model of KB</td></tr>
+        <tr><td>&#8866; (Derivability)</td><td>Syntactic: &alpha; can be derived from KB via proof rules</td></tr>
+        <tr><td>Soundness</td><td>KB &#8866; &alpha; &rArr; KB &#8872; &alpha; &mdash; derived implies entailed</td></tr>
+        <tr><td>Completeness</td><td>KB &#8872; &alpha; &rArr; KB &#8866; &alpha; &mdash; entailed implies derivable</td></tr>
+        </table>
+        <div class="highlight">An ideal proof procedure is both sound and complete: it derives exactly what is entailed, nothing more and nothing less.</div>
+        <h3>Model Checking</h3>
+        <p>Enumerate all 2<sup>n</sup> truth assignments; check &alpha; true in every KB-model. Sound and complete but exponential.</p>`
+    },
+    {
+        title: "Modus Ponens & Forward Chaining",
+        content: `<h3>Modus Ponens</h3>
+        <div class="formula">From p<sub>1</sub>,...,p<sub>k</sub> and (p<sub>1</sub> &and; ... &and; p<sub>k</sub>) &rarr; q, infer q</div>
+        <h3>Definite Clauses</h3>
+        <p>A clause with exactly one positive literal. Forward chaining works on definite-clause KBs.</p>
+        <h3>Forward Chaining Algorithm</h3>
+        <ol>
+        <li>Start with known facts</li>
+        <li>Fire rules whose premises are all known</li>
+        <li>Add conclusions to known facts</li>
+        <li>Repeat until query found or no new facts</li>
+        </ol>
+        <h3>Trace: KB = {K, P, K&rarr;O, O&rarr;E, P&and;E&rarr;D}, query D</h3>
+        <div class="formula">{K,P} &rarr; {K,P,O} &rarr; {K,P,O,E} &rarr; {K,P,O,E,D}</div>
+        <div class="highlight">Limitation: cannot handle disjunctive conclusions (e.g. Alarm &rarr; Smoke &or; BreakIn).</div>`
+    },
+    {
+        title: "CNF Conversion",
+        content: `<h3>Definitions</h3>
+        <ul>
+        <li><strong>Literal</strong>: a symbol or its negation (A, &not;A)</li>
+        <li><strong>Clause</strong>: a disjunction of literals (A &or; &not;B &or; C)</li>
+        <li><strong>CNF</strong>: a conjunction of clauses &mdash; (A &or; &not;B) &and; (C &or; D)</li>
+        </ul>
+        <h3>Conversion Steps (in order)</h3>
+        <ol>
+        <li>Eliminate &harr;: (A&harr;B) &rarr; (A&rarr;B) &and; (B&rarr;A)</li>
+        <li>Eliminate &rarr;: (A&rarr;B) &rarr; &not;A &or; B</li>
+        <li>Move &not; inward (De Morgan): &not;(A&and;B) = &not;A&or;&not;B</li>
+        <li>Remove double negation: &not;&not;A = A</li>
+        <li>Distribute &or; over &and;: A&or;(B&and;C) = (A&or;B)&and;(A&or;C)</li>
+        </ol>
+        <h3>Worked Example: (Summer&rarr;Snow)&rarr;Bizarre</h3>
+        <div class="formula">&not;(&not;Summer &or; Snow) &or; Bizarre<br>= (Summer &and; &not;Snow) &or; Bizarre<br>= (Summer &or; Bizarre) &and; (&not;Snow &or; Bizarre)</div>`
+    },
+    {
+        title: "DPLL (SAT Search)",
+        content: `<p><strong>DPLL</strong> = Davis-Putnam-Logemann-Loveland &mdash; backtracking search over <strong>partial</strong> truth assignments.</p>
+        <h3>Clause Statuses</h3>
+        <table>
+        <tr><th>Status</th><th>Meaning</th><th>Action</th></tr>
+        <tr><td>Satisfied</td><td>At least one literal is true</td><td>Ignore this clause</td></tr>
+        <tr><td>Unit</td><td>Exactly one literal unresolved</td><td>Force it true (unit propagation)</td></tr>
+        <tr><td>Contradicted</td><td>All literals are false</td><td>Backtrack</td></tr>
+        <tr><td>Unresolved</td><td>Multiple literals unresolved</td><td>Keep searching</td></tr>
+        </table>
+        <h3>Trace: Clauses {A, &not;A&or;B, &not;B&or;C, &not;C}</h3>
+        <div class="formula">A=T (unit) &rarr; B=T (unit) &rarr; C=T (unit) &rarr; &not;C contradicted &rarr; UNSAT</div>
+        <div class="highlight">To prove KB &#8872; &alpha;: check if CNF(KB &and; &not;&alpha;) is UNSAT. If so, entailment holds.</div>`
+    },
+    {
+        title: "Resolution",
+        content: `<h3>Resolution Rule</h3>
+        <div class="formula">From (X &or; p) and (Y &or; &not;p), derive (X &or; Y)</div>
+        <p>Cancel the complementary pair p/&not;p. This single rule is refutation-complete.</p>
+        <h3>Refutation Algorithm</h3>
+        <ol>
+        <li>Add &not;&alpha; to KB</li>
+        <li>Convert everything to CNF</li>
+        <li>Repeatedly apply resolution</li>
+        <li>If &#9633; (empty clause) is derived &rarr; KB &#8872; &alpha;</li>
+        </ol>
+        <h3>Worked Example: {A&rarr;B, B&rarr;C, A} &#8872; C</h3>
+        <div class="formula">Clauses: {&not;A&or;B, &not;B&or;C, A, &not;C}<br>
+        Resolve &not;A&or;B + A &rarr; B<br>
+        Resolve &not;B&or;C + B &rarr; C<br>
+        Resolve C + &not;C &rarr; &#9633; (proved!)</div>`
+    },
+    {
+        title: "Comparing Proof Methods",
+        content: `<table>
+        <tr><th>Method</th><th>Searches / Manipulates</th><th>Evidence</th><th>Completeness</th></tr>
+        <tr><td>Model checking</td><td>Complete truth assignments</td><td>&alpha; true in all KB-models</td><td>Yes (exponential)</td></tr>
+        <tr><td>DPLL</td><td>Partial truth assignments</td><td>KB &and; &not;&alpha; is UNSAT</td><td>Yes</td></tr>
+        <tr><td>Resolution</td><td>Clauses (derive new ones)</td><td>Derive &#9633; from KB &and; &not;&alpha;</td><td>Yes (refutation)</td></tr>
+        <tr><td>Forward chaining</td><td>Definite-clause rules + facts</td><td>Query derived as a fact</td><td>Yes (definite clauses)</td></tr>
+        </table>
+        <div class="highlight">Each method has trade-offs. Model checking is brute-force. DPLL is smart search. Resolution is clause manipulation. Forward chaining is efficient but restricted to definite clauses.</div>`
+    },
+];
+
+// ==================== QUIZ LOGIC ====================
+let currentQuestion = 0;
+let answers = {};
+let filteredQuestions = [...questions];
+let currentTopic = 'all';
+let currentFlash = 0;
+let shuffledFlash = [...flashcards];
+
+function filterTopic(topic) {
+    currentTopic = topic;
+    document.querySelectorAll('#topic-filter .nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`#topic-filter [data-topic="${topic}"]`).classList.add('active');
+    if (topic === 'all') {
+        filteredQuestions = [...questions];
+    } else {
+        filteredQuestions = questions.filter(q => q.topic === topic);
+    }
+    currentQuestion = 0;
+    answers = {};
+    renderQuiz();
+}
+
+function renderQuiz() {
+    if (filteredQuestions.length === 0) {
+        document.getElementById('quiz-content').innerHTML = '<div class="quiz-card"><p>No questions for this topic.</p></div>';
+        return;
+    }
+    const total = filteredQuestions.length;
+    const answered = Object.keys(answers).length;
+
+    if (answered === total && answered > 0) {
+        showScore();
+        return;
+    }
+
+    const q = filteredQuestions[currentQuestion];
+    document.getElementById('progress-text').textContent = `Question ${currentQuestion + 1} / ${total}`;
+    document.getElementById('progress-fill').style.width = `${((currentQuestion + 1) / total) * 100}%`;
+
+    const hasAnswered = answers[currentQuestion] !== undefined;
+    const optionsHtml = q.options.map((opt, i) => {
+        let cls = 'option';
+        if (hasAnswered) {
+            cls += ' disabled';
+            if (i === q.correct) cls += ' correct';
+            else if (i === answers[currentQuestion] && i !== q.correct) cls += ' incorrect';
+        }
+        return `<div class="${cls}" onclick="selectAnswer(${i})">${opt}</div>`;
+    }).join('');
+
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="quiz-card">
+            <div class="category">${q.category}</div>
+            <div class="question">${q.question}</div>
+            <div class="options">${optionsHtml}</div>
+            <div class="explanation ${hasAnswered ? 'visible' : ''}">${q.explanation}</div>
+        </div>
+    `;
+}
+
+function selectAnswer(idx) {
+    if (answers[currentQuestion] !== undefined) return;
+    answers[currentQuestion] = idx;
+    renderQuiz();
+}
+
+function nextQuestion() {
+    if (currentQuestion < filteredQuestions.length - 1) {
+        currentQuestion++;
+        renderQuiz();
+    } else if (Object.keys(answers).length === filteredQuestions.length) {
+        showScore();
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuiz();
+    }
+}
+
+function showScore() {
+    const total = filteredQuestions.length;
+    let correct = 0;
+    for (let i = 0; i < total; i++) {
+        if (answers[i] === filteredQuestions[i].correct) correct++;
+    }
+    const pct = Math.round((correct / total) * 100);
+    let cls = pct >= 80 ? '' : pct >= 50 ? 'mid' : 'low';
+
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="score-display">
+            <h2>Quiz Complete!</h2>
+            <div class="score-num ${cls}">${correct}/${total}</div>
+            <p>${pct}% correct</p>
+            <div class="score-breakdown">
+                ${pct >= 80 ? 'Excellent! You have a strong grasp of the material.' :
+                  pct >= 50 ? 'Good effort! Review the topics you missed.' :
+                  'Keep studying! Try the flashcards to reinforce concepts.'}
+            </div>
+            <div class="btn-row" style="margin-top:24px">
+                <button class="btn btn-primary" onclick="resetQuiz()">Try Again</button>
+                <button class="btn btn-secondary" onclick="reviewMissed()">Review Missed</button>
+            </div>
+        </div>
+    `;
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('progress-text').textContent = `Completed: ${correct}/${total} correct`;
+}
+
+function resetQuiz() {
+    answers = {};
+    currentQuestion = 0;
+    renderQuiz();
+}
+
+function reviewMissed() {
+    const missed = [];
+    for (let i = 0; i < filteredQuestions.length; i++) {
+        if (answers[i] !== filteredQuestions[i].correct) missed.push(i);
+    }
+    if (missed.length === 0) { resetQuiz(); return; }
+    currentQuestion = missed[0];
+    answers = {};
+    renderQuiz();
+}
+
+// ==================== FLASHCARD LOGIC ====================
+function renderFlashcard() {
+    const f = shuffledFlash[currentFlash];
+    document.getElementById('flash-progress').textContent = `Card ${currentFlash + 1} / ${shuffledFlash.length}`;
+    document.getElementById('flashcard-content').innerHTML = `
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="front">${f.front}<div class="hint">Click to reveal answer</div></div>
+            <div class="back">${f.back.replace(/\n/g, '<br>')}</div>
+        </div>
+    `;
+}
+
+function nextFlash() {
+    currentFlash = (currentFlash + 1) % shuffledFlash.length;
+    renderFlashcard();
+}
+
+function prevFlash() {
+    currentFlash = (currentFlash - 1 + shuffledFlash.length) % shuffledFlash.length;
+    renderFlashcard();
+}
+
+function shuffleFlash() {
+    for (let i = shuffledFlash.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledFlash[i], shuffledFlash[j]] = [shuffledFlash[j], shuffledFlash[i]];
+    }
+    currentFlash = 0;
+    renderFlashcard();
+}
+
+// ==================== SLIDES LOGIC ====================
+let currentSlide = 0;
+
+function renderSlide() {
+    const s = slides[currentSlide];
+    document.getElementById('slide-progress').textContent = `Slide ${currentSlide + 1} / ${slides.length}`;
+    document.getElementById('slide-content').innerHTML = `
+        <div class="slide">
+            <h2>${s.title}</h2>
+            ${s.content}
+            <div class="slide-num">Slide ${currentSlide + 1} / ${slides.length}</div>
+        </div>
+    `;
+}
+
+function nextSlide() {
+    if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        renderSlide();
+    }
+}
+
+function prevSlide() {
+    if (currentSlide > 0) {
+        currentSlide--;
+        renderSlide();
+    }
+}
+
+// ==================== BROWSE LOGIC ====================
+function renderBrowse() {
+    document.getElementById('browse-mode').innerHTML = browseContent;
+}
+
+// ==================== MODE SWITCHING ====================
+function switchMode(mode) {
+    document.querySelectorAll('.nav-tabs:first-of-type .nav-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    document.getElementById('quiz-mode').style.display = mode === 'quiz' ? 'block' : 'none';
+    document.getElementById('flashcard-mode').style.display = mode === 'flashcards' ? 'block' : 'none';
+    document.getElementById('browse-mode').style.display = mode === 'browse' ? 'block' : 'none';
+    document.getElementById('slides-mode').style.display = mode === 'slides' ? 'block' : 'none';
+
+    if (mode === 'quiz') renderQuiz();
+    if (mode === 'flashcards') renderFlashcard();
+    if (mode === 'browse') renderBrowse();
+    if (mode === 'slides') renderSlide();
+}
+
+// ==================== KEYBOARD NAVIGATION ====================
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') {
+        if (document.getElementById('slides-mode').style.display !== 'none') nextSlide();
+        else if (document.getElementById('quiz-mode').style.display !== 'none') nextQuestion();
+        else if (document.getElementById('flashcard-mode').style.display !== 'none') nextFlash();
+    } else if (e.key === 'ArrowLeft') {
+        if (document.getElementById('slides-mode').style.display !== 'none') prevSlide();
+        else if (document.getElementById('quiz-mode').style.display !== 'none') prevQuestion();
+        else if (document.getElementById('flashcard-mode').style.display !== 'none') prevFlash();
+    } else if (e.key === ' ' && document.getElementById('flashcard-mode').style.display !== 'none') {
+        e.preventDefault();
+        const card = document.querySelector('.flashcard');
+        if (card) card.classList.toggle('flipped');
+    }
+});
+
+// ==================== INIT ====================
+renderSlide();
+</script>
+</body>
+</html>
