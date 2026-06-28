@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMP9414 Assignment 1 - Discussion Prep Quiz</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            min-height: 100vh;
+            font-size: 17px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 30px;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            color: #7cb7ff;
+            margin-bottom: 8px;
+        }
+        header p { color: #888; font-size: 0.95rem; }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #1a1a3e;
+            border: 1px solid #333;
+            color: #aaa;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .nav-tab:hover { border-color: #7cb7ff; color: #7cb7ff; }
+        .nav-tab.active { background: #7cb7ff; color: #0f0f23; border-color: #7cb7ff; font-weight: 600; }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #1a1a3e;
+            border-radius: 3px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7cb7ff, #a78bfa);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        .progress-text {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        /* Quiz card */
+        .quiz-card {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .quiz-card .category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a78bfa;
+            margin-bottom: 12px;
+        }
+        .quiz-card .question {
+            font-size: 1.2rem;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        /* Options */
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option {
+            padding: 14px 18px;
+            background: #0f0f23;
+            border: 1px solid #333;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        .option:hover { border-color: #7cb7ff; background: #151535; }
+        .option.selected { border-color: #7cb7ff; background: #1a2a4a; }
+        .option.correct { border-color: #4ade80; background: #0f2a1a; color: #4ade80; }
+        .option.incorrect { border-color: #f87171; background: #2a0f0f; color: #f87171; }
+        .option.show-correct { border-color: #4ade80; background: #0f2a1a; }
+        .option.disabled { pointer-events: none; }
+
+        /* Explanation */
+        .explanation {
+            margin-top: 20px;
+            padding: 16px;
+            background: #0f1a2a;
+            border-left: 3px solid #7cb7ff;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: none;
+            color: #ccc;
+        }
+        .explanation.visible { display: block; animation: fadeIn 0.3s ease; }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #7cb7ff; color: #0f0f23; }
+        .btn-primary:hover { background: #5a9fee; }
+        .btn-secondary { background: #2a2a5a; color: #ccc; }
+        .btn-secondary:hover { background: #3a3a6a; }
+        .btn-reset { background: #f87171; color: #fff; }
+        .btn-reset:hover { background: #dc2626; }
+
+        /* Score */
+        .score-display {
+            text-align: center;
+            padding: 40px;
+        }
+        .score-display h2 { font-size: 2rem; color: #7cb7ff; margin-bottom: 12px; }
+        .score-display .score-num { font-size: 3.5rem; font-weight: 700; color: #4ade80; margin: 16px 0; }
+        .score-display .score-num.low { color: #f87171; }
+        .score-display .score-num.mid { color: #fbbf24; }
+        .score-breakdown { margin-top: 20px; font-size: 0.9rem; color: #aaa; }
+
+        /* Topic section in browse mode */
+        .topic-section { margin-bottom: 32px; }
+        .topic-section h3 { color: #7cb7ff; margin-bottom: 12px; font-size: 1.1rem; }
+        .topic-section ul { padding-left: 20px; }
+        .topic-section li { margin-bottom: 8px; line-height: 1.5; color: #ccc; }
+        .topic-section code { background: #2a2a5a; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Flashcard mode */
+        .flashcard {
+            background: #1a1a3e;
+            border: 1px solid #2a2a5a;
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .flashcard:hover { border-color: #7cb7ff; }
+        .flashcard .front { font-size: 1.2rem; font-weight: 500; }
+        .flashcard .back { font-size: 1rem; color: #4ade80; line-height: 1.6; display: none; }
+        .flashcard.flipped .front { display: none; }
+        .flashcard.flipped .back { display: block; }
+        .flashcard .hint { font-size: 0.8rem; color: #666; margin-top: 12px; }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            body { font-size: 19px; }
+            .quiz-card .question { font-size: 1.4rem; }
+            .option { font-size: 1.1rem; }
+            .explanation { font-size: 1.05rem; }
+            .flashcard .front { font-size: 1.4rem; }
+            .flashcard .back { font-size: 1.15rem; }
+            .topic-section li { font-size: 1.1rem; }
+            .topic-section h3 { font-size: 1.2rem; }
+            .nav-tab { font-size: 1rem; }
+            .progress-text { font-size: 0.95rem; }
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .quiz-card { padding: 20px; }
+            header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Assignment 1: Discussion Prep</h1>
+        <p>Search & Planning - 60 questions across 3 discussion groups</p>
+    </header>
+
+    <div class="nav-tabs">
+        <div class="nav-tab active" onclick="switchMode('quiz')">Quiz Mode</div>
+        <div class="nav-tab" onclick="switchMode('flashcards')">Flashcards</div>
+        <div class="nav-tab" onclick="switchMode('browse')">Browse Topics</div>
+    </div>
+
+    <div id="quiz-mode">
+        <div class="nav-tabs" id="topic-filter" style="margin-bottom:16px">
+            <div class="nav-tab active" data-topic="all" onclick="filterTopic('all')">All Topics</div>
+            <div class="nav-tab" data-topic="foundations" onclick="filterTopic('foundations')">G1: Foundations</div>
+            <div class="nav-tab" data-topic="search" onclick="filterTopic('search')">G2: Search Behaviour</div>
+            <div class="nav-tab" data-topic="planning" onclick="filterTopic('planning')">G3: Planning</div>
+        </div>
+        <div class="progress-text" id="progress-text">Question 1 / 60</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div id="quiz-content"></div>
+        <div class="btn-row" id="quiz-buttons">
+            <button class="btn btn-secondary" onclick="prevQuestion()">Previous</button>
+            <button class="btn btn-primary" onclick="nextQuestion()">Next</button>
+        </div>
+    </div>
+
+    <div id="flashcard-mode" style="display:none">
+        <div class="progress-text" id="flash-progress">Card 1 / 30</div>
+        <div id="flashcard-content"></div>
+        <div class="btn-row">
+            <button class="btn btn-secondary" onclick="prevFlash()">Previous</button>
+            <button class="btn btn-primary" onclick="nextFlash()">Next</button>
+            <button class="btn btn-secondary" onclick="shuffleFlash()">Shuffle</button>
+        </div>
+    </div>
+
+    <div id="browse-mode" style="display:none"></div>
+</div>
+
+<script>
+// ==================== QUIZ DATA ====================
+const questions = [
+    // ===== GROUP 1: FOUNDATIONS (20 questions) =====
+    // Problem formulation
+    {
+        topic: "foundations",
+        category: "Problem Formulation",
+        question: "What are the five components needed to define a search problem?",
+        options: [
+            "Graph, nodes, edges, weights, heuristic",
+            "Initial state, successor function, goal test, path cost, strategy",
+            "Start, frontier, explored set, solution, cost",
+            "States, actions, transitions, rewards, policy"
+        ],
+        correct: 1,
+        explanation: "A search problem requires: (1) initial state, (2) successor function / actions, (3) goal test, (4) path cost, and (5) a strategy for choosing the next frontier node."
+    },
+    {
+        topic: "foundations",
+        category: "Problem Formulation",
+        question: "For the office graph (corridor, mail_room, office_a, office_b, storage, lab), what is the problem formulation for finding a path from corridor to lab?",
+        options: [
+            "Initial: corridor, Goal: state == lab, Actions: move along edges, Cost: sum of edge weights",
+            "Initial: lab, Goal: state == corridor, Actions: move along edges, Cost: number of edges",
+            "Initial: corridor, Goal: all rooms visited, Actions: move along edges, Cost: sum of edge weights",
+            "Initial: corridor, Goal: state == lab, Actions: move to any room, Cost: 1 per move"
+        ],
+        correct: 0,
+        explanation: "The formulation is: initial state = corridor, goal test = (state == lab), actions = move along any edge to an adjacent room (bidirectional), path cost = sum of edge costs along the path."
+    },
+    {
+        topic: "foundations",
+        category: "Problem Formulation",
+        question: "In the office graph, why can BFS and UCS return different paths?",
+        options: [
+            "BFS is not a valid algorithm for weighted graphs",
+            "BFS finds the shallowest path (fewest edges), UCS finds the cheapest path (lowest cost). These differ when edge costs vary.",
+            "UCS uses a heuristic, BFS does not",
+            "BFS explores more nodes than UCS"
+        ],
+        correct: 1,
+        explanation: "BFS finds corridor -> office_a -> lab (2 edges, cost 10). UCS finds corridor -> office_b -> lab (2 edges, cost 6). BFS picks the shallowest; UCS picks the cheapest. They agree only when all edge costs are equal."
+    },
+    // State space vs search tree
+    {
+        topic: "foundations",
+        category: "State Space vs Search Tree",
+        question: "What is the key difference between a state space graph and a search tree?",
+        options: [
+            "The state space graph has weights, the search tree does not",
+            "In the state space graph each state appears once; in the search tree the same state can appear multiple times via different paths",
+            "The search tree is always smaller than the state space graph",
+            "The state space graph is directed, the search tree is undirected"
+        ],
+        correct: 1,
+        explanation: "State space graph: each room appears exactly once as a node (6 nodes for the office). Search tree: each node represents a state + the path to reach it, so the same room can appear multiple times because there are multiple paths to reach it."
+    },
+    {
+        topic: "foundations",
+        category: "State Space vs Search Tree",
+        question: "In the office graph (6 rooms, 8 edges), how many nodes does the state space graph have? Could the search tree have more?",
+        options: [
+            "6 nodes; no, the tree is always the same size",
+            "6 nodes; yes, the tree can be much larger since each path-to-a-state is a separate tree node",
+            "8 nodes (one per edge); the tree has 6 nodes",
+            "Infinite nodes in both"
+        ],
+        correct: 1,
+        explanation: "The state space graph has exactly 6 nodes (one per room). The search tree can have many more since each unique path creates a new node. For example, corridor->mail_room->storage and corridor->office_a->office_b->storage both have 'storage' as a tree node, but they're different tree nodes with different paths."
+    },
+    {
+        topic: "foundations",
+        category: "State Space vs Search Tree",
+        question: "Why does graph search need a visited/explored set, but tree search does not?",
+        options: [
+            "Tree search is faster so it doesn't need optimisation",
+            "Graph search could revisit states infinitely (cycles); the explored set prevents re-expanding the same state",
+            "Tree search already has a heuristic built in",
+            "The explored set only matters for A*"
+        ],
+        correct: 1,
+        explanation: "Without an explored set, graph search can loop forever revisiting the same states (e.g., corridor -> mail_room -> corridor -> mail_room ...). The explored set ensures each state is expanded at most once. Tree search by definition doesn't check, but risks infinite loops."
+    },
+    // Frontier and explored set
+    {
+        topic: "foundations",
+        category: "Frontier & Explored Set",
+        question: "What is the frontier (fringe) in graph search?",
+        options: [
+            "All states that have already been expanded",
+            "The set of discovered but not-yet-expanded states awaiting processing",
+            "The final solution path",
+            "All edges in the graph"
+        ],
+        correct: 1,
+        explanation: "The frontier holds states that have been generated (discovered) but not yet expanded. The search algorithm picks which frontier node to expand next based on its strategy (LIFO for DFS, FIFO for BFS, min-cost for UCS, min f(n) for A*)."
+    },
+    {
+        topic: "foundations",
+        category: "Frontier & Explored Set",
+        question: "A node moves from frontier to explored set when:",
+        options: [
+            "It is first discovered as a neighbour",
+            "It is removed from the frontier and its neighbours are generated (expanded)",
+            "It is identified as the goal",
+            "Its heuristic value is computed"
+        ],
+        correct: 1,
+        explanation: "A node moves from frontier to explored when it is popped (removed) from the frontier and expanded. 'Expanded' means we generate its successors. The node is then in the explored/visited set and will never be expanded again."
+    },
+    {
+        topic: "foundations",
+        category: "Frontier & Explored Set",
+        question: "What happens if UCS pops a node from the frontier that is already in the explored set?",
+        options: [
+            "It expands it again with the new cost",
+            "It skips the node (this is a stale entry) and pops the next one",
+            "It removes the node from the explored set and re-expands it",
+            "This can never happen in UCS"
+        ],
+        correct: 1,
+        explanation: "In UCS with lazy deletion, stale heap entries can exist. When we pop a node that's already visited, we skip it because its optimal cost was already found when it was first popped. This is the 'if node in visited: continue' check in the code."
+    },
+    {
+        topic: "foundations",
+        category: "Frontier & Explored Set",
+        question: "What is the difference between 'generated' and 'expanded' in search metrics?",
+        options: [
+            "They mean the same thing",
+            "Generated = created and added to the frontier; Expanded = removed from frontier and successors generated",
+            "Generated = only the goal node; Expanded = all other nodes",
+            "Generated = nodes in the explored set; Expanded = nodes still in the frontier"
+        ],
+        correct: 1,
+        explanation: "Generated count = total nodes added to the frontier (including stale duplicates in UCS/A*). Expanded count = nodes popped from the frontier and processed. Generated >= Expanded always. The difference shows how much 'wasted' work the frontier contains."
+    },
+    // Deterministic tie-breaking
+    {
+        topic: "foundations",
+        category: "Deterministic Tie-Breaking",
+        question: "Why does the assignment require deterministic tie-breaking?",
+        options: [
+            "To make the algorithm faster",
+            "To ensure reproducible results: every run on the same input produces the same expansion order",
+            "To reduce memory usage",
+            "To guarantee optimal solutions"
+        ],
+        correct: 1,
+        explanation: "Deterministic tie-breaking ensures that the tutor can verify your results. If ties were broken randomly, each run could produce a different expansion order, making it impossible to check correctness. The assignment specifies alphabetical order for successor generation."
+    },
+    {
+        topic: "foundations",
+        category: "Deterministic Tie-Breaking",
+        question: "How does DFS break ties when multiple unvisited neighbours exist?",
+        options: [
+            "Picks randomly",
+            "Picks the one with lowest cost",
+            "Generates successors in alphabetical order so the alphabetically first unvisited neighbour is explored next",
+            "Picks the one closest to the goal"
+        ],
+        correct: 2,
+        explanation: "DFS generates successors in alphabetical order (sorted adjacency list). Since DFS uses a stack, it takes the FIRST unvisited neighbour from the sorted list and goes deeper immediately."
+    },
+    {
+        topic: "foundations",
+        category: "Deterministic Tie-Breaking",
+        question: "For UCS and A*, when two frontier entries have the same priority, how should ties be broken?",
+        options: [
+            "Random choice",
+            "Alphabetical by node ID",
+            "Compare complete path tuples lexicographically; if still tied, keep the entry inserted first (FIFO)",
+            "Always expand the deeper node"
+        ],
+        correct: 2,
+        explanation: "The assignment specifies: if two frontier entries have the same primary priority value, compare the complete path tuples lexicographically. If there is still a tie, keep the entry that was inserted first."
+    },
+    {
+        topic: "foundations",
+        category: "Deterministic Tie-Breaking",
+        question: "In your DFS implementation, what data structure determines which neighbour to visit first?",
+        options: [
+            "A min-heap sorted by cost",
+            "A queue (FIFO)",
+            "A sorted adjacency list — neighbours are sorted alphabetically, and DFS picks the first unvisited one",
+            "A random shuffle of neighbours"
+        ],
+        correct: 2,
+        explanation: "The adjacency list is sorted alphabetically: adjacency[node_id].sort(). DFS iterates through this sorted list and picks the first unvisited neighbour, ensuring deterministic exploration order."
+    },
+    // Metrics
+    {
+        topic: "foundations",
+        category: "Search Metrics",
+        question: "What does 'frontier_peak' measure?",
+        options: [
+            "The total number of nodes ever in the frontier",
+            "The maximum size of the frontier at any single point during the search",
+            "The size of the frontier when the goal is found",
+            "The number of times the frontier was empty"
+        ],
+        correct: 1,
+        explanation: "frontier_peak = max(len(frontier)) taken at each iteration. It measures the worst-case memory usage of the frontier during the entire search, not just at the end."
+    },
+    {
+        topic: "foundations",
+        category: "Search Metrics",
+        question: "Why might generated_count be larger than expanded_count in UCS?",
+        options: [
+            "UCS has a bug",
+            "UCS pushes a new heap entry every time a cheaper path is found, creating stale entries that are never expanded",
+            "UCS expands each node multiple times",
+            "Generated count includes the start node, expanded count doesn't"
+        ],
+        correct: 1,
+        explanation: "UCS uses lazy deletion: when a shorter path to a node is found, a new entry is pushed to the heap. The old entry becomes stale. When the stale entry is eventually popped, it's skipped (already visited). So generated > expanded due to these stale entries."
+    },
+    {
+        topic: "foundations",
+        category: "Problem Formulation",
+        question: "When is the goal test performed in UCS/A*?",
+        options: [
+            "When the node is first generated (added to frontier)",
+            "When the node is popped from the frontier (expanded)",
+            "Before adding neighbours to the frontier",
+            "After all nodes have been expanded"
+        ],
+        correct: 1,
+        explanation: "UCS and A* check the goal on POP (expansion), not on generation. This is because the first time a node is generated, it might not have the optimal cost yet. Only when popped is the cost guaranteed optimal (for admissible heuristics in A*)."
+    },
+    {
+        topic: "foundations",
+        category: "Problem Formulation",
+        question: "For BFS, where is the goal test performed?",
+        options: [
+            "Only when popped from the queue",
+            "Either when generated or when popped works for BFS, but the assignment uses goal-check on pop",
+            "Only when generated",
+            "After all nodes at the current depth are expanded"
+        ],
+        correct: 1,
+        explanation: "BFS can check the goal either on generation or on expansion and still find the shallowest path. The assignment implementation checks on pop (dequeue) for consistency with UCS/A*. Checking on generation would be faster but doesn't affect correctness for BFS."
+    },
+    {
+        topic: "foundations",
+        category: "Frontier & Explored Set",
+        question: "If you run DFS on the office graph (start: corridor, goal: lab), what is the expansion order?",
+        options: [
+            "corridor, mail_room, storage, lab",
+            "corridor, office_a, lab",
+            "corridor, mail_room, office_a, office_b, storage, lab",
+            "corridor, office_b, lab"
+        ],
+        correct: 0,
+        explanation: "DFS with alphabetical tie-breaking: corridor's neighbours sorted = [mail_room, office_a, office_b]. Pick first unvisited: mail_room. mail_room's unvisited neighbours: storage. storage's unvisited neighbours: lab. lab = goal. Order: corridor, mail_room, storage, lab."
+    },
+    {
+        topic: "foundations",
+        category: "Search Metrics",
+        question: "On the office graph, BFS expands corridor, mail_room, office_a, office_b, storage, lab. Why are more nodes expanded than DFS?",
+        options: [
+            "BFS is buggy",
+            "BFS explores all nodes at each depth level before going deeper, so it visits breadth-first. DFS went deep through mail_room->storage->lab and found the goal without needing to explore all rooms.",
+            "BFS uses more memory",
+            "BFS is always worse than DFS"
+        ],
+        correct: 1,
+        explanation: "BFS explores level-by-level: depth 0 (corridor), depth 1 (mail_room, office_a, office_b), depth 2 (storage, lab). It can't skip ahead. DFS dived into the mail_room branch and happened to find lab quickly via corridor->mail_room->storage->lab."
+    },
+
+    // ===== GROUP 2: SEARCH BEHAVIOUR (20 questions) =====
+    // DFS vs BFS
+    {
+        topic: "search",
+        category: "DFS vs BFS",
+        question: "What data structure does DFS use for its frontier?",
+        options: [
+            "Queue (FIFO)",
+            "Stack (LIFO)",
+            "Min-heap (priority queue)",
+            "Sorted array"
+        ],
+        correct: 1,
+        explanation: "DFS uses a stack (Last-In-First-Out). The most recently discovered node is explored first, causing the search to go deep before backtracking. In code, this means peek/pop from the end of a list."
+    },
+    {
+        topic: "search",
+        category: "DFS vs BFS",
+        question: "DFS found path corridor -> mail_room -> storage -> lab (cost 11). BFS found corridor -> office_a -> lab (cost 10). Is DFS optimal?",
+        options: [
+            "Yes, DFS always finds the optimal path",
+            "No, DFS is not optimal. It finds the first path by going deep, which is not necessarily the cheapest or shallowest.",
+            "Yes, because DFS explored fewer nodes",
+            "No, but it's always faster than BFS"
+        ],
+        correct: 1,
+        explanation: "DFS is NOT optimal. It returns the first complete path it finds by diving deep, regardless of cost or depth. Here DFS found cost 11 while BFS found cost 10 (and UCS found the true optimal: cost 6 via office_b->lab)."
+    },
+    {
+        topic: "search",
+        category: "DFS vs BFS",
+        question: "Is BFS optimal for graphs with uniform edge costs? What about non-uniform?",
+        options: [
+            "BFS is always optimal regardless of edge costs",
+            "BFS is optimal when all edge costs are equal (finds shallowest = cheapest). Not optimal with varying costs.",
+            "BFS is never optimal",
+            "BFS is optimal only with a heuristic"
+        ],
+        correct: 1,
+        explanation: "BFS finds the shallowest (fewest edges) path. When all costs are 1, shallowest = cheapest, so BFS is optimal. With varying costs, a deeper path can be cheaper (like UCS finding cost 6 vs BFS finding cost 10 on the office graph)."
+    },
+    {
+        topic: "search",
+        category: "DFS vs BFS",
+        question: "What is the space complexity advantage of DFS over BFS?",
+        options: [
+            "DFS uses O(b*m) space where b=branching factor, m=max depth. BFS uses O(b^d) where d=solution depth.",
+            "They use the same space",
+            "BFS uses less space than DFS",
+            "DFS uses O(1) space"
+        ],
+        correct: 0,
+        explanation: "DFS only keeps the current path in memory (O(b*m)), while BFS must store all nodes at the current level (O(b^d)). For wide, shallow graphs, BFS can use much more memory. This is DFS's main advantage."
+    },
+    {
+        topic: "search",
+        category: "DFS vs BFS",
+        question: "Your DFS implementation uses backtracking (stack.pop()). When does it backtrack?",
+        options: [
+            "When it finds the goal",
+            "When all neighbours of the current node have been visited (dead end)",
+            "After every expansion",
+            "When the frontier is empty"
+        ],
+        correct: 1,
+        explanation: "DFS backtracks when the current node has no unvisited neighbours — a dead end. It pops the current node from the stack and returns to the previous node to try its next unvisited neighbour. This is the 'else: stack.pop()' branch in the code."
+    },
+    // UCS cost ordering
+    {
+        topic: "search",
+        category: "UCS Cost Ordering",
+        question: "What does UCS use as the priority in its min-heap?",
+        options: [
+            "h(n) — heuristic estimate to goal",
+            "g(n) — cumulative path cost from start to node",
+            "f(n) = g(n) + h(n)",
+            "Depth of the node"
+        ],
+        correct: 1,
+        explanation: "UCS uses g(n) — the total path cost from the start to the current node. It always pops the node with the lowest cumulative cost, guaranteeing that the first time a node is popped, it has the optimal cost."
+    },
+    {
+        topic: "search",
+        category: "UCS Cost Ordering",
+        question: "Why does UCS guarantee optimal paths?",
+        options: [
+            "It uses a heuristic to guide search",
+            "It always expands the cheapest unexpanded node. Since all costs are positive, once a node is popped, no cheaper path to it can exist.",
+            "It explores all nodes at each depth level",
+            "It uses alphabetical tie-breaking"
+        ],
+        correct: 1,
+        explanation: "UCS pops in order of increasing g(n). Since edge costs are positive, any future path to an already-popped node would have g >= current g. So the first time a node is popped, its cost is optimal. This is essentially Dijkstra's algorithm."
+    },
+    {
+        topic: "search",
+        category: "UCS Cost Ordering",
+        question: "In UCS, what is 'relaxation'?",
+        options: [
+            "Removing a node from the frontier",
+            "Finding a cheaper path to a node and updating its best known cost, then pushing a new entry to the heap",
+            "Setting the heuristic value to 0",
+            "Expanding the goal node"
+        ],
+        correct: 1,
+        explanation: "Relaxation occurs when we discover a shorter path to a neighbour: new_cost < best_costs[neighbour]. We update best_costs and parents, and push a new (cheaper) entry to the heap. The old entry becomes stale and will be skipped when popped."
+    },
+    {
+        topic: "search",
+        category: "UCS Cost Ordering",
+        question: "On the office graph, UCS expansion order is: corridor, mail_room, office_a, office_b, storage, lab. Why is mail_room expanded before office_b?",
+        options: [
+            "Because 'm' comes before 'o' alphabetically",
+            "Because g(mail_room)=2 < g(office_b)=3. UCS always pops the cheapest node.",
+            "Because mail_room has more neighbours",
+            "Because mail_room is closer to lab"
+        ],
+        correct: 1,
+        explanation: "UCS pops by lowest g(n): corridor(0), then mail_room(2) and office_a(2) are tied (alphabetical breaks it), then office_b(3), storage(4), lab(6). The heap ordering is purely by cumulative cost."
+    },
+    {
+        topic: "search",
+        category: "UCS Cost Ordering",
+        question: "What happens in UCS when we find a path to a node that costs MORE than the best known cost?",
+        options: [
+            "We push it to the heap anyway",
+            "We skip it — don't push to the heap, because the existing path is already cheaper",
+            "We replace the existing entry in the heap",
+            "We add both costs together"
+        ],
+        correct: 1,
+        explanation: "The code checks: if new_cost < best_costs[neighbour]. If the new cost is NOT cheaper, we don't push. This prevents unnecessary heap entries and is an important optimisation."
+    },
+    // A* implementation
+    {
+        topic: "search",
+        category: "A* Implementation",
+        question: "What is the priority function for A*?",
+        options: [
+            "g(n) — path cost so far",
+            "h(n) — heuristic estimate to goal",
+            "f(n) = g(n) + h(n) — path cost plus heuristic",
+            "f(n) = g(n) - h(n)"
+        ],
+        correct: 2,
+        explanation: "A* uses f(n) = g(n) + h(n). g(n) is the actual cost from start to n. h(n) is the estimated cost from n to goal. f(n) estimates the total cost of the cheapest path through n."
+    },
+    {
+        topic: "search",
+        category: "A* Implementation",
+        question: "What heuristic does your A* implementation use?",
+        options: [
+            "Manhattan distance",
+            "Euclidean (straight-line) distance: h(n) = sqrt((x_n - x_g)^2 + (y_n - y_g)^2)",
+            "Number of edges to goal",
+            "Constant h(n) = 0"
+        ],
+        correct: 1,
+        explanation: "The assignment specifies Euclidean distance as the heuristic. Each node has (x, y) coordinates, and h(n) = sqrt((x_n - x_g)^2 + (y_n - y_g)^2). This is the straight-line distance, which is always <= actual path cost (admissible)."
+    },
+    {
+        topic: "search",
+        category: "A* Implementation",
+        question: "Why is the Euclidean distance heuristic admissible?",
+        options: [
+            "Because it always overestimates the true cost",
+            "Because the straight-line distance is always <= the actual path cost through the graph (you can't get there faster than a straight line)",
+            "Because it equals the true cost",
+            "Because it's always 0"
+        ],
+        correct: 1,
+        explanation: "Admissible means h(n) <= h*(n) (true cost to goal). The straight line is the shortest possible distance between two points. Any actual path through edges must be >= this distance. So Euclidean distance never overestimates."
+    },
+    {
+        topic: "search",
+        category: "A* Implementation",
+        question: "If h(n) = 0 for all nodes, what does A* reduce to?",
+        options: [
+            "DFS",
+            "BFS",
+            "UCS — because f(n) = g(n) + 0 = g(n)",
+            "Greedy best-first search"
+        ],
+        correct: 2,
+        explanation: "With h(n) = 0, the priority becomes f(n) = g(n) + 0 = g(n), which is exactly UCS. A* is a generalisation of UCS — UCS is A* with a trivial (zero) heuristic."
+    },
+    // Heuristic effects
+    {
+        topic: "search",
+        category: "Heuristic Effects",
+        question: "On graph1, A* expanded 11 nodes vs UCS's 16. Why?",
+        options: [
+            "A* skips some nodes entirely",
+            "The heuristic h(n) steers A* toward the goal, so it avoids expanding nodes that lead away from the goal. Same optimal cost, fewer expansions.",
+            "A* uses a different graph",
+            "A* is always faster regardless of the heuristic"
+        ],
+        correct: 1,
+        explanation: "A* uses f(n) = g(n) + h(n) to prioritise nodes closer to the goal. Nodes leading away from the goal have high h(n), pushing them down the priority queue. UCS explores uniformly by cost in all directions, wasting effort on irrelevant nodes."
+    },
+    {
+        topic: "search",
+        category: "Heuristic Effects",
+        question: "A* and UCS both return the same optimal cost. Why is this guaranteed?",
+        options: [
+            "They use the same data structure",
+            "Because the heuristic is admissible (never overestimates), A* with an admissible heuristic is guaranteed to find optimal paths, same as UCS.",
+            "Because they expand the same nodes",
+            "It's a coincidence for these specific graphs"
+        ],
+        correct: 1,
+        explanation: "A* is optimal when the heuristic is admissible (h(n) <= true cost). The Euclidean distance heuristic is admissible because straight-line distance <= actual path distance. So A* and UCS find the same optimal cost, but A* typically expands fewer nodes."
+    },
+    {
+        topic: "search",
+        category: "Heuristic Effects",
+        question: "When does the Euclidean heuristic provide the LEAST benefit over UCS?",
+        options: [
+            "When the graph is small",
+            "When edge costs don't correspond to geometric distances (e.g., tolls, terrain difficulty), making h(n) a loose lower bound",
+            "When the goal is far away",
+            "When the graph has many nodes"
+        ],
+        correct: 1,
+        explanation: "If edge costs include non-distance factors (tolls, speed limits, terrain), the Euclidean distance becomes a loose lower bound. h(n) << h*(n) means f(n) ~ g(n), so A* behaves almost like UCS with little pruning benefit."
+    },
+    {
+        topic: "search",
+        category: "Heuristic Effects",
+        question: "What does it mean for a heuristic to be 'consistent' (monotonic)?",
+        options: [
+            "h(n) = h*(n) always",
+            "h(n) <= cost(n, n') + h(n') for every edge (n, n'). The triangle inequality.",
+            "h(n) is always 0",
+            "h(n) decreases as you get closer to the goal"
+        ],
+        correct: 1,
+        explanation: "Consistency means h(n) <= cost(n,n') + h(n'): the heuristic doesn't suddenly jump up more than the edge cost. Euclidean distance is consistent because the triangle inequality holds for straight-line distances. Consistency implies admissibility."
+    },
+    {
+        topic: "search",
+        category: "A* Implementation",
+        question: "In your A* code, why do you store the full path in each frontier entry rather than using parent pointers?",
+        options: [
+            "It's faster",
+            "Because A* might find multiple paths to the same node with different costs, and parent pointers would get overwritten. Storing the path in each entry ensures the correct path is available when the entry is popped.",
+            "Parent pointers don't work with heaps",
+            "The assignment requires it"
+        ],
+        correct: 1,
+        explanation: "With lazy deletion, multiple entries for the same node can exist in the heap. If we used parent pointers, they'd point to the most recently found parent, not necessarily the one corresponding to the optimal cost. Storing the full path avoids this issue."
+    },
+    {
+        topic: "search",
+        category: "A* Implementation",
+        question: "What is the 'counter' variable used for in your A* heap entries (priority, path, counter, node)?",
+        options: [
+            "To count the number of expansions",
+            "To break ties in heap ordering — ensures FIFO order when f-values and paths compare equal",
+            "To track the depth of the node",
+            "To limit the number of iterations"
+        ],
+        correct: 1,
+        explanation: "Python's heapq compares tuple elements left to right. If f-values are equal, it compares paths (which are lists and may cause errors). The counter ensures a unique tiebreaker: earlier insertions get lower counters, giving FIFO behaviour for equal priorities."
+    },
+    {
+        topic: "search",
+        category: "Heuristic Effects",
+        question: "Give one limitation of Euclidean distance as a heuristic when edge costs != geometric distance.",
+        options: [
+            "It becomes inadmissible and finds wrong paths",
+            "It becomes a loose lower bound — still admissible (still finds optimal paths), but provides little pruning advantage over UCS because h(n) << true cost",
+            "It causes A* to expand more nodes than UCS",
+            "It makes A* crash"
+        ],
+        correct: 1,
+        explanation: "If edges have tolls/terrain multipliers beyond distance, the Euclidean heuristic is still admissible (never overestimates) but becomes loose. When h(n) is much less than true cost, f(n) ~ g(n) and A* barely outperforms UCS."
+    },
+
+    // ===== GROUP 3: PLANNING (20 questions) =====
+    // STRIPS preconditions/effects
+    {
+        topic: "planning",
+        category: "STRIPS Preconditions & Effects",
+        question: "In STRIPS, what three components define a grounded action?",
+        options: [
+            "Name, cost, duration",
+            "Preconditions (facts that must be true), add effects (facts that become true), delete effects (facts that stop being true)",
+            "Start state, goal state, cost",
+            "Input, output, side effects"
+        ],
+        correct: 1,
+        explanation: "A STRIPS action has: preconditions (Pre(a) must hold), add effects (facts added to state), delete effects (facts removed from state). The transition is: Result(s, a) = (s - Del(a)) union Add(a), provided Pre(a) is a subset of s."
+    },
+    {
+        topic: "planning",
+        category: "STRIPS Preconditions & Effects",
+        question: "What are the preconditions for move(robot, corridor, office_b)?",
+        options: [
+            "at(robot, corridor) and connected(corridor, office_b)",
+            "at(robot, office_b) and connected(office_b, corridor)",
+            "at(robot, corridor) and unlocked(lab_door)",
+            "at(parcel, corridor) and handempty(robot)"
+        ],
+        correct: 0,
+        explanation: "move(robot, from, to) requires: at(robot, from) AND connected(from, to). If the edge crosses the locked door, it also requires unlocked(lab_door). For corridor->office_b, this isn't a door edge, so just at(robot, corridor) and connected(corridor, office_b)."
+    },
+    {
+        topic: "planning",
+        category: "STRIPS Preconditions & Effects",
+        question: "What happens to the state when pickup_parcel(robot, parcel, mail_room) is applied?",
+        options: [
+            "Adds: carrying(robot, parcel). Deletes: at(parcel, mail_room), handempty(robot).",
+            "Adds: at(parcel, robot). Deletes: at(parcel, mail_room).",
+            "Adds: has(robot, parcel). Deletes: at(parcel, mail_room).",
+            "Adds: carrying(robot, parcel). Deletes: nothing."
+        ],
+        correct: 0,
+        explanation: "pickup_parcel preconditions: at(robot, mail_room), at(parcel, mail_room), handempty(robot). Add: carrying(robot, parcel). Delete: at(parcel, mail_room), handempty(robot). The robot now carries the parcel and its hand is no longer empty."
+    },
+    {
+        topic: "planning",
+        category: "STRIPS Preconditions & Effects",
+        question: "What are the preconditions for unlock_door?",
+        options: [
+            "at(robot, lab) and has(robot, keycard)",
+            "at(robot, somewhere adjacent to door), has(robot, keycard), door_between(lab_door, ...), locked(lab_door)",
+            "at(robot, corridor) and carrying(robot, parcel)",
+            "handempty(robot) and locked(lab_door)"
+        ],
+        correct: 1,
+        explanation: "unlock_door requires: (1) robot is at a room adjacent to the door, (2) has(robot, keycard) — robot picked up the keycard, (3) door_between(lab_door, left, right) — the door exists, (4) locked(lab_door) — it's currently locked."
+    },
+    {
+        topic: "planning",
+        category: "STRIPS Preconditions & Effects",
+        question: "What does unlock_door add and delete?",
+        options: [
+            "Adds: connected(corridor, lab). Deletes: locked(lab_door).",
+            "Adds: unlocked(lab_door). Deletes: locked(lab_door).",
+            "Adds: unlocked(lab_door). Deletes: locked(lab_door), has(robot, keycard).",
+            "Adds: at(robot, lab). Deletes: locked(lab_door)."
+        ],
+        correct: 1,
+        explanation: "unlock_door only flips the lock predicate: adds unlocked(lab_door), deletes locked(lab_door). It does NOT create new connections — the connected facts are static. It also does NOT consume the keycard (robot still has it)."
+    },
+    {
+        topic: "planning",
+        category: "STRIPS Preconditions & Effects",
+        question: "pickup_keycard adds has(robot, keycard) but also adds handempty(robot). Why is handempty kept?",
+        options: [
+            "It's a bug in the system",
+            "The keycard is small enough that the robot can still carry other things — has(robot, keycard) represents 'possessing' it, not 'holding' it in hand",
+            "handempty is never actually checked",
+            "The keycard is automatically placed in a pocket"
+        ],
+        correct: 1,
+        explanation: "The domain models 'has' (possessing the keycard) differently from 'carrying' (holding the parcel). After pickup_keycard: robot has the keycard (has predicate) but hand is still empty (handempty kept). This lets the robot pick up the parcel afterwards."
+    },
+    // Plan diagnosis
+    {
+        topic: "planning",
+        category: "Plan Diagnosis",
+        question: "In the lab_via_office_b plan, which is the first action that fails?",
+        options: [
+            "Action 2: pickup_parcel(robot, parcel, mail_room)",
+            "Action 4: move(robot, corridor, office_b)",
+            "Action 5: move(robot, office_b, lab)",
+            "Action 6: drop_parcel(robot, parcel, lab)"
+        ],
+        correct: 2,
+        explanation: "Actions 1-4 all succeed. Action 5 move(robot, office_b, lab) fails because: (1) connected(office_b, lab) does not exist — there is no edge between office_b and lab, and (2) the door is still locked (unlocked(lab_door) is false)."
+    },
+    {
+        topic: "planning",
+        category: "Plan Diagnosis",
+        question: "What are the TWO missing preconditions that block move(robot, office_b, lab)?",
+        options: [
+            "at(robot, office_b) and handempty(robot)",
+            "connected(office_b, lab) does not exist AND unlocked(lab_door) is false",
+            "at(parcel, lab) and connected(lab, office_b)",
+            "has(robot, keycard) and at(robot, corridor)"
+        ],
+        correct: 1,
+        explanation: "Two facts block action 5: (1) connected(office_b, lab) — no such edge exists in the canonical edges, and (2) unlocked(lab_door) — the door is still locked because the robot never picked up the keycard or unlocked the door."
+    },
+    {
+        topic: "planning",
+        category: "Plan Diagnosis",
+        question: "Why is inserting unlock_door immediately before move(robot, office_b, lab) still not enough?",
+        options: [
+            "Because unlock_door is too slow",
+            "Two reasons: (1) unlock_door itself requires has(robot, keycard), which the robot never picked up, and (2) even if unlocking worked, connected(office_b, lab) still doesn't exist — the door connects corridor<->lab, not office_b<->lab",
+            "Because the parcel blocks the door",
+            "Because unlock_door only works from the lab side"
+        ],
+        correct: 1,
+        explanation: "First, unlock_door requires has(robot, keycard) — but the robot never went to office_a to get the keycard, so unlock_door's own preconditions fail. Second, unlock_door only flips locked->unlocked — it doesn't create edges. There is no connected(office_b, lab), so the move would still fail."
+    },
+    {
+        topic: "planning",
+        category: "Plan Diagnosis",
+        question: "What is a valid repaired plan for canonical_delivery?",
+        options: [
+            "move(corridor, office_b), unlock_door, move(office_b, lab), drop_parcel",
+            "move(corridor, office_a), pickup_keycard, move(office_a, corridor), move(corridor, mail_room), pickup_parcel, move(mail_room, corridor), unlock_door, move(corridor, lab), drop_parcel",
+            "move(corridor, mail_room), pickup_parcel, move(mail_room, corridor), move(corridor, lab), drop_parcel",
+            "move(corridor, lab), pickup_parcel, drop_parcel"
+        ],
+        correct: 1,
+        explanation: "The valid plan: (1) go to office_a for keycard, (2) return to corridor, (3) go to mail_room for parcel, (4) return to corridor, (5) unlock door from corridor, (6) move corridor->lab, (7) drop parcel. Must get keycard before unlocking, and go through corridor (not office_b) to reach lab."
+    },
+    {
+        topic: "planning",
+        category: "Plan Diagnosis",
+        question: "In the repaired plan, where does unlocked(lab_door) first become true?",
+        options: [
+            "At the start — it's always unlocked",
+            "After pickup_keycard",
+            "After unlock_door(robot, keycard, lab_door, corridor, lab)",
+            "After move(robot, corridor, lab)"
+        ],
+        correct: 2,
+        explanation: "unlocked(lab_door) first becomes true when unlock_door is executed. This action's add effect is unlocked(lab_door) and its delete effect removes locked(lab_door). Only then can move(robot, corridor, lab) succeed."
+    },
+    {
+        topic: "planning",
+        category: "Plan Diagnosis",
+        question: "How does the final state satisfy at(parcel, lab)?",
+        options: [
+            "The parcel was already in the lab",
+            "drop_parcel(robot, parcel, lab) adds at(parcel, lab) and handempty(robot), and deletes carrying(robot, parcel). Preconditions met: at(robot, lab) and carrying(robot, parcel).",
+            "move(robot, corridor, lab) brings the parcel automatically",
+            "unlock_door places the parcel in the lab"
+        ],
+        correct: 1,
+        explanation: "drop_parcel has preconditions: at(robot, lab) (from the move) and carrying(robot, parcel) (from pickup_parcel). Its add effects are at(parcel, lab) and handempty(robot). Its delete effect is carrying(robot, parcel). The goal at(parcel, lab) is now in the state."
+    },
+    // Forward BFS planning
+    {
+        topic: "planning",
+        category: "Forward BFS Planning",
+        question: "In forward BFS planning, what is a 'state'?",
+        options: [
+            "A room name like 'corridor'",
+            "A set of ground facts that are currently true, e.g. {at(robot, corridor), at(parcel, mail_room), locked(lab_door), ...}",
+            "An action like move(robot, corridor, lab)",
+            "A path through the graph"
+        ],
+        correct: 1,
+        explanation: "In STRIPS planning, a state is a set of fact tuples that are currently true. The initial state includes all starting facts. Each action transforms one state into another by adding and deleting facts."
+    },
+    {
+        topic: "planning",
+        category: "Forward BFS Planning",
+        question: "Why do you need state_id() to canonicalise states?",
+        options: [
+            "To make them printable",
+            "Because the same set of facts can be represented in different orders. Sorting creates a canonical form so the visited set correctly identifies duplicate states.",
+            "To reduce memory usage",
+            "To sort actions alphabetically"
+        ],
+        correct: 1,
+        explanation: "Facts like [at(robot, corridor), handempty(robot)] and [handempty(robot), at(robot, corridor)] represent the same state but would hash differently as lists. state_id = tuple(sorted(facts)) creates a canonical representation so visited-set lookups work correctly."
+    },
+    {
+        topic: "planning",
+        category: "Forward BFS Planning",
+        question: "What does get_applicable_actions(problem, facts) return?",
+        options: [
+            "All possible actions in the domain",
+            "Only the actions whose preconditions are satisfied by the current facts",
+            "The optimal action to take",
+            "Actions sorted by cost"
+        ],
+        correct: 1,
+        explanation: "get_applicable_actions checks each grounded action's preconditions against the current facts. Only actions where Pre(a) is a subset of the current state are returned. For example, pickup_parcel is only applicable when the robot and parcel are in the same room AND the robot's hand is empty."
+    },
+    {
+        topic: "planning",
+        category: "Forward BFS Planning",
+        question: "Why does forward BFS find the shortest plan (fewest actions)?",
+        options: [
+            "It uses a heuristic",
+            "BFS explores states level by level (depth = number of actions). The first time it reaches a goal state, the plan length is minimal.",
+            "It tries all possible plans",
+            "It uses dynamic programming"
+        ],
+        correct: 1,
+        explanation: "BFS explores all states reachable in 1 action, then 2 actions, then 3, etc. The first goal state found is at the shallowest depth, meaning the fewest actions. This is why BFS is optimal for planning where each action has cost 1."
+    },
+    {
+        topic: "planning",
+        category: "Forward BFS Planning",
+        question: "In your solve_planning code, what does apply_action_signature(problem, facts, action) do?",
+        options: [
+            "Checks if the action is applicable",
+            "Applies the action to the current facts and returns the successor state: (facts - delete_effects) union add_effects",
+            "Returns the action's name",
+            "Computes the cost of the action"
+        ],
+        correct: 1,
+        explanation: "apply_action_signature takes the current facts and an action string, applies Result(s, a) = (s - Del(a)) union Add(a), and returns the new list of facts. This is the STRIPS transition function."
+    },
+    // Planning comparison
+    {
+        topic: "planning",
+        category: "Planning Comparison",
+        question: "Why does unlocked_lab need fewer actions than canonical_delivery?",
+        options: [
+            "It has fewer rooms",
+            "The lab door starts unlocked, so the robot skips the keycard detour (go to office_a, pickup_keycard, return, unlock_door). It just gets the parcel and walks straight to lab.",
+            "It uses a different algorithm",
+            "The parcel starts in the lab"
+        ],
+        correct: 1,
+        explanation: "In canonical_delivery, the robot must: go to office_a, pickup keycard, return, go to mail_room, pickup parcel, return, unlock door, go to lab, drop parcel (9 actions). In unlocked_lab, the door is already unlocked, so it skips the keycard steps: go to mail_room, pickup parcel, return, go to lab, drop parcel (5 actions)."
+    },
+    {
+        topic: "planning",
+        category: "Planning Comparison",
+        question: "If the locked_edge were changed from [corridor, lab] to [office_b, lab], how would the plan change?",
+        options: [
+            "No change needed",
+            "The robot would need to go through office_b to reach lab, and would need to unlock the door from office_b instead of corridor",
+            "The plan would be impossible",
+            "The robot wouldn't need the keycard"
+        ],
+        correct: 1,
+        explanation: "With locked_edge = [office_b, lab], the door connects office_b and lab. The robot would need to: get keycard from office_a, get parcel from mail_room, go to office_b, unlock door from office_b, move office_b->lab, drop parcel. The lab_via_office_b variant tests exactly this scenario."
+    },
+    {
+        topic: "planning",
+        category: "Planning Comparison",
+        question: "What is the expanded_count in planning, and why is it typically much larger than the plan length?",
+        options: [
+            "Expanded count equals plan length",
+            "Expanded count = number of states examined before finding the goal. BFS explores many wrong branches before finding the solution, so expanded >> plan length.",
+            "Expanded count is the number of actions",
+            "They should be the same if the planner works correctly"
+        ],
+        correct: 1,
+        explanation: "The planner explores many states that don't lead to the goal. For canonical_delivery, the plan is ~9 actions, but the planner might expand 50+ states exploring dead-end branches (e.g., trying to move to rooms without useful objects). Expanded count measures total search effort."
+    },
+    {
+        topic: "planning",
+        category: "STRIPS Preconditions & Effects",
+        question: "What are the five action schemas in the office delivery domain?",
+        options: [
+            "walk, grab, release, open, close",
+            "move(robot, from, to), pickup_keycard(robot, keycard, room), pickup_parcel(robot, parcel, room), unlock_door(robot, keycard, lab_door, here, there), drop_parcel(robot, parcel, room)",
+            "goto, take, put, unlock, lock",
+            "navigate, collect, deliver, unlock, wait"
+        ],
+        correct: 1,
+        explanation: "The five actions are: move (change robot location), pickup_keycard (get keycard, keeps handempty), pickup_parcel (get parcel, removes handempty), unlock_door (flip locked->unlocked), drop_parcel (place parcel, restores handempty)."
+    },
+    {
+        topic: "planning",
+        category: "Forward BFS Planning",
+        question: "What would happen if you didn't use a visited set in the forward BFS planner?",
+        options: [
+            "Nothing, it would still work fine",
+            "The planner would loop forever, revisiting the same states (e.g., move corridor->mail_room, move mail_room->corridor, move corridor->mail_room, ...)",
+            "It would find a shorter plan",
+            "It would use less memory"
+        ],
+        correct: 1,
+        explanation: "Without visited-state checking, the planner would generate infinite loops of move actions (corridor->mail_room->corridor->...). The visited set (using canonical state IDs) ensures each unique state is only explored once, guaranteeing termination."
+    },
+    {
+        topic: "planning",
+        category: "STRIPS Preconditions & Effects",
+        question: "The transition rule is Result(s, a) = (s - Del(a)) union Add(a). What does this mean?",
+        options: [
+            "Add all effects, then delete all effects",
+            "Remove facts in the delete list from the state, then add facts in the add list. The order matters: delete first, then add.",
+            "Replace the entire state with the add effects",
+            "The state doesn't change"
+        ],
+        correct: 1,
+        explanation: "First remove Del(a) facts from state s, then add Add(a) facts. For example, pickup_parcel: delete at(parcel, mail_room) and handempty(robot), then add carrying(robot, parcel). The resulting state has the parcel being carried, not in the room."
+    },
+];
+
+// ==================== FLASHCARD DATA ====================
+const flashcards = [
+    // Group 1: Foundations
+    { front: "What is the difference between a state space graph and a search tree?", back: "State space: each state appears once. Search tree: same state can appear multiple times (different paths). The tree can be much larger than the graph." },
+    { front: "What is the frontier in graph search?", back: "The set of discovered but not-yet-expanded nodes. DFS: stack (LIFO). BFS: queue (FIFO). UCS: min-heap by g(n). A*: min-heap by f(n)." },
+    { front: "What is the explored/visited set?", back: "Nodes that have been popped from the frontier and expanded. They will never be expanded again. Prevents cycles and redundant work." },
+    { front: "Generated vs Expanded count?", back: "Generated = nodes added to frontier (including stale duplicates). Expanded = nodes popped and processed. Generated >= Expanded." },
+    { front: "Why deterministic tie-breaking?", back: "Ensures reproducible results. DFS/BFS: alphabetical successor order. UCS/A*: compare path tuples lexicographically, then FIFO insertion order." },
+    { front: "When is goal test performed in UCS/A*?", back: "On POP (expansion), not on generation. The first generation might not have the optimal cost. Only when popped is cost guaranteed optimal." },
+    { front: "What is frontier_peak?", back: "Maximum size of the frontier at any point during search. Measures worst-case memory usage of the frontier data structure." },
+    { front: "DFS expansion order on office graph?", back: "corridor -> mail_room -> storage -> lab. DFS goes deep: picks first alphabetical unvisited neighbour and dives." },
+    { front: "BFS expansion order on office graph?", back: "corridor -> mail_room -> office_a -> office_b -> storage -> lab. BFS explores all nodes at each depth level." },
+    { front: "UCS expansion order on office graph?", back: "corridor(0) -> mail_room(2) -> office_a(2) -> office_b(3) -> storage(4) -> lab(6). Ordered by cumulative cost g(n)." },
+    // Group 2: Search
+    { front: "What priority does UCS use?", back: "g(n) = cumulative path cost from start. Always pops the cheapest unexpanded node. Equivalent to Dijkstra's algorithm." },
+    { front: "What priority does A* use?", back: "f(n) = g(n) + h(n). g(n) = path cost so far. h(n) = heuristic estimate to goal. Combines actual cost with estimated remaining cost." },
+    { front: "What is an admissible heuristic?", back: "h(n) <= h*(n) — never overestimates the true cost to goal. Euclidean distance is admissible because straight-line <= actual path." },
+    { front: "What is a consistent heuristic?", back: "h(n) <= cost(n,n') + h(n') for every edge — triangle inequality. Consistency implies admissibility. Euclidean distance is consistent." },
+    { front: "If h(n) = 0, what does A* become?", back: "UCS. Because f(n) = g(n) + 0 = g(n). A* generalises UCS; UCS is A* with a trivial heuristic." },
+    { front: "What is relaxation in UCS?", back: "Finding a cheaper path to a node: new_cost < best_costs[neighbour]. Update the best cost, parent pointer, and push a new heap entry. Old entry becomes stale." },
+    { front: "Why might A* expand fewer nodes than UCS?", back: "The heuristic steers search toward the goal. Nodes leading away have high h(n), pushing them down the priority queue. Same optimal cost, fewer expansions." },
+    { front: "Limitation of Euclidean heuristic when costs != distance?", back: "Becomes a loose lower bound. Still admissible (finds optimal paths), but h(n) << true cost, so f(n) ~ g(n) and A* barely outperforms UCS." },
+    { front: "What is a stale heap entry in UCS/A*?", back: "An old entry for a node that was later reached via a cheaper path. When popped, the node is already in visited, so we skip it: 'if node in visited: continue'." },
+    { front: "Why store full path in A* frontier entries?", back: "With lazy deletion, multiple entries for same node exist. Parent pointers would get overwritten. Storing full path ensures correct path is available when the optimal entry is popped." },
+    // Group 3: Planning
+    { front: "Three components of a STRIPS action?", back: "Preconditions (must be true), Add effects (become true), Delete effects (stop being true). Result(s,a) = (s - Del(a)) union Add(a)." },
+    { front: "Five action schemas in office delivery?", back: "move, pickup_keycard, pickup_parcel, unlock_door, drop_parcel. Each has specific preconditions and effects." },
+    { front: "Why does move(robot, office_b, lab) fail?", back: "Two reasons: (1) connected(office_b, lab) doesn't exist, (2) unlocked(lab_door) is false. The door connects corridor<->lab, not office_b<->lab." },
+    { front: "Why isn't inserting unlock_door enough?", back: "(1) unlock_door needs has(robot, keycard) — robot never got it. (2) Even if unlocking worked, connected(office_b, lab) still doesn't exist." },
+    { front: "What does unlock_door actually do?", back: "ONLY flips locked(lab_door) -> unlocked(lab_door). Does NOT create new edges or connections. Does NOT consume the keycard." },
+    { front: "Why does state_id sort facts?", back: "Same facts in different order = same state. Sorting creates canonical form so the visited set correctly identifies duplicates and prevents infinite loops." },
+    { front: "Why does unlocked_lab need fewer actions?", back: "Door starts unlocked, so robot skips: go to office_a, pickup keycard, return to corridor, unlock door. Saves ~4 actions." },
+    { front: "pickup_keycard vs pickup_parcel?", back: "keycard: adds has(robot, keycard) AND keeps handempty(robot). parcel: adds carrying(robot, parcel) AND deletes handempty(robot). Keycard is 'possessed', parcel is 'held'." },
+    { front: "What is forward state-space planning?", back: "Start from initial state, apply applicable actions to generate successor states, BFS until a state satisfying all goal facts is found." },
+    { front: "What would happen without visited set in planning?", back: "Infinite loops: move(corridor, mail_room), move(mail_room, corridor), move(corridor, mail_room)... The visited set prevents re-exploring identical states." },
+];
+
+// ==================== BROWSE DATA ====================
+const browseTopics = [
+    {
+        title: "Group 1: Foundations",
+        sections: [
+            {
+                subtitle: "Problem Formulation",
+                points: [
+                    "Five components: initial state, successor function/actions, goal test, path cost, strategy",
+                    "Office graph: initial=corridor, goal=lab, actions=move along edges, cost=sum of edge weights",
+                    "BFS finds shallowest path (fewest edges), UCS finds cheapest (lowest cost). They differ when edge costs vary.",
+                    "Goal test: DFS/BFS can check on generation or expansion. UCS/A* MUST check on pop (expansion) for optimality."
+                ]
+            },
+            {
+                subtitle: "State Space vs Search Tree",
+                points: [
+                    "State space graph: each state appears exactly once (6 nodes for office graph)",
+                    "Search tree: same state can appear multiple times via different paths — potentially much larger",
+                    "Example: corridor->mail_room->storage and corridor->office_a->office_b are different tree nodes, same underlying states"
+                ]
+            },
+            {
+                subtitle: "Frontier & Explored Set",
+                points: [
+                    "Frontier: discovered but not-yet-expanded states. DFS=stack, BFS=queue, UCS/A*=min-heap",
+                    "Explored/visited set: nodes popped and expanded. Never expanded again.",
+                    "Purpose: prevents cycles and redundant work in graph search",
+                    "Generated count >= Expanded count. Difference = stale/duplicate entries."
+                ]
+            },
+            {
+                subtitle: "Deterministic Tie-Breaking",
+                points: [
+                    "Required for reproducible, verifiable results",
+                    "DFS/BFS: generate successors in alphabetical order",
+                    "UCS/A*: compare path tuples lexicographically, then FIFO insertion order",
+                    "Implementation: sorted adjacency list, counter for heap insertion order"
+                ]
+            },
+            {
+                subtitle: "Search Metrics",
+                points: [
+                    "<code>expanded_count</code>: nodes popped from frontier and processed",
+                    "<code>generated_count</code>: nodes added to frontier (including stale duplicates)",
+                    "<code>frontier_peak</code>: max(len(frontier)) at any point during search",
+                    "<code>expanded_order</code>: ordered list of node IDs as they were expanded"
+                ]
+            }
+        ]
+    },
+    {
+        title: "Group 2: Search Behaviour",
+        sections: [
+            {
+                subtitle: "DFS vs BFS",
+                points: [
+                    "DFS: stack (LIFO), goes deep first, backtracks at dead ends. O(b*m) space. NOT optimal.",
+                    "BFS: queue (FIFO), explores level by level. O(b^d) space. Optimal only with uniform costs.",
+                    "Office graph DFS path: corridor->mail_room->storage->lab (cost 11, not optimal)",
+                    "Office graph BFS path: corridor->office_a->lab (cost 10, shallowest but not cheapest)"
+                ]
+            },
+            {
+                subtitle: "UCS Cost Ordering",
+                points: [
+                    "Priority: g(n) = cumulative path cost. Equivalent to Dijkstra's algorithm.",
+                    "Optimal because: with positive edge costs, first pop of a node = optimal cost",
+                    "Relaxation: finding a cheaper path, updating best_costs, pushing new heap entry",
+                    "Stale entries: old heap entries skipped via <code>if node in visited: continue</code>",
+                    "Office UCS path: corridor->office_b->lab (cost 6, truly optimal)"
+                ]
+            },
+            {
+                subtitle: "A* Implementation",
+                points: [
+                    "Priority: f(n) = g(n) + h(n). Combines actual cost with heuristic estimate.",
+                    "Heuristic: Euclidean distance h(n) = sqrt((x_n-x_g)^2 + (y_n-y_g)^2)",
+                    "Admissible: straight-line <= actual path, so A* is optimal",
+                    "Consistent: triangle inequality holds for Euclidean distance",
+                    "Counter variable in heap tuple prevents comparison errors between paths"
+                ]
+            },
+            {
+                subtitle: "Heuristic Effects",
+                points: [
+                    "A* typically expands fewer nodes than UCS while finding the same optimal cost",
+                    "h(n) steers search toward goal, avoiding nodes leading away",
+                    "If h(n)=0, A* = UCS (no guidance from heuristic)",
+                    "Loose heuristic (costs != distance): still admissible, but less pruning. A* approaches UCS behaviour.",
+                    "Empirical: graph1 A* expanded 11 vs UCS 16. graph2 A* expanded 7 vs UCS 18."
+                ]
+            }
+        ]
+    },
+    {
+        title: "Group 3: Planning Models",
+        sections: [
+            {
+                subtitle: "STRIPS Preconditions & Effects",
+                points: [
+                    "Action = (Preconditions, Add effects, Delete effects)",
+                    "Transition: Result(s, a) = (s - Del(a)) union Add(a), provided Pre(a) subset of s",
+                    "Five actions: move, pickup_keycard, pickup_parcel, unlock_door, drop_parcel",
+                    "pickup_keycard keeps handempty (keycard is 'possessed'). pickup_parcel removes handempty (parcel is 'held').",
+                    "unlock_door only flips locked->unlocked. Does NOT create edges or consume keycard."
+                ]
+            },
+            {
+                subtitle: "Plan Diagnosis (lab_via_office_b)",
+                points: [
+                    "Action 5 <code>move(robot, office_b, lab)</code> fails first",
+                    "Missing: <code>connected(office_b, lab)</code> (no such edge) AND <code>unlocked(lab_door)</code> (door still locked)",
+                    "Inserting unlock_door alone fails: (1) needs keycard (never picked up), (2) no edge office_b<->lab anyway",
+                    "Valid repair: get keycard from office_a, get parcel from mail_room, unlock from corridor, move corridor->lab, drop",
+                    "unlocked(lab_door) first becomes true after unlock_door action",
+                    "at(parcel, lab) satisfied by drop_parcel's add effect"
+                ]
+            },
+            {
+                subtitle: "Forward BFS Planning",
+                points: [
+                    "State = set of ground fact tuples currently true",
+                    "<code>state_id(facts) = tuple(sorted(facts))</code> for canonical visited-set lookup",
+                    "<code>get_applicable_actions</code>: returns actions whose preconditions subset of current facts",
+                    "<code>apply_action_signature</code>: applies Result(s,a) = (s - Del(a)) union Add(a)",
+                    "BFS guarantees shortest plan (fewest actions) because it explores by depth",
+                    "Visited set prevents infinite loops (e.g., corridor->mail_room->corridor->...)"
+                ]
+            },
+            {
+                subtitle: "Planning Comparison",
+                points: [
+                    "canonical_delivery: ~9 actions (includes keycard detour + unlock)",
+                    "unlocked_lab: ~5 actions (door already unlocked, skip keycard entirely)",
+                    "Fewer actions because: no need to visit office_a, no pickup_keycard, no unlock_door",
+                    "expanded_count >> plan_length because BFS explores many wrong branches first"
+                ]
+            }
+        ]
+    }
+];
+
+// ==================== QUIZ ENGINE ====================
+let currentQuestion = 0;
+let filteredQuestions = [...questions];
+let answers = {};
+let currentMode = 'quiz';
+let currentFlash = 0;
+
+function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById('quiz-mode').style.display = mode === 'quiz' ? 'block' : 'none';
+    document.getElementById('flashcard-mode').style.display = mode === 'flashcards' ? 'block' : 'none';
+    document.getElementById('browse-mode').style.display = mode === 'browse' ? 'block' : 'none';
+    document.querySelectorAll('.container > .nav-tabs .nav-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.textContent.toLowerCase().includes(mode));
+    });
+    if (mode === 'quiz') renderQuestion();
+    if (mode === 'flashcards') renderFlashcard();
+    if (mode === 'browse') renderBrowse();
+}
+
+function filterTopic(topic) {
+    document.querySelectorAll('#topic-filter .nav-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.topic === topic);
+    });
+    if (topic === 'all') {
+        filteredQuestions = [...questions];
+    } else {
+        filteredQuestions = questions.filter(q => q.topic === topic);
+    }
+    currentQuestion = 0;
+    answers = {};
+    renderQuestion();
+}
+
+function renderQuestion() {
+    if (currentQuestion >= filteredQuestions.length) {
+        showScore();
+        return;
+    }
+    const q = filteredQuestions[currentQuestion];
+    const qIdx = questions.indexOf(q);
+    const answered = answers[qIdx] !== undefined;
+    const selected = answers[qIdx];
+
+    let html = `<div class="quiz-card">
+        <div class="category">${q.category}</div>
+        <div class="question">${q.question}</div>
+        <div class="options">`;
+
+    q.options.forEach((opt, i) => {
+        let cls = 'option';
+        if (answered) {
+            cls += ' disabled';
+            if (i === q.correct) cls += ' correct';
+            else if (i === selected && i !== q.correct) cls += ' incorrect';
+        } else if (i === selected) {
+            cls += ' selected';
+        }
+        html += `<div class="${cls}" onclick="selectOption(${i})">${opt}</div>`;
+    });
+
+    html += `</div><div class="explanation ${answered ? 'visible' : ''}">${q.explanation}</div></div>`;
+
+    document.getElementById('quiz-content').innerHTML = html;
+    document.getElementById('progress-text').textContent = `Question ${currentQuestion + 1} / ${filteredQuestions.length}`;
+    document.getElementById('progress-fill').style.width = `${((currentQuestion + 1) / filteredQuestions.length) * 100}%`;
+}
+
+function selectOption(i) {
+    const q = filteredQuestions[currentQuestion];
+    const qIdx = questions.indexOf(q);
+    if (answers[qIdx] !== undefined) return;
+    answers[qIdx] = i;
+    renderQuestion();
+}
+
+function nextQuestion() {
+    if (currentQuestion < filteredQuestions.length - 1) {
+        currentQuestion++;
+        renderQuestion();
+    } else {
+        showScore();
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuestion();
+    }
+}
+
+function showScore() {
+    let correct = 0;
+    let total = 0;
+    filteredQuestions.forEach(q => {
+        const qIdx = questions.indexOf(q);
+        if (answers[qIdx] !== undefined) {
+            total++;
+            if (answers[qIdx] === q.correct) correct++;
+        }
+    });
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    let cls = pct >= 80 ? '' : pct >= 50 ? 'mid' : 'low';
+
+    // Category breakdown
+    const cats = {};
+    filteredQuestions.forEach(q => {
+        const qIdx = questions.indexOf(q);
+        if (!cats[q.category]) cats[q.category] = { correct: 0, total: 0 };
+        if (answers[qIdx] !== undefined) {
+            cats[q.category].total++;
+            if (answers[qIdx] === q.correct) cats[q.category].correct++;
+        }
+    });
+    let breakdown = '';
+    for (const [cat, data] of Object.entries(cats)) {
+        if (data.total > 0) breakdown += `<div>${cat}: ${data.correct}/${data.total}</div>`;
+    }
+
+    document.getElementById('quiz-content').innerHTML = `
+        <div class="score-display">
+            <h2>Results</h2>
+            <div class="score-num ${cls}">${pct}%</div>
+            <div>${correct} / ${total} correct</div>
+            <div class="score-breakdown">${breakdown}</div>
+            <div class="btn-row" style="margin-top:24px">
+                <button class="btn btn-reset" onclick="resetQuiz()">Retry</button>
+            </div>
+        </div>`;
+}
+
+function resetQuiz() {
+    currentQuestion = 0;
+    answers = {};
+    renderQuestion();
+}
+
+// ==================== FLASHCARD ENGINE ====================
+function renderFlashcard() {
+    const f = flashcards[currentFlash];
+    document.getElementById('flashcard-content').innerHTML = `
+        <div class="flashcard" onclick="this.classList.toggle('flipped')">
+            <div class="front">${f.front}<div class="hint">Click to reveal</div></div>
+            <div class="back">${f.back}</div>
+        </div>`;
+    document.getElementById('flash-progress').textContent = `Card ${currentFlash + 1} / ${flashcards.length}`;
+}
+
+function nextFlash() { currentFlash = (currentFlash + 1) % flashcards.length; renderFlashcard(); }
+function prevFlash() { currentFlash = (currentFlash - 1 + flashcards.length) % flashcards.length; renderFlashcard(); }
+function shuffleFlash() {
+    for (let i = flashcards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [flashcards[i], flashcards[j]] = [flashcards[j], flashcards[i]];
+    }
+    currentFlash = 0;
+    renderFlashcard();
+}
+
+// ==================== BROWSE ENGINE ====================
+function renderBrowse() {
+    let html = '';
+    browseTopics.forEach(topic => {
+        html += `<div class="topic-section"><h3>${topic.title}</h3>`;
+        topic.sections.forEach(sec => {
+            html += `<h3 style="color:#a78bfa;font-size:1rem;margin-top:16px">${sec.subtitle}</h3><ul>`;
+            sec.points.forEach(p => { html += `<li>${p}</li>`; });
+            html += `</ul>`;
+        });
+        html += `</div>`;
+    });
+    document.getElementById('browse-mode').innerHTML = html;
+}
+
+// ==================== INIT ====================
+renderQuestion();
+</script>
+</body>
+</html>
