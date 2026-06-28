@@ -28,15 +28,15 @@ jobs:
           python3 - << 'PYEOF'
           import glob, re, html
 
-          weeks = sorted(glob.glob("week*/index.html"))
+          pages = sorted(glob.glob("week*/index.html")) + sorted(glob.glob("assignment*/index.html"))
           links = ""
-          for path in weeks:
-              week = path.split("/")[0]
+          for path in pages:
+              folder = path.split("/")[0]
               with open(path) as f:
                   content = f.read()
               m = re.search(r"<title>(.*?)</title>", content)
-              title = html.escape(m.group(1)) if m else week.capitalize()
-              links += f'<a class="week-link" href="{week}/">{title}<span>{week}</span></a>\n'
+              title = html.escape(m.group(1)) if m else folder.replace("_", " ").title()
+              links += f'<a class="week-link" href="{folder}/">{title}<span>{folder}</span></a>\n'
 
           if not links:
               links = '<p style="text-align:center;color:#888">No weeks published yet.</p>'
@@ -91,7 +91,7 @@ jobs:
           with open("index.html", "w") as f:
               f.write(page)
 
-          print("Generated index.html with entries:", [w.split("/")[0] for w in weeks])
+          print("Generated index.html with entries:", [p.split("/")[0] for p in pages])
           PYEOF
 
       - uses: actions/configure-pages@v5

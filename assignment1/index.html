@@ -221,7 +221,7 @@
 <div class="container">
     <header>
         <h1>Assignment 1: Discussion Prep</h1>
-        <p>Search & Planning - 60 questions across 3 discussion groups</p>
+        <p>Search & Planning - 72 questions across 3 discussion groups (includes deep understanding)</p>
     </header>
 
     <div class="nav-tabs">
@@ -1112,6 +1112,168 @@ const questions = [
         correct: 1,
         explanation: "First remove Del(a) facts from state s, then add Add(a) facts. For example, pickup_parcel: delete at(parcel, mail_room) and handempty(robot), then add carrying(robot, parcel). The resulting state has the parcel being carried, not in the room."
     },
+
+    // ===== DEEP UNDERSTANDING: GROUP 1 EXTENSIONS (4 questions) =====
+    {
+        topic: "foundations",
+        category: "Deep: Tree Search vs Graph Search",
+        question: "What is the trade-off between tree search and graph search?",
+        options: [
+            "Tree search is always better",
+            "Graph search uses an explored set which costs memory O(|V|), but avoids redundant expansions. Tree search uses less memory but can revisit states and loop forever on graphs with cycles.",
+            "Graph search is slower because of the explored set",
+            "There is no trade-off, graph search is strictly better"
+        ],
+        correct: 1,
+        explanation: "Graph search trades memory for completeness: the explored set prevents cycles and redundant work, but storing every visited state costs O(|V|) memory. Tree search avoids this memory cost but risks infinite loops on cyclic graphs. For finite, acyclic problems, tree search works fine. For the office graph (which has cycles), graph search is essential."
+    },
+    {
+        topic: "foundations",
+        category: "Deep: Tree Search vs Graph Search",
+        question: "Could you use iterative deepening DFS (IDDFS) instead of BFS to get optimal depth with DFS-like memory?",
+        options: [
+            "No, IDDFS doesn't exist",
+            "Yes — IDDFS runs DFS with depth limit 1, then 2, then 3, etc. It finds the shallowest solution like BFS but uses O(b*d) memory like DFS. The repeated work is at most a factor of b/(b-1).",
+            "Yes, but it's always slower than BFS",
+            "IDDFS only works with heuristics"
+        ],
+        correct: 1,
+        explanation: "IDDFS combines DFS's low memory (O(b*d)) with BFS's optimality for uniform costs. It re-expands shallow nodes, but the overhead is bounded by b/(b-1) — for b=10, only ~11% extra work. It's the preferred uninformed search when memory is limited."
+    },
+    {
+        topic: "foundations",
+        category: "Deep: Explored Set Alternatives",
+        question: "What alternatives exist to a full explored set for cycle prevention?",
+        options: [
+            "There are no alternatives",
+            "Path checking (only check if a state is on the current path, not all previously visited states). Uses less memory but allows revisiting states via different paths. Also: depth-limited search avoids infinite loops without any visited set.",
+            "Using a heuristic prevents cycles",
+            "Random restarts"
+        ],
+        correct: 1,
+        explanation: "Path checking prevents cycles on the current path (O(d) memory) but allows revisiting states via different paths, potentially doing more work. Full explored set (O(|V|) memory) prevents all revisits. For the assignment, full explored set is used because the graphs are small enough."
+    },
+    {
+        topic: "foundations",
+        category: "Deep: Completeness Properties",
+        question: "Which search algorithms are complete (guaranteed to find a solution if one exists)?",
+        options: [
+            "All four are always complete",
+            "BFS and UCS are complete (for finite graphs with positive costs). DFS is NOT complete on infinite or cyclic graphs without an explored set. A* is complete if h is admissible and the graph is finite.",
+            "Only A* is complete",
+            "None are complete without a heuristic"
+        ],
+        correct: 1,
+        explanation: "DFS can loop forever on cyclic graphs (even with explored set, it can go infinitely deep on infinite graphs). BFS is complete for finite branching factor. UCS is complete if edge costs > epsilon > 0. A* is complete with admissible h on finite graphs. Completeness is a key trade-off between algorithms."
+    },
+
+    // ===== DEEP UNDERSTANDING: GROUP 2 EXTENSIONS (4 questions) =====
+    {
+        topic: "search",
+        category: "Deep: Greedy Best-First Search",
+        question: "Greedy Best-First Search (GBFS) uses f(n) = h(n) only. How does it compare to A*?",
+        options: [
+            "GBFS is always better than A*",
+            "GBFS is fast but NOT optimal — it greedily follows the heuristic toward the goal, ignoring path cost g(n). It can find a suboptimal path. A* balances g(n) + h(n) for optimality.",
+            "GBFS and A* are identical",
+            "GBFS is slower but more accurate"
+        ],
+        correct: 1,
+        explanation: "GBFS expands the node that appears closest to the goal (lowest h(n)), ignoring how much it cost to get there. It's fast but can be fooled: a node near the goal by straight-line distance might require an expensive detour. A* adds g(n) to prevent this, guaranteeing optimality at the cost of more expansions."
+    },
+    {
+        topic: "search",
+        category: "Deep: Greedy Best-First Search",
+        question: "If you set h(n) to be very large (overestimating), what happens to A*?",
+        options: [
+            "Nothing changes",
+            "A* becomes non-optimal. With an inadmissible heuristic (h(n) > h*(n)), A* might expand the goal via a suboptimal path first, because overestimated h values make cheap-but-far nodes look expensive.",
+            "A* crashes",
+            "A* becomes faster and still optimal"
+        ],
+        correct: 1,
+        explanation: "Admissibility (h(n) <= h*(n)) is what guarantees A*'s optimality. If h overestimates, f(n) = g(n) + h(n) inflates priorities, potentially making the optimal path look worse than a suboptimal one. A* degrades toward GBFS as h dominates g. This is why Euclidean distance works — it never overestimates."
+    },
+    {
+        topic: "search",
+        category: "Deep: Augmenting with Heuristics",
+        question: "Could you improve UCS by adding even a minimal heuristic? What would that look like?",
+        options: [
+            "No, UCS cannot use heuristics",
+            "Yes — any admissible h(n) > 0 turns UCS into A* and can only reduce or equal the number of expansions. Even a weak heuristic (e.g., h(n) = 0.1 * Euclidean distance) provides some guidance. A* with h=0 is UCS, so any admissible h >= 0 is at least as good.",
+            "Adding a heuristic to UCS makes it slower",
+            "UCS with a heuristic becomes GBFS"
+        ],
+        correct: 1,
+        explanation: "A* dominates UCS: with an admissible, consistent heuristic, A* expands a subset of (or equal to) the nodes UCS expands. The more informed (tighter) the heuristic, the fewer expansions. Even a very weak heuristic can help. This is why A* is preferred over UCS when node coordinates are available."
+    },
+    {
+        topic: "search",
+        category: "Deep: Search Algorithm Spectrum",
+        question: "Place these algorithms on a spectrum from 'no heuristic guidance' to 'full heuristic guidance': UCS, A*, GBFS",
+        options: [
+            "GBFS < A* < UCS",
+            "UCS (f=g, no heuristic) -> A* (f=g+h, balanced) -> GBFS (f=h, fully heuristic-driven). UCS ignores heuristic entirely, A* balances cost and heuristic, GBFS ignores cost entirely.",
+            "A* < UCS < GBFS",
+            "They all use the same amount of heuristic guidance"
+        ],
+        correct: 1,
+        explanation: "UCS: f(n)=g(n), pure cost, no heuristic. A*: f(n)=g(n)+h(n), balances actual cost with heuristic estimate. GBFS: f(n)=h(n), pure heuristic, ignores cost. A* sits in the middle — it's the sweet spot that's both optimal (with admissible h) and more efficient than UCS."
+    },
+
+    // ===== DEEP UNDERSTANDING: GROUP 3 EXTENSIONS (4 questions) =====
+    {
+        topic: "planning",
+        category: "Deep: Alternatives to BFS in Planning",
+        question: "Why might you use A* instead of BFS for planning? What heuristic could you use?",
+        options: [
+            "You can't use A* for planning",
+            "If actions have different costs, BFS finds the shortest plan (fewest actions) but not the cheapest. A* with a planning heuristic (e.g., number of unsatisfied goal facts, or relaxed plan length) could find cheaper plans or expand fewer states.",
+            "A* is always worse for planning",
+            "BFS already uses a heuristic internally"
+        ],
+        correct: 1,
+        explanation: "BFS is optimal when all actions cost 1. For variable-cost actions, A* with an admissible planning heuristic finds cheaper plans. Common planning heuristics: h_goal_count (number of unsatisfied goals), h_add (additive relaxation), h_ff (FastForward relaxed plan). These go beyond the assignment but show the connection between graph search and planning."
+    },
+    {
+        topic: "planning",
+        category: "Deep: PDDL and Representation",
+        question: "The assignment uses JSON to describe planning problems. How does this relate to PDDL (Planning Domain Definition Language)?",
+        options: [
+            "They are completely unrelated",
+            "PDDL is the standard language for defining planning domains and problems. The JSON format encodes the same information (objects, predicates, actions with preconditions/effects, initial state, goal) in a simpler format. PDDL separates domain (action schemas) from problem (objects, init, goal).",
+            "JSON is more powerful than PDDL",
+            "PDDL is only for blocksworld"
+        ],
+        correct: 1,
+        explanation: "PDDL is the standard AI planning language, used in international planning competitions. It separates the domain file (action schemas with typed parameters, preconditions, effects) from the problem file (objects, initial state, goal). The assignment's JSON + ai9414 helpers encode the same STRIPS semantics in a more beginner-friendly format."
+    },
+    {
+        topic: "planning",
+        category: "Deep: Planning vs Graph Search Connection",
+        question: "How is forward STRIPS planning related to graph search?",
+        options: [
+            "They are completely different things",
+            "Forward planning IS graph search where: states = sets of facts, actions = edges (transitions), start = initial facts, goal = state satisfying goal facts. BFS planning is literally BFS on the state-space graph of fact sets. The same concepts (frontier, explored set, expansion) apply.",
+            "Planning uses backward search, graph search uses forward search",
+            "Graph search only works on physical maps"
+        ],
+        correct: 1,
+        explanation: "Planning is graph search on a different kind of graph. In graph search: nodes are locations, edges are movements. In planning: nodes are fact-sets (world states), edges are actions that transform one fact-set into another. The BFS loop, frontier, visited set, and expansion all work identically — only the state representation differs. This is why search algorithms from Part B directly apply to Part D."
+    },
+    {
+        topic: "planning",
+        category: "Deep: Backward Search & Other Strategies",
+        question: "What is backward (regression) planning, and why might it be useful?",
+        options: [
+            "It's the same as forward planning",
+            "Backward planning starts from the goal and works backwards: 'what actions could have produced this goal?' It can be more efficient when the goal is specific and the initial state has many applicable actions, because it only considers relevant actions.",
+            "Backward planning is always worse",
+            "Backward planning doesn't use STRIPS"
+        ],
+        correct: 1,
+        explanation: "Backward planning regresses from goal to initial state. For a goal like at(parcel, lab), it asks: 'what action adds this fact?' (drop_parcel). Then: 'what are drop_parcel's preconditions?' and works backwards. It focuses search on goal-relevant actions, avoiding the combinatorial explosion of forward search when many actions are applicable. The assignment uses forward BFS, but backward search is an important alternative."
+    },
 ];
 
 // ==================== FLASHCARD DATA ====================
@@ -1149,6 +1311,17 @@ const flashcards = [
     { front: "pickup_keycard vs pickup_parcel?", back: "keycard: adds has(robot, keycard) AND keeps handempty(robot). parcel: adds carrying(robot, parcel) AND deletes handempty(robot). Keycard is 'possessed', parcel is 'held'." },
     { front: "What is forward state-space planning?", back: "Start from initial state, apply applicable actions to generate successor states, BFS until a state satisfying all goal facts is found." },
     { front: "What would happen without visited set in planning?", back: "Infinite loops: move(corridor, mail_room), move(mail_room, corridor), move(corridor, mail_room)... The visited set prevents re-exploring identical states." },
+    // Deep understanding extras
+    { front: "Tree search vs graph search trade-off?", back: "Graph search: explored set prevents cycles/redundancy but costs O(|V|) memory. Tree search: no memory overhead but risks infinite loops on cyclic graphs." },
+    { front: "What is IDDFS and why is it useful?", back: "Iterative Deepening DFS: runs DFS with depth limit 1, 2, 3... Combines BFS optimality (for uniform costs) with DFS memory O(b*d). Overhead: only ~b/(b-1) factor." },
+    { front: "How does GBFS compare to A*?", back: "GBFS: f=h(n) only, fast but NOT optimal. A*: f=g(n)+h(n), optimal with admissible h. GBFS ignores path cost, A* balances cost and heuristic." },
+    { front: "What happens with inadmissible heuristic in A*?", back: "A* loses optimality guarantee. Overestimating h makes cheap paths look expensive, so A* may return suboptimal solutions. Degrades toward GBFS." },
+    { front: "UCS -> A* -> GBFS spectrum?", back: "UCS: f=g (no heuristic). A*: f=g+h (balanced). GBFS: f=h (pure heuristic). More heuristic = faster but less reliable. A* is the optimal sweet spot." },
+    { front: "How is planning related to graph search?", back: "Planning IS graph search: states=fact-sets, edges=actions, start=initial facts, goal=satisfying state. Same frontier/visited/expansion concepts. Different representation, identical algorithm." },
+    { front: "What is backward (regression) planning?", back: "Start from goal, work backwards: what action produces this goal fact? More efficient when goal is specific and many actions are applicable in forward direction." },
+    { front: "What planning heuristics exist beyond BFS?", back: "h_goal_count (unsatisfied goals), h_add (additive relaxation), h_ff (FastForward relaxed plan). Used with A* for planning. BFS is optimal for unit-cost actions only." },
+    { front: "What is PDDL?", back: "Planning Domain Definition Language — standard AI planning language. Separates domain (action schemas) from problem (objects, init, goal). The assignment's JSON encodes the same STRIPS semantics." },
+    { front: "Path checking vs full explored set?", back: "Path checking: only check if state is on current path (O(d) memory), allows revisiting via different paths. Full explored: O(|V|) memory, prevents ALL revisits. Trade-off: memory vs completeness." },
 ];
 
 // ==================== BROWSE DATA ====================
@@ -1189,6 +1362,16 @@ const browseTopics = [
                     "DFS/BFS: generate successors in alphabetical order",
                     "UCS/A*: compare path tuples lexicographically, then FIFO insertion order",
                     "Implementation: sorted adjacency list, counter for heap insertion order"
+                ]
+            },
+            {
+                subtitle: "Deep: Tree Search vs Graph Search Trade-offs",
+                points: [
+                    "Graph search: explored set costs O(|V|) memory but prevents cycles and redundant expansions",
+                    "Tree search: no memory overhead but risks infinite loops on cyclic graphs",
+                    "Alternative: path checking — only check current path (O(d) memory), allows revisiting via different paths",
+                    "IDDFS: iterative deepening DFS — BFS-optimal depth with DFS memory O(b*d), overhead ~b/(b-1)",
+                    "Completeness: BFS/UCS complete for finite graphs. DFS not complete on cyclic/infinite graphs. A* complete with admissible h."
                 ]
             },
             {
@@ -1243,6 +1426,16 @@ const browseTopics = [
                     "Loose heuristic (costs != distance): still admissible, but less pruning. A* approaches UCS behaviour.",
                     "Empirical: graph1 A* expanded 11 vs UCS 16. graph2 A* expanded 7 vs UCS 18."
                 ]
+            },
+            {
+                subtitle: "Deep: GBFS, Inadmissibility, Algorithm Spectrum",
+                points: [
+                    "GBFS: f(n)=h(n) only. Fast but NOT optimal — ignores path cost, can return suboptimal paths",
+                    "Inadmissible heuristic: h(n) > h*(n) breaks A* optimality. A* degrades toward GBFS as h dominates g",
+                    "Spectrum: UCS (f=g, no heuristic) -> A* (f=g+h, balanced) -> GBFS (f=h, pure heuristic)",
+                    "Any admissible h > 0 improves over UCS: A* expands a subset of UCS's nodes (with consistent h)",
+                    "More informed (tighter) heuristic = fewer expansions, but must remain admissible for optimality"
+                ]
             }
         ]
     },
@@ -1288,6 +1481,16 @@ const browseTopics = [
                     "unlocked_lab: ~5 actions (door already unlocked, skip keycard entirely)",
                     "Fewer actions because: no need to visit office_a, no pickup_keycard, no unlock_door",
                     "expanded_count >> plan_length because BFS explores many wrong branches first"
+                ]
+            },
+            {
+                subtitle: "Deep: Alternatives & Connections",
+                points: [
+                    "Planning IS graph search: states=fact-sets, edges=actions. Same frontier/visited/expansion concepts.",
+                    "Backward (regression) planning: start from goal, work backwards. Efficient when goal is specific.",
+                    "A* for planning: use planning heuristics (h_goal_count, h_add, h_ff) instead of BFS. Better for variable-cost actions.",
+                    "PDDL: standard AI planning language. Separates domain (action schemas) from problem (objects, init, goal).",
+                    "The assignment's JSON + ai9414 helpers encode the same STRIPS semantics as PDDL in a simpler format."
                 ]
             }
         ]
