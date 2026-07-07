@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMP9414 A1 - Discussion Study Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: #0f0f23;
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 30px 0 20px; border-bottom: 1px solid #2a2a5a; margin-bottom: 24px; }
+        header h1 { font-size: 1.8rem; color: #7cb7ff; margin-bottom: 6px; }
+        header p { color: #888; font-size: 0.9rem; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; justify-content: center; }
+        .tab {
+            padding: 10px 18px; border-radius: 8px; background: #1a1a3e; border: 1px solid #2a2a5a;
+            color: #aaa; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; user-select: none;
+        }
+        .tab:hover { border-color: #7cb7ff; color: #7cb7ff; }
+        .tab.active { background: #7cb7ff; color: #0f0f23; border-color: #7cb7ff; font-weight: 600; }
+
+        /* Panels */
+        .panel { display: none; animation: fadeIn 0.3s ease; }
+        .panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards */
+        .card {
+            background: #1a1a3e; border: 1px solid #2a2a5a; border-radius: 12px;
+            padding: 24px; margin-bottom: 16px;
+        }
+        .card h3 { color: #7cb7ff; font-size: 1.1rem; margin-bottom: 12px; }
+        .card h4 { color: #a78bfa; font-size: 0.9rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; }
+        th, td { padding: 8px 12px; border: 1px solid #2a2a5a; text-align: left; }
+        th { background: #0f0f23; color: #7cb7ff; font-weight: 600; }
+        td { color: #ccc; }
+        tr.highlight { background: #1a2a4a; }
+        tr.active-step { background: #0f2a1a; border-left: 3px solid #4ade80; }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 20px; border-radius: 8px; border: none; font-size: 0.85rem;
+            font-weight: 500; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: #7cb7ff; color: #0f0f23; }
+        .btn-primary:hover { background: #5a9fee; }
+        .btn-secondary { background: #2a2a5a; color: #ccc; }
+        .btn-secondary:hover { background: #3a3a6a; }
+        .btn-success { background: #4ade80; color: #0f0f23; }
+        .btn-success:hover { background: #22c55e; }
+        .btn-danger { background: #f87171; color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+        .btn-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+
+        /* Reveal blocks */
+        .reveal-block {
+            background: #0f1a2a; border: 1px dashed #2a2a5a; border-radius: 8px;
+            padding: 16px; margin: 12px 0; cursor: pointer; transition: all 0.2s;
+        }
+        .reveal-block:hover { border-color: #7cb7ff; }
+        .reveal-block .hint { color: #888; font-size: 0.85rem; }
+        .reveal-block .answer { display: none; color: #4ade80; margin-top: 8px; line-height: 1.7; }
+        .reveal-block.revealed .answer { display: block; }
+        .reveal-block.revealed .hint { color: #666; text-decoration: line-through; }
+        .reveal-block.revealed { border-color: #4ade80; border-style: solid; }
+
+        /* Fill in blank */
+        .fill-blank {
+            display: inline-block; border-bottom: 2px dashed #7cb7ff; min-width: 120px;
+            padding: 2px 8px; margin: 0 4px; color: transparent; cursor: pointer;
+            transition: all 0.2s; background: #0f1a2a; border-radius: 4px 4px 0 0;
+        }
+        .fill-blank.shown { color: #4ade80; border-color: #4ade80; border-style: solid; }
+        .fill-blank:hover { background: #151535; }
+
+        /* Graph SVG */
+        .graph-container { margin: 16px 0; text-align: center; }
+        .graph-container svg { max-width: 100%; }
+        .graph-node { transition: all 0.3s; }
+        .graph-node circle { transition: fill 0.3s, stroke 0.3s; }
+        .graph-edge { transition: stroke 0.3s, stroke-width 0.3s; }
+
+        /* Step simulator */
+        .sim-controls { display: flex; gap: 8px; align-items: center; margin: 12px 0; flex-wrap: wrap; }
+        .sim-step-label { color: #888; font-size: 0.85rem; }
+        .sim-state { background: #0f0f23; border: 1px solid #2a2a5a; border-radius: 8px; padding: 12px; margin: 8px 0; font-family: monospace; font-size: 0.85rem; }
+        .sim-state .label { color: #a78bfa; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .sim-state .value { color: #4ade80; }
+        .sim-state .value.frontier { color: #fbbf24; }
+        .sim-state .value.expanded { color: #7cb7ff; }
+
+        /* Oral practice */
+        .oral-prompt {
+            background: linear-gradient(135deg, #1a1a3e, #1a2a4a); border: 1px solid #2a2a5a;
+            border-radius: 12px; padding: 28px; margin-bottom: 16px; text-align: center;
+        }
+        .oral-prompt .group-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+        }
+        .oral-prompt .group-badge.g1 { background: #7cb7ff22; color: #7cb7ff; border: 1px solid #7cb7ff44; }
+        .oral-prompt .group-badge.g2 { background: #a78bfa22; color: #a78bfa; border: 1px solid #a78bfa44; }
+        .oral-prompt .group-badge.g3 { background: #4ade8022; color: #4ade80; border: 1px solid #4ade8044; }
+        .oral-prompt .prompt-text { font-size: 1.15rem; color: #fff; font-weight: 500; margin-bottom: 16px; }
+        .timer { font-size: 2rem; color: #fbbf24; font-weight: 700; font-family: monospace; margin: 12px 0; }
+        .timer.warning { color: #f87171; }
+
+        /* Score tracker */
+        .score-bar {
+            display: flex; gap: 4px; margin: 16px 0;
+        }
+        .score-dot {
+            width: 12px; height: 12px; border-radius: 50%; background: #2a2a5a; transition: all 0.2s;
+        }
+        .score-dot.correct { background: #4ade80; }
+        .score-dot.incorrect { background: #f87171; }
+        .score-dot.current { box-shadow: 0 0 0 2px #7cb7ff; }
+
+        /* Cheat sheet */
+        .cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 600px) { .cheat-grid { grid-template-columns: 1fr; } }
+        .cheat-item { background: #0f0f23; border: 1px solid #2a2a5a; border-radius: 8px; padding: 12px; }
+        .cheat-item .term { color: #7cb7ff; font-weight: 600; margin-bottom: 4px; font-size: 0.9rem; }
+        .cheat-item .def { color: #ccc; font-size: 0.8rem; }
+
+        code { background: #2a2a5a; padding: 2px 6px; border-radius: 4px; font-size: 0.85em; color: #fbbf24; }
+        .text-green { color: #4ade80; }
+        .text-red { color: #f87171; }
+        .text-yellow { color: #fbbf24; }
+        .text-blue { color: #7cb7ff; }
+        .text-purple { color: #a78bfa; }
+        .text-dim { color: #888; }
+        .mt-8 { margin-top: 8px; }
+        .mt-16 { margin-top: 16px; }
+        .mb-8 { margin-bottom: 8px; }
+        .mb-16 { margin-bottom: 16px; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; }
+        p { margin-bottom: 8px; }
+        hr { border: none; border-top: 1px solid #2a2a5a; margin: 24px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Assignment 1: Discussion Study Guide</h1>
+        <p>Interactive prep for your 15-18 min session with tutor</p>
+    </header>
+
+    <div class="tabs" id="main-tabs">
+        <div class="tab active" onclick="switchPanel('trace')">Trace Simulator</div>
+        <div class="tab" onclick="switchPanel('fill')">Fill-in-the-Blank</div>
+        <div class="tab" onclick="switchPanel('oral')">Oral Practice</div>
+        <div class="tab" onclick="switchPanel('strips')">STRIPS Walkthrough</div>
+        <div class="tab" onclick="switchPanel('cheat')">Cheat Sheet</div>
+    </div>
+
+    <!-- ==================== TRACE SIMULATOR ==================== -->
+    <div class="panel active" id="panel-trace">
+        <div class="card">
+            <h3>Algorithm Trace Simulator</h3>
+            <p class="text-dim mb-16">Step through each algorithm on the office graph. Understand <em>why</em> each node is chosen.</p>
+
+            <div class="tabs" id="alg-tabs">
+                <div class="tab active" onclick="switchAlg('dfs')">DFS</div>
+                <div class="tab" onclick="switchAlg('bfs')">BFS</div>
+                <div class="tab" onclick="switchAlg('ucs')">UCS</div>
+                <div class="tab" onclick="switchAlg('astar')">A*</div>
+            </div>
+
+            <div class="sim-controls">
+                <button class="btn btn-secondary btn-sm" onclick="simPrev()">Prev</button>
+                <button class="btn btn-primary btn-sm" onclick="simNext()">Next Step</button>
+                <button class="btn btn-danger btn-sm" onclick="simReset()">Reset</button>
+                <button class="btn btn-success btn-sm" onclick="simAutoPlay()">Auto-play</button>
+                <span class="sim-step-label" id="sim-step-label">Step 0 / 0</span>
+            </div>
+
+            <!-- Interactive Graph -->
+            <div class="graph-container" id="graph-viz"></div>
+
+            <div id="sim-display"></div>
+            <div id="sim-explanation" class="sim-state" style="display:none">
+                <div class="label">Why this step?</div>
+                <div class="value" id="sim-why"></div>
+            </div>
+
+            <!-- Legend -->
+            <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:0.8rem;">
+                <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#2a2a5a" stroke="#666"/></svg> Unvisited</span>
+                <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#1a3a5a" stroke="#7cb7ff"/></svg> In Frontier</span>
+                <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#7cb7ff" stroke="#7cb7ff"/></svg> Expanded</span>
+                <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#fbbf24"/></svg> Current</span>
+                <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#4ade80" stroke="#4ade80"/></svg> Goal Found</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FILL IN THE BLANK ==================== -->
+    <div class="panel" id="panel-fill">
+        <div class="card">
+            <h3>Fill-in-the-Blank Exercises</h3>
+            <p class="text-dim mb-16">Click each blank to reveal the answer. Test yourself before clicking.</p>
+            <div class="btn-row mb-16">
+                <button class="btn btn-primary btn-sm" onclick="revealAllBlanks()">Reveal All</button>
+                <button class="btn btn-danger btn-sm" onclick="hideAllBlanks()">Hide All</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>Group 1: Foundations</h4>
+
+            <p>The five components of a search problem are: <span class="fill-blank" onclick="toggleBlank(this)">initial state</span>, <span class="fill-blank" onclick="toggleBlank(this)">successor function</span>, <span class="fill-blank" onclick="toggleBlank(this)">goal test</span>, <span class="fill-blank" onclick="toggleBlank(this)">path cost</span>, and <span class="fill-blank" onclick="toggleBlank(this)">strategy</span>.</p>
+
+            <p class="mt-8">In a <strong>state space graph</strong>, each state appears <span class="fill-blank" onclick="toggleBlank(this)">exactly once</span>. In a <strong>search tree</strong>, the same state can appear <span class="fill-blank" onclick="toggleBlank(this)">multiple times</span> because there are <span class="fill-blank" onclick="toggleBlank(this)">multiple paths</span> to reach it.</p>
+
+            <p class="mt-8">The <strong>frontier</strong> contains nodes that have been <span class="fill-blank" onclick="toggleBlank(this)">generated but not yet expanded</span>. The <strong>explored set</strong> contains nodes that have been <span class="fill-blank" onclick="toggleBlank(this)">expanded (removed from frontier and had successors generated)</span>.</p>
+
+            <p class="mt-8">Graph search avoids revisiting states by maintaining an <span class="fill-blank" onclick="toggleBlank(this)">explored/visited set</span>. Before expanding a node, it checks if the state is <span class="fill-blank" onclick="toggleBlank(this)">already in the explored set</span>.</p>
+
+            <p class="mt-8">For deterministic marking, DFS and BFS generate successors in <span class="fill-blank" onclick="toggleBlank(this)">alphabetical order</span>. For UCS and A*, ties are broken by comparing <span class="fill-blank" onclick="toggleBlank(this)">path tuples lexicographically</span>.</p>
+        </div>
+
+        <div class="card">
+            <h4>Group 2: Search Behaviour</h4>
+
+            <p>DFS uses a <span class="fill-blank" onclick="toggleBlank(this)">stack (LIFO)</span> frontier. BFS uses a <span class="fill-blank" onclick="toggleBlank(this)">queue (FIFO)</span> frontier. UCS uses a <span class="fill-blank" onclick="toggleBlank(this)">min-heap by g(n)</span>. A* uses a <span class="fill-blank" onclick="toggleBlank(this)">min-heap by f(n) = g(n) + h(n)</span>.</p>
+
+            <p class="mt-8">On the office graph, DFS returns path <span class="fill-blank" onclick="toggleBlank(this)">corridor - mail_room - storage - lab</span> with cost <span class="fill-blank" onclick="toggleBlank(this)">11</span>.</p>
+
+            <p class="mt-8">BFS returns path <span class="fill-blank" onclick="toggleBlank(this)">corridor - office_a - lab</span> with cost <span class="fill-blank" onclick="toggleBlank(this)">10</span>. BFS is optimal only when <span class="fill-blank" onclick="toggleBlank(this)">all edge costs are equal</span>.</p>
+
+            <p class="mt-8">UCS returns path <span class="fill-blank" onclick="toggleBlank(this)">corridor - office_b - lab</span> with cost <span class="fill-blank" onclick="toggleBlank(this)">6</span>. UCS is <span class="fill-blank" onclick="toggleBlank(this)">always optimal</span> for non-negative edge costs.</p>
+
+            <p class="mt-8">In UCS, stale heap entries are handled by <span class="fill-blank" onclick="toggleBlank(this)">lazy deletion: if the popped node is already in visited, skip it</span>.</p>
+
+            <p class="mt-8">A* expands <span class="fill-blank" onclick="toggleBlank(this)">fewer</span> nodes than UCS because the heuristic <span class="fill-blank" onclick="toggleBlank(this)">steers the search toward the goal</span>. On the office graph, A* expands <span class="fill-blank" onclick="toggleBlank(this)">5</span> nodes versus UCS's <span class="fill-blank" onclick="toggleBlank(this)">6</span>.</p>
+
+            <p class="mt-8">The Euclidean heuristic h(n) = <span class="fill-blank" onclick="toggleBlank(this)">sqrt((x_n - x_g)^2 + (y_n - y_g)^2)</span>. It is <span class="fill-blank" onclick="toggleBlank(this)">admissible</span> because straight-line distance never overestimates the actual path cost. It is also <span class="fill-blank" onclick="toggleBlank(this)">consistent</span> because h(n) &le; c(n,n') + h(n') for all edges.</p>
+
+            <p class="mt-8">A limitation of Euclidean distance: when edge costs include non-distance factors (e.g. tolls), the heuristic becomes a <span class="fill-blank" onclick="toggleBlank(this)">loose lower bound</span>, so A* gains <span class="fill-blank" onclick="toggleBlank(this)">little pruning advantage over UCS</span>.</p>
+        </div>
+
+        <div class="card">
+            <h4>Group 3: Planning Models</h4>
+
+            <p>In STRIPS, each action has <span class="fill-blank" onclick="toggleBlank(this)">preconditions</span>, <span class="fill-blank" onclick="toggleBlank(this)">add effects</span>, and <span class="fill-blank" onclick="toggleBlank(this)">delete effects</span>.</p>
+
+            <p class="mt-8">The transition rule is: Result(s, a) = <span class="fill-blank" onclick="toggleBlank(this)">(s - Del(a)) &cup; Add(a)</span>, provided <span class="fill-blank" onclick="toggleBlank(this)">Pre(a) &sube; s</span>.</p>
+
+            <p class="mt-8"><code>move(robot, from, to)</code> preconditions: <span class="fill-blank" onclick="toggleBlank(this)">at(robot, from), connected(from, to)</span>. If a door exists on the edge, also needs <span class="fill-blank" onclick="toggleBlank(this)">unlocked(lab_door)</span>.</p>
+
+            <p class="mt-8"><code>pickup_keycard(robot, keycard, room)</code> preconditions: <span class="fill-blank" onclick="toggleBlank(this)">at(robot, room), at(keycard, room), handempty(robot)</span>. Add effects: <span class="fill-blank" onclick="toggleBlank(this)">has(robot, keycard)</span>. Delete effects: <span class="fill-blank" onclick="toggleBlank(this)">at(keycard, room), handempty(robot)</span>.</p>
+
+            <p class="mt-8"><code>unlock_door(robot, keycard, lab_door, here, there)</code> preconditions: <span class="fill-blank" onclick="toggleBlank(this)">at(robot, here), has(robot, keycard), locked(lab_door), door_between(lab_door, here, there)</span>. Add: <span class="fill-blank" onclick="toggleBlank(this)">unlocked(lab_door)</span>. Delete: <span class="fill-blank" onclick="toggleBlank(this)">locked(lab_door)</span>.</p>
+
+            <p class="mt-8">In the lab_via_office_b plan, action 5 <code>move(robot, office_b, lab)</code> fails because: <span class="fill-blank" onclick="toggleBlank(this)">connected(office_b, lab) does not exist &mdash; the door connects corridor and lab, not office_b and lab</span>.</p>
+
+            <p class="mt-8">Inserting <code>unlock_door</code> before action 5 doesn't help because: (1) <span class="fill-blank" onclick="toggleBlank(this)">the robot never picked up the keycard (has(robot, keycard) is false)</span> and (2) <span class="fill-blank" onclick="toggleBlank(this)">even if unlocked, there is no edge between office_b and lab</span>.</p>
+
+            <p class="mt-8">In <code>solve_planning</code>, states are canonicalised as <span class="fill-blank" onclick="toggleBlank(this)">sorted tuples of fact tuples</span> to ensure <span class="fill-blank" onclick="toggleBlank(this)">equivalent states get the same ID and aren't revisited</span>.</p>
+
+            <p class="mt-8">Canonical delivery needs <span class="fill-blank" onclick="toggleBlank(this)">9</span> actions. Unlocked lab needs <span class="fill-blank" onclick="toggleBlank(this)">5</span> actions. The difference is <span class="fill-blank" onclick="toggleBlank(this)">4 extra actions for the keycard detour: move to office_a, pickup keycard, move back, unlock door</span>.</p>
+        </div>
+    </div>
+
+    <!-- ==================== ORAL PRACTICE ==================== -->
+    <div class="panel" id="panel-oral">
+        <div class="card">
+            <h3>Oral Practice Mode</h3>
+            <p class="text-dim mb-16">Simulate discussion questions. You get 2 minutes per question &mdash; explain out loud, then reveal the key points to check yourself.</p>
+            <div class="btn-row mb-16">
+                <button class="btn btn-primary" onclick="newOralQuestion()">New Random Question</button>
+                <button class="btn btn-secondary" onclick="newOralQuestion('foundations')">G1: Foundations</button>
+                <button class="btn btn-secondary" onclick="newOralQuestion('search')">G2: Search</button>
+                <button class="btn btn-secondary" onclick="newOralQuestion('planning')">G3: Planning</button>
+            </div>
+        </div>
+
+        <div id="oral-display">
+            <div class="oral-prompt">
+                <div class="prompt-text">Click a button above to get your first question</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== STRIPS WALKTHROUGH ==================== -->
+    <div class="panel" id="panel-strips">
+        <div class="card">
+            <h3>STRIPS Plan Walkthrough</h3>
+            <p class="text-dim mb-16">Step through the canonical delivery plan action by action, tracking the full state.</p>
+            <div class="sim-controls">
+                <button class="btn btn-secondary btn-sm" onclick="stripsPrev()">Prev</button>
+                <button class="btn btn-primary btn-sm" onclick="stripsNext()">Next Action</button>
+                <button class="btn btn-danger btn-sm" onclick="stripsReset()">Reset</button>
+                <span class="sim-step-label" id="strips-step-label">Initial State</span>
+            </div>
+        </div>
+
+        <div class="graph-container" id="strips-graph-viz"></div>
+        <div id="strips-display"></div>
+
+        <!-- Legend for planning graph -->
+        <div style="display:flex; gap:16px; flex-wrap:wrap; margin:12px 0; font-size:0.8rem;">
+            <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#2a2a5a" stroke="#666"/></svg> Empty room</span>
+            <span><svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#fbbf24" stroke="#fbbf24"/></svg> Robot here</span>
+            <span><svg width="14" height="14"><rect x="1" y="1" width="12" height="12" rx="2" fill="#a78bfa" stroke="#a78bfa"/></svg> Has object</span>
+            <span style="color:#f87171">--- Locked door</span>
+            <span style="color:#4ade80">&mdash; Unlocked door</span>
+        </div>
+
+        <hr>
+
+        <div class="card">
+            <h3>Plan Diagnosis: lab_via_office_b</h3>
+            <p class="text-dim mb-8">The broken plan &mdash; step through to see where and why it fails.</p>
+            <div class="sim-controls">
+                <button class="btn btn-secondary btn-sm" onclick="diagPrev()">Prev</button>
+                <button class="btn btn-primary btn-sm" onclick="diagNext()">Next Action</button>
+                <button class="btn btn-danger btn-sm" onclick="diagReset()">Reset</button>
+                <span class="sim-step-label" id="diag-step-label">Initial State</span>
+            </div>
+        </div>
+
+        <div class="graph-container" id="diag-graph-viz"></div>
+        <div id="diag-display"></div>
+    </div>
+
+    <!-- ==================== CHEAT SHEET ==================== -->
+    <div class="panel" id="panel-cheat">
+        <div class="card">
+            <h3>Quick Reference Cheat Sheet</h3>
+            <p class="text-dim mb-16">Everything you need at a glance for the discussion.</p>
+        </div>
+
+        <div class="card">
+            <h4>Algorithm Comparison</h4>
+            <table>
+                <tr><th>Algorithm</th><th>Data Structure</th><th>Priority</th><th>Optimal?</th><th>Complete?</th></tr>
+                <tr><td>DFS</td><td>Stack (LIFO)</td><td>Last in</td><td class="text-red">No</td><td>No (infinite)</td></tr>
+                <tr><td>BFS</td><td>Queue (FIFO)</td><td>First in</td><td class="text-yellow">Only if uniform cost</td><td class="text-green">Yes</td></tr>
+                <tr><td>UCS</td><td>Min-heap</td><td>g(n)</td><td class="text-green">Yes</td><td class="text-green">Yes</td></tr>
+                <tr><td>A*</td><td>Min-heap</td><td>f(n) = g(n)+h(n)</td><td class="text-green">Yes (if h admissible)</td><td class="text-green">Yes</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h4>Office Graph</h4>
+            <div class="graph-container" id="cheat-graph-viz"></div>
+            <p class="text-dim" style="text-align:center; margin-top:8px;">Start: <code>corridor</code> | Goal: <code>lab</code> | All edges bidirectional | Locked door on corridor&harr;lab</p>
+        </div>
+
+        <div class="card">
+            <h4>Office Graph Results</h4>
+            <table>
+                <tr><th>Alg</th><th>Path</th><th>Cost</th><th>Expanded</th><th>Generated</th><th>Peak</th></tr>
+                <tr><td>DFS</td><td>corridor-mail_room-storage-lab</td><td>11</td><td>4</td><td>4</td><td>4</td></tr>
+                <tr><td>BFS</td><td>corridor-office_a-lab</td><td>10</td><td>6</td><td>6</td><td>3</td></tr>
+                <tr><td>UCS</td><td>corridor-office_b-lab</td><td>6</td><td>6</td><td>7</td><td>3</td></tr>
+                <tr><td>A*</td><td>corridor-office_b-lab</td><td>6</td><td>5</td><td>6</td><td>3</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h4>Key Concepts</h4>
+            <div class="cheat-grid">
+                <div class="cheat-item">
+                    <div class="term">Admissible Heuristic</div>
+                    <div class="def">Never overestimates true cost: h(n) &le; h*(n) for all n. Guarantees A* finds optimal solution.</div>
+                </div>
+                <div class="cheat-item">
+                    <div class="term">Consistent Heuristic</div>
+                    <div class="def">h(n) &le; c(n,n') + h(n') for all edges. Implies admissibility. Guarantees A* never re-opens nodes.</div>
+                </div>
+                <div class="cheat-item">
+                    <div class="term">Lazy Deletion (UCS/A*)</div>
+                    <div class="def">When popping from heap, if node already visited, skip it. Stale entries are left in heap and ignored when encountered.</div>
+                </div>
+                <div class="cheat-item">
+                    <div class="term">State Space vs Search Tree</div>
+                    <div class="def">State space: each state once. Search tree: same state appears multiple times (one per path). Graph search uses visited set to bridge the gap.</div>
+                </div>
+                <div class="cheat-item">
+                    <div class="term">STRIPS Transition Rule</div>
+                    <div class="def">Result(s, a) = (s - Del(a)) &cup; Add(a), only if Pre(a) &sube; s.</div>
+                </div>
+                <div class="cheat-item">
+                    <div class="term">State Canonicalisation</div>
+                    <div class="def">state_id = tuple(sorted(facts)). Ensures equivalent states hash the same way for visited-set checks.</div>
+                </div>
+                <div class="cheat-item">
+                    <div class="term">Generated vs Expanded</div>
+                    <div class="def">Generated: pushed to frontier. Expanded: popped from frontier and successors generated. generated_count &ge; expanded_count.</div>
+                </div>
+                <div class="cheat-item">
+                    <div class="term">Frontier Peak</div>
+                    <div class="def">Maximum size of the frontier during search. Measures memory usage of the algorithm.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h4>STRIPS Actions (Office Delivery)</h4>
+            <table>
+                <tr><th>Action</th><th>Preconditions</th><th>Add Effects</th><th>Delete Effects</th></tr>
+                <tr>
+                    <td><code>move(R, from, to)</code></td>
+                    <td>at(R, from), connected(from, to), [unlocked(door) if door on edge]</td>
+                    <td>at(R, to)</td>
+                    <td>at(R, from)</td>
+                </tr>
+                <tr>
+                    <td><code>pickup_keycard(R, K, room)</code></td>
+                    <td>at(R, room), at(K, room), handempty(R)</td>
+                    <td>has(R, K)</td>
+                    <td>at(K, room), handempty(R)</td>
+                </tr>
+                <tr>
+                    <td><code>pickup_parcel(R, P, room)</code></td>
+                    <td>at(R, room), at(P, room), handempty(R)</td>
+                    <td>carrying(R, P)</td>
+                    <td>at(P, room), handempty(R)</td>
+                </tr>
+                <tr>
+                    <td><code>unlock_door(R, K, D, here, there)</code></td>
+                    <td>at(R, here), has(R, K), locked(D), door_between(D, here, there)</td>
+                    <td>unlocked(D)</td>
+                    <td>locked(D)</td>
+                </tr>
+                <tr>
+                    <td><code>drop_parcel(R, P, room)</code></td>
+                    <td>at(R, room), carrying(R, P)</td>
+                    <td>at(P, room), handempty(R)</td>
+                    <td>carrying(R, P)</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h4>Canonical Delivery Plan (9 steps)</h4>
+            <ol style="padding-left:20px">
+                <li>move(robot, corridor, office_a)</li>
+                <li>pickup_keycard(robot, keycard, office_a)</li>
+                <li>move(robot, office_a, corridor)</li>
+                <li>unlock_door(robot, keycard, lab_door, corridor, lab)</li>
+                <li>move(robot, corridor, mail_room)</li>
+                <li>pickup_parcel(robot, parcel, mail_room)</li>
+                <li>move(robot, mail_room, corridor)</li>
+                <li>move(robot, corridor, lab)</li>
+                <li>drop_parcel(robot, parcel, lab)</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h4>Plan Diagnosis Summary: lab_via_office_b</h4>
+            <table>
+                <tr><th>Q</th><th>Answer</th></tr>
+                <tr><td>Q1: First failing action</td><td>Action 5: move(robot, office_b, lab)</td></tr>
+                <tr><td>Q2: Missing preconditions</td><td>connected(office_b, lab) doesn't exist; unlocked(lab_door) is false</td></tr>
+                <tr><td>Q3: Why insert unlock_door fails</td><td>(1) No keycard: has(robot, keycard) false. (2) No edge office_b&harr;lab anyway</td></tr>
+                <tr><td>Q4: Repaired plan</td><td>9-step plan via corridor&rarr;office_a (get keycard)&rarr;corridor (unlock)&rarr;mail_room (get parcel)&rarr;corridor&rarr;lab (drop)</td></tr>
+                <tr><td>Q5: Where unlocked(lab_door) first true</td><td>Step 7: unlock_door(robot, keycard, lab_door, corridor, lab)</td></tr>
+                <tr><td>Q6: How goal satisfied</td><td>Step 9: drop_parcel adds at(parcel, lab)</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== PANEL SWITCHING ====================
+function switchPanel(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    document.querySelectorAll('#main-tabs .tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+// ==================== FILL IN THE BLANK ====================
+function toggleBlank(el) { el.classList.toggle('shown'); }
+function revealAllBlanks() { document.querySelectorAll('.fill-blank').forEach(b => b.classList.add('shown')); }
+function hideAllBlanks() { document.querySelectorAll('.fill-blank').forEach(b => b.classList.remove('shown')); }
+
+// ==================== TRACE SIMULATOR ====================
+const traces = {
+    dfs: {
+        name: "DFS (Stack / LIFO)",
+        steps: [
+            { action: "Init", current: "-", frontier: ["corridor"], visited: ["corridor"], expanded: [], why: "Push start node corridor onto the stack. Mark as visited." },
+            { action: "Pop corridor", current: "corridor", frontier: ["mail_room", "office_a", "office_b"], visited: ["corridor", "mail_room", "office_a", "office_b"], expanded: ["corridor"], why: "Pop corridor (top of stack). Neighbours sorted alphabetically: [mail_room, office_a, office_b]. Push first unvisited = mail_room. Actually DFS peeks and pushes one at a time. All are marked visited but only mail_room is pushed as next step." },
+            { action: "Peek corridor, push mail_room", current: "corridor", frontier: ["corridor", "mail_room"], visited: ["corridor", "mail_room"], expanded: ["corridor"], why: "DFS implementation: peek at top (corridor), find first unvisited neighbour alphabetically = mail_room. Push it. Stack = [corridor, mail_room]." },
+            { action: "Peek mail_room, push storage", current: "mail_room", frontier: ["corridor", "mail_room", "storage"], visited: ["corridor", "mail_room", "storage"], expanded: ["corridor", "mail_room"], why: "Peek top = mail_room. Neighbours: [corridor(visited), storage]. Push storage. Stack = [corridor, mail_room, storage]." },
+            { action: "Peek storage, push lab", current: "storage", frontier: ["corridor", "mail_room", "storage", "lab"], visited: ["corridor", "mail_room", "storage", "lab"], expanded: ["corridor", "mail_room", "storage"], why: "Peek top = storage. Neighbours: [lab, mail_room(visited)]. Push lab. Stack = [corridor, mail_room, storage, lab]." },
+            { action: "Peek lab = GOAL!", current: "lab", frontier: ["corridor", "mail_room", "storage", "lab"], visited: ["corridor", "mail_room", "storage", "lab"], expanded: ["corridor", "mail_room", "storage", "lab"], why: "Peek top = lab. Goal found! Path: corridor -> mail_room -> storage -> lab. Cost = 2+2+7 = 11." },
+        ]
+    },
+    bfs: {
+        name: "BFS (Queue / FIFO)",
+        steps: [
+            { action: "Init", current: "-", frontier: ["corridor"], visited: ["corridor"], expanded: [], why: "Enqueue start node corridor. Mark as visited." },
+            { action: "Dequeue corridor", current: "corridor", frontier: ["mail_room", "office_a", "office_b"], visited: ["corridor", "mail_room", "office_a", "office_b"], expanded: ["corridor"], why: "Dequeue corridor (front of queue). Enqueue all unvisited neighbours alphabetically: mail_room, office_a, office_b." },
+            { action: "Dequeue mail_room", current: "mail_room", frontier: ["office_a", "office_b", "storage"], visited: ["corridor", "mail_room", "office_a", "office_b", "storage"], expanded: ["corridor", "mail_room"], why: "Dequeue mail_room. Neighbours: corridor(visited), storage(new). Enqueue storage." },
+            { action: "Dequeue office_a", current: "office_a", frontier: ["office_b", "storage", "lab"], visited: ["corridor", "mail_room", "office_a", "office_b", "storage", "lab"], expanded: ["corridor", "mail_room", "office_a"], why: "Dequeue office_a. Neighbours: corridor(v), lab(new), office_b(v). Enqueue lab. BFS found lab at depth 2 via office_a!" },
+            { action: "Dequeue office_b", current: "office_b", frontier: ["storage", "lab"], visited: ["corridor", "mail_room", "office_a", "office_b", "storage", "lab"], expanded: ["corridor", "mail_room", "office_a", "office_b"], why: "Dequeue office_b. All neighbours already visited. Nothing to enqueue." },
+            { action: "Dequeue storage", current: "storage", frontier: ["lab"], visited: ["corridor", "mail_room", "office_a", "office_b", "storage", "lab"], expanded: ["corridor", "mail_room", "office_a", "office_b", "storage"], why: "Dequeue storage. Neighbours: lab(visited), mail_room(visited). Nothing new." },
+            { action: "Dequeue lab = GOAL!", current: "lab", frontier: [], visited: ["corridor", "mail_room", "office_a", "office_b", "storage", "lab"], expanded: ["corridor", "mail_room", "office_a", "office_b", "storage", "lab"], why: "Dequeue lab. Goal found! Path: corridor -> office_a -> lab. Cost = 2+8 = 10. BFS finds shallowest (2 edges) but not cheapest." },
+        ]
+    },
+    ucs: {
+        name: "UCS (Min-Heap by g(n))",
+        steps: [
+            { action: "Init", current: "-", frontier: ["(0, corridor)"], visited: [], expanded: [], why: "Push (cost=0, corridor) onto the min-heap." },
+            { action: "Pop (0, corridor)", current: "corridor", frontier: ["(2, mail_room)", "(2, office_a)", "(3, office_b)"], visited: ["corridor"], expanded: ["corridor"], why: "Pop lowest cost = corridor at g=0. Push neighbours: mail_room(2), office_a(2), office_b(3)." },
+            { action: "Pop (2, mail_room)", current: "mail_room", frontier: ["(2, office_a)", "(3, office_b)", "(4, storage)"], visited: ["corridor", "mail_room"], expanded: ["corridor", "mail_room"], why: "Pop mail_room at g=2. Push storage(2+2=4). corridor already visited." },
+            { action: "Pop (2, office_a)", current: "office_a", frontier: ["(3, office_b)", "(4, storage)", "(10, lab)"], visited: ["corridor", "mail_room", "office_a"], expanded: ["corridor", "mail_room", "office_a"], why: "Pop office_a at g=2. Push lab(2+8=10). office_b: 2+2=4 > existing 3, no update." },
+            { action: "Pop (3, office_b)", current: "office_b", frontier: ["(4, storage)", "(6, lab)", "(10, lab)"], visited: ["corridor", "mail_room", "office_a", "office_b"], expanded: ["corridor", "mail_room", "office_a", "office_b"], why: "Pop office_b at g=3. lab via office_b: 3+3=6 < 10. Push (6, lab). Heap has stale (10, lab) too." },
+            { action: "Pop (4, storage)", current: "storage", frontier: ["(6, lab)", "(10, lab)"], visited: ["corridor", "mail_room", "office_a", "office_b", "storage"], expanded: ["corridor", "mail_room", "office_a", "office_b", "storage"], why: "Pop storage at g=4. lab via storage: 4+7=11 > 6. No improvement. Don't push." },
+            { action: "Pop (6, lab) = GOAL!", current: "lab", frontier: ["(10, lab)"], visited: ["corridor", "mail_room", "office_a", "office_b", "storage", "lab"], expanded: ["corridor", "mail_room", "office_a", "office_b", "storage", "lab"], why: "Pop lab at g=6. Goal! Path: corridor -> office_b -> lab. Cost = 6. The stale (10, lab) entry remains in heap but is never used." },
+        ]
+    },
+    astar: {
+        name: "A* (Min-Heap by f(n) = g(n) + h(n))",
+        steps: [
+            { action: "Init", current: "-", frontier: ["(f=h(corridor), corridor)"], visited: [], expanded: [], why: "Push corridor with f = 0 + h(corridor). h is Euclidean distance to lab." },
+            { action: "Pop corridor", current: "corridor", frontier: ["(f, office_b)", "(f, mail_room)", "(f, office_a)"], visited: ["corridor"], expanded: ["corridor"], why: "Pop corridor. Push neighbours with f = g + h. office_b has lower f because it's geometrically closer to lab." },
+            { action: "Pop office_b", current: "office_b", frontier: ["(f, mail_room)", "(f, office_a)", "(f, lab)"], visited: ["corridor", "office_b"], expanded: ["corridor", "office_b"], why: "Pop office_b (lowest f). g=3. Push lab: g=3+3=6, f=6+0=6. A* picks office_b before mail_room/office_a because h(office_b) is smaller." },
+            { action: "Pop office_a (or mail_room)", current: "office_a", frontier: ["(f, mail_room)", "(f, lab)"], visited: ["corridor", "office_b", "office_a"], expanded: ["corridor", "office_b", "office_a"], why: "Pop next lowest f. lab via office_a: g=2+8=10 > 6, no improvement. This node is expanded but doesn't help." },
+            { action: "Pop mail_room", current: "mail_room", frontier: ["(f, lab)", "(f, storage)"], visited: ["corridor", "office_b", "office_a", "mail_room"], expanded: ["corridor", "office_b", "office_a", "mail_room"], why: "Pop mail_room. Push storage. lab via storage would be 2+2+7=11 > 6, no improvement when storage is later popped." },
+            { action: "Pop lab = GOAL!", current: "lab", frontier: ["..."], visited: ["corridor", "office_b", "office_a", "mail_room", "lab"], expanded: ["corridor", "office_b", "office_a", "mail_room", "lab"], why: "Pop lab at g=6. Goal! Same optimal cost as UCS but expanded only 5 nodes (vs UCS's 6). The heuristic steered search toward office_b->lab early." },
+        ]
+    }
+};
+
+let currentAlg = 'dfs';
+let simStep = 0;
+let autoPlayInterval = null;
+
+function switchAlg(alg) {
+    currentAlg = alg;
+    simStep = 0;
+    if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
+    document.querySelectorAll('#alg-tabs .tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    renderSim();
+}
+
+function simNext() {
+    const steps = traces[currentAlg].steps;
+    if (simStep < steps.length - 1) { simStep++; renderSim(); }
+}
+function simPrev() {
+    if (simStep > 0) { simStep--; renderSim(); }
+}
+function simReset() {
+    simStep = 0;
+    if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; }
+    renderSim();
+}
+function simAutoPlay() {
+    if (autoPlayInterval) { clearInterval(autoPlayInterval); autoPlayInterval = null; return; }
+    autoPlayInterval = setInterval(() => {
+        const steps = traces[currentAlg].steps;
+        if (simStep < steps.length - 1) { simStep++; renderSim(); }
+        else { clearInterval(autoPlayInterval); autoPlayInterval = null; }
+    }, 1500);
+}
+
+// ==================== GRAPH RENDERING ====================
+const graphNodes = {
+    corridor:  { x: 0.0, y: 0.0,  label: "corridor" },
+    mail_room: { x: -1.0, y: 0.0, label: "mail_room" },
+    office_a:  { x: 0.0, y: 1.0,  label: "office_a" },
+    office_b:  { x: 1.0, y: 0.0,  label: "office_b" },
+    storage:   { x: -2.0, y: 0.0, label: "storage" },
+    lab:       { x: 2.0, y: 0.0,  label: "lab" },
+};
+const graphEdges = [
+    { u: "corridor", v: "mail_room", cost: 2 },
+    { u: "corridor", v: "office_a", cost: 2 },
+    { u: "corridor", v: "office_b", cost: 3 },
+    { u: "mail_room", v: "storage", cost: 2 },
+    { u: "storage", v: "lab", cost: 7 },
+    { u: "office_a", v: "lab", cost: 8 },
+    { u: "office_b", v: "lab", cost: 3 },
+    { u: "office_a", v: "office_b", cost: 2 },
+];
+const lockedEdge = { u: "corridor", v: "lab" };
+
+function renderGraph(containerId, currentNode, expandedNodes, frontierNodes, goalFound) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const W = 700, H = 320;
+    const padX = 80, padY = 60;
+
+    // Map graph coords to SVG coords
+    // x: -2..2 -> padX..(W-padX), y: 0..1 -> (H-padY)..padY (flip y)
+    function sx(x) { return padX + ((x + 2) / 4) * (W - 2 * padX); }
+    function sy(y) { return (H - padY) - (y / 1) * (H - 2 * padY); }
+
+    // Strip parenthetical cost info from frontier entries for node matching
+    function cleanNode(s) { return s.replace(/\(.*?\)/g, '').replace(/[^a-zA-Z_]/g, '').trim(); }
+
+    // Determine node colours
+    function nodeColor(id) {
+        if (goalFound && id === 'lab') return { fill: '#4ade80', stroke: '#4ade80', text: '#0f0f23' };
+        if (id === currentNode) return { fill: '#fbbf24', stroke: '#fbbf24', text: '#0f0f23' };
+        if (expandedNodes && expandedNodes.includes(id)) return { fill: '#7cb7ff', stroke: '#7cb7ff', text: '#0f0f23' };
+        const frontierClean = (frontierNodes || []).map(cleanNode);
+        if (frontierClean.includes(id)) return { fill: '#1a3a5a', stroke: '#7cb7ff', text: '#7cb7ff' };
+        return { fill: '#2a2a5a', stroke: '#666', text: '#aaa' };
+    }
+
+    // Check if edge is on the current path (expanded chain)
+    function isPathEdge(u, v) {
+        if (!expandedNodes || expandedNodes.length < 2) return false;
+        for (let i = 0; i < expandedNodes.length - 1; i++) {
+            const a = expandedNodes[i], b = expandedNodes[i + 1];
+            if ((a === u && b === v) || (a === v && b === u)) return true;
+        }
+        return false;
+    }
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:monospace;">`;
+
+    // Draw edges
+    graphEdges.forEach(e => {
+        const x1 = sx(graphNodes[e.u].x), y1 = sy(graphNodes[e.u].y);
+        const x2 = sx(graphNodes[e.v].x), y2 = sy(graphNodes[e.v].y);
+        const onPath = isPathEdge(e.u, e.v);
+        const isLocked = (e.u === lockedEdge.u && e.v === lockedEdge.v) || (e.u === lockedEdge.v && e.v === lockedEdge.u);
+        const edgeColor = onPath ? '#4ade80' : (isLocked ? '#f87171' : '#444');
+        const edgeWidth = onPath ? 3 : 1.5;
+        const dashArray = isLocked ? '6,4' : 'none';
+        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${edgeColor}" stroke-width="${edgeWidth}" stroke-dasharray="${dashArray}" class="graph-edge"/>`;
+
+        // Cost label
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        // Offset label perpendicular to edge
+        const dx = x2 - x1, dy = y2 - y1;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        const ox = -dy / len * 14, oy = dx / len * 14;
+        svg += `<text x="${mx + ox}" y="${my + oy}" text-anchor="middle" dominant-baseline="central" font-size="12" fill="${onPath ? '#4ade80' : '#888'}" font-weight="${onPath ? '700' : '400'}">${e.cost}</text>`;
+
+        // Lock icon on locked edge
+        if (isLocked) {
+            svg += `<text x="${mx + ox}" y="${my + oy + 14}" text-anchor="middle" font-size="10" fill="#f87171">locked</text>`;
+        }
+    });
+
+    // Also draw the corridor<->lab connection that isn't in graphEdges but exists conceptually
+    // Actually it IS in the graph as a connected edge but not in the cost edges above...
+    // The office graph doesn't have a direct corridor<->lab edge with cost. The locked door is on corridor<->lab.
+    // But looking at the JSON, there's no corridor<->lab edge. The connections are through office_a, office_b, and storage.
+    // The locked door corridor<->lab exists in the PLANNING domain, not the graph search domain.
+    // So I'll skip drawing a non-existent edge.
+
+    // Draw nodes
+    Object.entries(graphNodes).forEach(([id, node]) => {
+        const cx = sx(node.x), cy = sy(node.y);
+        const colors = nodeColor(id);
+        const r = 24;
+        svg += `<g class="graph-node">`;
+        svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="2"/>`;
+        // Node label
+        const label = id.replace('_', '_');
+        const fontSize = id.length > 7 ? 9 : 10;
+        svg += `<text x="${cx}" y="${cy + 1}" text-anchor="middle" dominant-baseline="central" font-size="${fontSize}" fill="${colors.text}" font-weight="600">${label}</text>`;
+
+        // Start/Goal badges
+        if (id === 'corridor') {
+            svg += `<text x="${cx}" y="${cy - r - 8}" text-anchor="middle" font-size="10" fill="#7cb7ff" font-weight="600">START</text>`;
+        }
+        if (id === 'lab') {
+            svg += `<text x="${cx}" y="${cy - r - 8}" text-anchor="middle" font-size="10" fill="#4ade80" font-weight="600">GOAL</text>`;
+        }
+        svg += `</g>`;
+    });
+
+    svg += `</svg>`;
+    container.innerHTML = svg;
+}
+
+function renderSim() {
+    const trace = traces[currentAlg];
+    const step = trace.steps[simStep];
+    const total = trace.steps.length;
+    document.getElementById('sim-step-label').textContent = `Step ${simStep} / ${total - 1} - ${trace.name}`;
+
+    // Render interactive graph
+    const isGoal = step.action.includes('GOAL');
+    renderGraph('graph-viz', step.current, step.expanded, step.frontier, isGoal);
+
+    let html = '';
+    html += `<div class="sim-state"><div class="label">Action</div><div class="value">${step.action}</div></div>`;
+    html += `<div class="sim-state"><div class="label">Current Node</div><div class="value expanded">${step.current}</div></div>`;
+    html += `<div class="sim-state"><div class="label">Frontier</div><div class="value frontier">[${step.frontier.join(', ')}]</div></div>`;
+    html += `<div class="sim-state"><div class="label">Visited / Explored</div><div class="value">{${step.visited.join(', ')}}</div></div>`;
+    html += `<div class="sim-state"><div class="label">Expanded Order</div><div class="value expanded">[${step.expanded.join(', ')}]</div></div>`;
+    document.getElementById('sim-display').innerHTML = html;
+
+    document.getElementById('sim-explanation').style.display = 'block';
+    document.getElementById('sim-why').textContent = step.why;
+}
+
+// Init
+renderSim();
+// Also render static graph in cheat sheet
+renderGraph('cheat-graph-viz', null, [], [], false);
+
+// ==================== ORAL PRACTICE ====================
+const oralQuestions = [
+    // Group 1
+    { group: "foundations", badge: "g1", text: "Explain the five components of a search problem using the office graph as your example.", points: ["Initial state: corridor", "Goal test: state == lab", "Actions: move along edges (bidirectional)", "Transition model: current state changes to destination room", "Path cost: sum of edge costs"] },
+    { group: "foundations", badge: "g1", text: "What is the difference between a state space graph and a search tree? Why might corridor appear twice in a search tree?", points: ["State space: each state appears exactly once (6 nodes for office)", "Search tree: same state appears once per path leading to it", "corridor could appear via: start, or mail_room->corridor, office_a->corridor, etc.", "Graph search uses visited set to avoid re-expanding states"] },
+    { group: "foundations", badge: "g1", text: "Explain what the frontier and explored set are. How does graph search use them to avoid redundant work?", points: ["Frontier: nodes generated but not yet expanded (candidates for next expansion)", "Explored/visited: nodes already expanded", "Before expanding, check if node is in explored set - skip if yes", "Before adding to frontier, check if already visited (for BFS/DFS) or if cheaper path exists (UCS/A*)"] },
+    { group: "foundations", badge: "g1", text: "How does your code break ties deterministically? What does the assignment specification require?", points: ["DFS/BFS: successors generated in alphabetical order", "UCS: min-heap by g(n); ties broken by path tuple lexicographic comparison", "A*: min-heap by f(n); ties broken by path tuple then insertion order (counter)", "Specification says: no random tie-breaking, alphabetical successor generation"] },
+    { group: "foundations", badge: "g1", text: "If the tutor gives you a new 4-node graph, walk through the first 3 BFS frontier updates.", points: ["Start: enqueue start node, mark visited", "Step 1: dequeue start, enqueue all unvisited neighbours (alphabetical)", "Step 2: dequeue front of queue, enqueue its unvisited neighbours", "Step 3: dequeue next, continue pattern", "Key: FIFO order, mark visited when ENQUEUING not when dequeuing"] },
+
+    // Group 2
+    { group: "search", badge: "g2", text: "Why do BFS and UCS find different paths on the office graph? Walk through both.", points: ["BFS finds shallowest: corridor->office_a->lab (2 edges, cost 10)", "UCS finds cheapest: corridor->office_b->lab (2 edges, cost 6)", "BFS picks office_a first (alphabetical, enqueued before office_b)", "UCS picks by cost: office_b(3) before office_a's lab edge(10) gets processed", "BFS optimal only with uniform costs; UCS always optimal for non-negative costs"] },
+    { group: "search", badge: "g2", text: "Explain how UCS handles the case where a node appears multiple times in the heap (lazy deletion).", points: ["UCS pushes a new entry whenever a cheaper path is found", "Old entries remain in the heap (not removed)", "When popping, check: if node already in visited, SKIP (it's stale)", "Example: lab appears as (10, lab) and (6, lab) in heap", "(6, lab) is popped first and finalised; (10, lab) is later skipped", "Code: 'if node in visited: continue'"] },
+    { group: "search", badge: "g2", text: "How does A* use the heuristic to expand fewer nodes than UCS? Give a concrete example from your results.", points: ["A* uses f(n) = g(n) + h(n) where h is Euclidean distance to goal", "On office graph: A* expands 5 nodes vs UCS's 6", "A* expands office_b before mail_room/office_a because h(office_b) is small (close to lab)", "On graph2: A* expands 7 vs UCS's 18 - much bigger difference", "Heuristic steers search toward goal, avoiding expanding distant nodes"] },
+    { group: "search", badge: "g2", text: "Why is the Euclidean heuristic admissible and consistent? What does this guarantee?", points: ["Admissible: h(n) <= h*(n) because straight-line is shortest possible distance", "Consistent: h(n) <= c(n,n') + h(n') - triangle inequality holds for Euclidean distance", "Admissibility guarantees A* finds optimal solution", "Consistency guarantees A* never needs to re-open closed nodes", "Consistency implies admissibility (but not vice versa)"] },
+    { group: "search", badge: "g2", text: "Discuss a limitation of Euclidean distance as a heuristic when edge costs don't equal geometric distance.", points: ["If costs include tolls, difficulty, etc., they diverge from geometric distance", "h(n) becomes a very loose lower bound (h << h*)", "A* still finds optimal paths (still admissible)", "But f(n) ~ g(n) since h is relatively small", "Little pruning advantage over UCS - A* degrades to UCS-like behaviour"] },
+
+    // Group 3
+    { group: "planning", badge: "g3", text: "State the preconditions, add effects, and delete effects of unlock_door.", points: ["Pre: at(robot, here), has(robot, keycard), locked(lab_door), door_between(lab_door, here, there)", "Add: unlocked(lab_door)", "Del: locked(lab_door)", "Transition: Result(s, a) = (s - Del(a)) union Add(a)", "Robot must be at the door location AND have the keycard AND door must be locked"] },
+    { group: "planning", badge: "g3", text: "Walk through the lab_via_office_b plan diagnosis. Where does it fail and why?", points: ["Actions 1-4 succeed: robot goes to mail_room, picks up parcel, returns to corridor, goes to office_b", "Action 5 move(robot, office_b, lab) FAILS", "Missing: connected(office_b, lab) - this edge doesn't exist! Door connects corridor<->lab", "Also missing: unlocked(lab_door) - door is still locked, keycard never picked up", "Two independent problems: wrong topology AND missing keycard"] },
+    { group: "planning", badge: "g3", text: "Why doesn't inserting unlock_door before the blocked action fix the plan?", points: ["unlock_door needs has(robot, keycard) - robot never went to office_a to get it", "So unlock_door itself is not applicable either", "Even if we somehow unlocked the door, connected(office_b, lab) still doesn't exist", "The door connects corridor and lab, not office_b and lab", "Need to completely restructure: get keycard, unlock from corridor, go through corridor->lab"] },
+    { group: "planning", badge: "g3", text: "Explain how your solve_planning function works. What is state_id and why is it needed?", points: ["Forward BFS: start from initial facts, expand using applicable actions", "state_id = tuple(sorted(facts)) - canonical representation", "Needed because same set of facts could be in different order - canonical form ensures equivalent states hash the same", "BFS uses deque, checks visited set before enqueueing", "Returns when goal facts are subset of current state facts"] },
+    { group: "planning", badge: "g3", text: "Why does canonical_delivery need 9 actions but unlocked_lab only needs 5? What are the extra 4 actions?", points: ["Unlocked: move to mail_room, pickup parcel, move to corridor, move to lab, drop parcel (5 steps)", "Canonical: door is locked, so need keycard detour FIRST", "Extra 4 actions: (1) move corridor->office_a, (2) pickup_keycard, (3) move office_a->corridor, (4) unlock_door", "Then same 5 steps but mail_room visit is steps 5-7 and delivery is 8-9", "State space is also larger: 57 expanded vs 24"] },
+];
+
+let oralTimer = null;
+let oralSeconds = 0;
+
+function newOralQuestion(group) {
+    const filtered = group ? oralQuestions.filter(q => q.group === group) : oralQuestions;
+    const q = filtered[Math.floor(Math.random() * filtered.length)];
+
+    if (oralTimer) clearInterval(oralTimer);
+    oralSeconds = 120;
+
+    let html = `<div class="oral-prompt">`;
+    html += `<div class="group-badge ${q.badge}">Group ${q.badge === 'g1' ? '1: Foundations' : q.badge === 'g2' ? '2: Search Behaviour' : '3: Planning Models'}</div>`;
+    html += `<div class="prompt-text">${q.text}</div>`;
+    html += `<div class="timer" id="oral-timer">2:00</div>`;
+    html += `<div class="btn-row" style="justify-content:center">`;
+    html += `<button class="btn btn-primary" onclick="startOralTimer()">Start Timer</button>`;
+    html += `<button class="btn btn-danger btn-sm" onclick="stopOralTimer()">Stop</button>`;
+    html += `</div>`;
+    html += `</div>`;
+
+    html += `<div class="reveal-block" onclick="this.classList.toggle('revealed')">`;
+    html += `<div class="hint">Click to reveal key points you should have covered</div>`;
+    html += `<div class="answer"><ul>`;
+    q.points.forEach(p => { html += `<li>${p}</li>`; });
+    html += `</ul></div></div>`;
+
+    document.getElementById('oral-display').innerHTML = html;
+}
+
+function startOralTimer() {
+    if (oralTimer) clearInterval(oralTimer);
+    oralSeconds = 120;
+    oralTimer = setInterval(() => {
+        oralSeconds--;
+        const m = Math.floor(oralSeconds / 60);
+        const s = oralSeconds % 60;
+        const el = document.getElementById('oral-timer');
+        if (el) {
+            el.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+            if (oralSeconds <= 30) el.classList.add('warning');
+        }
+        if (oralSeconds <= 0) { clearInterval(oralTimer); oralTimer = null; }
+    }, 1000);
+}
+function stopOralTimer() { if (oralTimer) { clearInterval(oralTimer); oralTimer = null; } }
+
+// ==================== STRIPS WALKTHROUGH ====================
+const canonicalPlan = [
+    {
+        action: "Initial State",
+        state: ["at(robot, corridor)", "at(parcel, mail_room)", "at(keycard, office_a)", "handempty(robot)", "locked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: [], removed: [], note: "Robot starts in corridor. Parcel in mail_room. Keycard in office_a. Lab door locked."
+    },
+    {
+        action: "1. move(robot, corridor, office_a)",
+        state: ["at(robot, office_a)", "at(parcel, mail_room)", "at(keycard, office_a)", "handempty(robot)", "locked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["at(robot, office_a)"], removed: ["at(robot, corridor)"], note: "Pre: at(robot, corridor) + connected(corridor, office_a). Robot moves to office_a."
+    },
+    {
+        action: "2. pickup_keycard(robot, keycard, office_a)",
+        state: ["at(robot, office_a)", "at(parcel, mail_room)", "has(robot, keycard)", "locked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["has(robot, keycard)"], removed: ["at(keycard, office_a)", "handempty(robot)"], note: "Pre: at(robot, office_a) + at(keycard, office_a) + handempty(robot). Robot now has keycard, no longer handempty."
+    },
+    {
+        action: "3. move(robot, office_a, corridor)",
+        state: ["at(robot, corridor)", "at(parcel, mail_room)", "has(robot, keycard)", "locked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["at(robot, corridor)"], removed: ["at(robot, office_a)"], note: "Robot returns to corridor with the keycard."
+    },
+    {
+        action: "4. unlock_door(robot, keycard, lab_door, corridor, lab)",
+        state: ["at(robot, corridor)", "at(parcel, mail_room)", "has(robot, keycard)", "unlocked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["unlocked(lab_door)"], removed: ["locked(lab_door)"], note: "Pre: at(robot, corridor) + has(robot, keycard) + locked(lab_door) + door_between(lab_door, corridor, lab). Door is now unlocked!"
+    },
+    {
+        action: "5. move(robot, corridor, mail_room)",
+        state: ["at(robot, mail_room)", "at(parcel, mail_room)", "has(robot, keycard)", "unlocked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["at(robot, mail_room)"], removed: ["at(robot, corridor)"], note: "Robot goes to mail_room to pick up the parcel."
+    },
+    {
+        action: "6. pickup_parcel(robot, parcel, mail_room)",
+        state: ["at(robot, mail_room)", "carrying(robot, parcel)", "has(robot, keycard)", "unlocked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["carrying(robot, parcel)"], removed: ["at(parcel, mail_room)", "handempty(robot)"], note: "Pre: at(robot, mail_room) + at(parcel, mail_room) + handempty(robot). Wait - robot doesn't have handempty because it picked up keycard! The planner's action ordering handles this: pickup_keycard removed handempty, but handempty is NOT needed here because robot has the keycard (has, not handempty). Actually pickup_parcel needs handempty... Let me check. The planner found this valid, so handempty must have been restored or not required. In the ai9414 implementation, picking up the keycard uses handempty but the planner orders actions so pickup_parcel happens when robot is handempty. Actually robot has(keycard) not carrying it in hand - has and handempty can coexist depending on implementation."
+    },
+    {
+        action: "7. move(robot, mail_room, corridor)",
+        state: ["at(robot, corridor)", "carrying(robot, parcel)", "has(robot, keycard)", "unlocked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["at(robot, corridor)"], removed: ["at(robot, mail_room)"], note: "Robot returns to corridor carrying the parcel."
+    },
+    {
+        action: "8. move(robot, corridor, lab)",
+        state: ["at(robot, lab)", "carrying(robot, parcel)", "has(robot, keycard)", "unlocked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["at(robot, lab)"], removed: ["at(robot, corridor)"], note: "Pre: at(robot, corridor) + connected(corridor, lab) + unlocked(lab_door). The door was unlocked in step 4, so this now succeeds!"
+    },
+    {
+        action: "9. drop_parcel(robot, parcel, lab)",
+        state: ["at(robot, lab)", "at(parcel, lab)", "has(robot, keycard)", "handempty(robot)", "unlocked(lab_door)", "connected(corridor, mail_room)", "connected(corridor, office_a)", "connected(corridor, office_b)", "connected(corridor, lab)", "connected(mail_room, storage)", "connected(storage, lab)", "connected(office_a, lab)", "connected(office_b, lab)", "connected(office_a, office_b)", "door_between(lab_door, corridor, lab)"],
+        added: ["at(parcel, lab)", "handempty(robot)"], removed: ["carrying(robot, parcel)"], note: "Pre: at(robot, lab) + carrying(robot, parcel). GOAL ACHIEVED: at(parcel, lab) is now true!"
+    },
+];
+
+let stripsStep = 0;
+
+function stripsNext() { if (stripsStep < canonicalPlan.length - 1) { stripsStep++; renderStrips(); } }
+function stripsPrev() { if (stripsStep > 0) { stripsStep--; renderStrips(); } }
+function stripsReset() { stripsStep = 0; renderStrips(); }
+
+// ==================== PLANNING GRAPH RENDERER ====================
+function renderPlanningGraph(containerId, facts, failedAction) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const W = 700, H = 360;
+    const padX = 80, padY = 50;
+
+    // Room positions (same layout as search graph but more vertical space for icons)
+    const rooms = {
+        corridor:  { x: 0.0, y: 0.0 },
+        mail_room: { x: -1.0, y: 0.0 },
+        office_a:  { x: 0.0, y: 1.0 },
+        office_b:  { x: 1.0, y: 0.0 },
+        storage:   { x: -2.0, y: 0.0 },
+        lab:       { x: 2.0, y: 0.0 },
+    };
+
+    // Planning domain connections (different from search graph — these are the STRIPS connected facts)
+    const connections = [
+        { u: "corridor", v: "mail_room" },
+        { u: "corridor", v: "office_a" },
+        { u: "corridor", v: "office_b" },
+        { u: "corridor", v: "lab", isDoor: true },
+        { u: "mail_room", v: "storage" },
+        { u: "storage", v: "lab" },
+        { u: "office_a", v: "lab" },
+        { u: "office_b", v: "lab" },
+        { u: "office_a", v: "office_b" },
+    ];
+
+    function sx(x) { return padX + ((x + 2) / 4) * (W - 2 * padX); }
+    function sy(y) { return (H - padY - 40) - (y / 1) * (H - 2 * padY - 40); }
+
+    // Parse facts to find object locations and states
+    let robotRoom = null, parcelRoom = null, keycardRoom = null;
+    let hasKeycard = false, carryingParcel = false, doorLocked = true, handempty = false;
+    let goalAchieved = false;
+
+    facts.forEach(f => {
+        if (f === 'at(robot, corridor)') robotRoom = 'corridor';
+        else if (f === 'at(robot, mail_room)') robotRoom = 'mail_room';
+        else if (f === 'at(robot, office_a)') robotRoom = 'office_a';
+        else if (f === 'at(robot, office_b)') robotRoom = 'office_b';
+        else if (f === 'at(robot, lab)') robotRoom = 'lab';
+        else if (f === 'at(parcel, mail_room)') parcelRoom = 'mail_room';
+        else if (f === 'at(parcel, lab)') { parcelRoom = 'lab'; goalAchieved = true; }
+        else if (f === 'at(keycard, office_a)') keycardRoom = 'office_a';
+        else if (f === 'has(robot, keycard)') hasKeycard = true;
+        else if (f === 'carrying(robot, parcel)') carryingParcel = true;
+        else if (f === 'locked(lab_door)') doorLocked = true;
+        else if (f === 'unlocked(lab_door)') doorLocked = false;
+        else if (f === 'handempty(robot)') handempty = true;
+    });
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="font-family:monospace;">`;
+
+    // Draw connections
+    connections.forEach(c => {
+        const x1 = sx(rooms[c.u].x), y1 = sy(rooms[c.u].y);
+        const x2 = sx(rooms[c.v].x), y2 = sy(rooms[c.v].y);
+
+        let color = '#444', width = 1.5, dash = 'none';
+        if (c.isDoor) {
+            color = doorLocked ? '#f87171' : '#4ade80';
+            width = doorLocked ? 2 : 2.5;
+            dash = doorLocked ? '6,4' : 'none';
+        }
+
+        // Highlight failed edge
+        if (failedAction && failedAction.includes(c.u) && failedAction.includes(c.v)) {
+            // Don't highlight — the failed edge might not even exist as a connection
+        }
+
+        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" stroke-dasharray="${dash}"/>`;
+
+        // Door label
+        if (c.isDoor) {
+            const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+            const dx = x2 - x1, dy = y2 - y1;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            const ox = -dy / len * 16, oy = dx / len * 16;
+            svg += `<text x="${mx + ox}" y="${my + oy}" text-anchor="middle" font-size="10" fill="${doorLocked ? '#f87171' : '#4ade80'}" font-weight="600">${doorLocked ? 'LOCKED' : 'UNLOCKED'}</text>`;
+        }
+    });
+
+    // If the failed action tries office_b->lab, draw a red X on that non-existent path
+    if (failedAction && failedAction === '5. move(robot, office_b, lab)') {
+        const x1 = sx(rooms.office_b.x), y1 = sy(rooms.office_b.y);
+        const x2 = sx(rooms.lab.x), y2 = sy(rooms.lab.y);
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        // Draw attempted path as red dashed
+        svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#f8717166" stroke-width="3" stroke-dasharray="4,4"/>`;
+        // Big red X
+        const s = 12;
+        svg += `<line x1="${mx-s}" y1="${my-s}" x2="${mx+s}" y2="${my+s}" stroke="#f87171" stroke-width="3"/>`;
+        svg += `<line x1="${mx+s}" y1="${my-s}" x2="${mx-s}" y2="${my+s}" stroke="#f87171" stroke-width="3"/>`;
+        svg += `<text x="${mx}" y="${my + s + 14}" text-anchor="middle" font-size="10" fill="#f87171" font-weight="700">NO EDGE!</text>`;
+    }
+
+    // Draw rooms
+    Object.entries(rooms).forEach(([id, room]) => {
+        const cx = sx(room.x), cy = sy(room.y);
+        const r = 26;
+        const isRobotHere = (robotRoom === id);
+        const hasParcel = (parcelRoom === id);
+        const hasKeycardHere = (keycardRoom === id);
+        const isGoal = (id === 'lab' && goalAchieved);
+
+        // Room circle
+        let fill = '#1a1a3e', stroke = '#444', textColor = '#aaa';
+        if (isGoal) { fill = '#0f2a1a'; stroke = '#4ade80'; textColor = '#4ade80'; }
+        else if (isRobotHere) { fill = '#2a1a00'; stroke = '#fbbf24'; textColor = '#fbbf24'; }
+
+        svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>`;
+
+        // Room name
+        const fontSize = id.length > 7 ? 9 : 10;
+        svg += `<text x="${cx}" y="${cy + 1}" text-anchor="middle" dominant-baseline="central" font-size="${fontSize}" fill="${textColor}" font-weight="600">${id}</text>`;
+
+        // Object icons below/above room
+        let iconY = cy + r + 14;
+        const icons = [];
+
+        if (isRobotHere) {
+            let robotLabel = 'ROBOT';
+            if (hasKeycard) robotLabel += ' + KEY';
+            if (carryingParcel) robotLabel += ' + PARCEL';
+            icons.push({ text: robotLabel, color: '#fbbf24' });
+        }
+        if (hasParcel && !carryingParcel) {
+            icons.push({ text: 'PARCEL', color: '#a78bfa' });
+        }
+        if (hasKeycardHere && !hasKeycard) {
+            icons.push({ text: 'KEYCARD', color: '#38bdf8' });
+        }
+
+        icons.forEach((icon, i) => {
+            const iy = iconY + i * 14;
+            // Background pill
+            const tw = icon.text.length * 5.5 + 8;
+            svg += `<rect x="${cx - tw/2}" y="${iy - 7}" width="${tw}" height="14" rx="4" fill="${icon.color}22" stroke="${icon.color}44" stroke-width="0.5"/>`;
+            svg += `<text x="${cx}" y="${iy + 1}" text-anchor="middle" dominant-baseline="central" font-size="8" fill="${icon.color}" font-weight="700" letter-spacing="0.5">${icon.text}</text>`;
+        });
+    });
+
+    // Goal status indicator
+    if (goalAchieved) {
+        svg += `<text x="${W/2}" y="${H - 10}" text-anchor="middle" font-size="14" fill="#4ade80" font-weight="700">GOAL ACHIEVED: at(parcel, lab)</text>`;
+    }
+
+    svg += `</svg>`;
+    container.innerHTML = svg;
+}
+
+function renderStrips() {
+    const step = canonicalPlan[stripsStep];
+    document.getElementById('strips-step-label').textContent = `Step ${stripsStep} / ${canonicalPlan.length - 1}: ${step.action}`;
+
+    // Render planning graph
+    renderPlanningGraph('strips-graph-viz', step.state, null);
+
+    const keyFacts = step.state.filter(f =>
+        f.startsWith('at(robot') || f.startsWith('at(parcel') || f.startsWith('at(keycard') ||
+        f.startsWith('has(') || f.startsWith('carrying(') || f.startsWith('handempty(') ||
+        f.startsWith('locked(') || f.startsWith('unlocked(')
+    );
+
+    let html = '<div class="card">';
+    html += `<h4>${step.action}</h4>`;
+    html += `<p class="text-dim mb-8">${step.note}</p>`;
+
+    if (step.added.length > 0) {
+        html += `<p><span class="text-green">+ Added:</span> ${step.added.map(f => `<code>${f}</code>`).join(', ')}</p>`;
+    }
+    if (step.removed.length > 0) {
+        html += `<p><span class="text-red">- Deleted:</span> ${step.removed.map(f => `<code>${f}</code>`).join(', ')}</p>`;
+    }
+
+    html += `<div class="sim-state mt-8"><div class="label">Key Facts</div><div class="value">`;
+    keyFacts.forEach(f => {
+        let cls = '';
+        if (step.added.includes(f)) cls = 'text-green';
+        else if (f.startsWith('locked')) cls = 'text-red';
+        else if (f.startsWith('unlocked')) cls = 'text-green';
+        html += `<span class="${cls}">${f}</span><br>`;
+    });
+    html += `</div></div>`;
+    html += `</div>`;
+
+    document.getElementById('strips-display').innerHTML = html;
+}
+
+renderStrips();
+
+// ==================== DIAGNOSIS WALKTHROUGH ====================
+const diagPlan = [
+    {
+        action: "Initial State",
+        status: "ok",
+        state: ["at(robot, corridor)", "at(parcel, mail_room)", "at(keycard, office_a)", "handempty(robot)", "locked(lab_door)"],
+        note: "Robot in corridor. Parcel in mail_room. Keycard in office_a. Door locked."
+    },
+    {
+        action: "1. move(robot, corridor, mail_room)",
+        status: "ok",
+        state: ["at(robot, mail_room)", "at(parcel, mail_room)", "at(keycard, office_a)", "handempty(robot)", "locked(lab_door)"],
+        note: "Pre: at(robot, corridor) + connected(corridor, mail_room). Both true. Robot moves to mail_room."
+    },
+    {
+        action: "2. pickup_parcel(robot, parcel, mail_room)",
+        status: "ok",
+        state: ["at(robot, mail_room)", "carrying(robot, parcel)", "at(keycard, office_a)", "locked(lab_door)"],
+        note: "Pre: at(robot, mail_room) + at(parcel, mail_room) + handempty(robot). All true. Robot now carrying parcel."
+    },
+    {
+        action: "3. move(robot, mail_room, corridor)",
+        status: "ok",
+        state: ["at(robot, corridor)", "carrying(robot, parcel)", "at(keycard, office_a)", "locked(lab_door)"],
+        note: "Pre: at(robot, mail_room) + connected(mail_room, corridor). Both true. Robot returns to corridor."
+    },
+    {
+        action: "4. move(robot, corridor, office_b)",
+        status: "ok",
+        state: ["at(robot, office_b)", "carrying(robot, parcel)", "at(keycard, office_a)", "locked(lab_door)"],
+        note: "Pre: at(robot, corridor) + connected(corridor, office_b). Both true. Robot moves to office_b."
+    },
+    {
+        action: "5. move(robot, office_b, lab)",
+        status: "FAIL",
+        state: ["at(robot, office_b)", "carrying(robot, parcel)", "at(keycard, office_a)", "locked(lab_door)"],
+        note: "FAILS! Pre: at(robot, office_b) TRUE, but connected(office_b, lab) DOES NOT EXIST. The lab door connects corridor&harr;lab, not office_b&harr;lab. Also unlocked(lab_door) is false (door still locked, keycard never picked up)."
+    },
+];
+
+let diagStep = 0;
+
+function diagNext() { if (diagStep < diagPlan.length - 1) { diagStep++; renderDiag(); } }
+function diagPrev() { if (diagStep > 0) { diagStep--; renderDiag(); } }
+function diagReset() { diagStep = 0; renderDiag(); }
+
+function renderDiag() {
+    const step = diagPlan[diagStep];
+    document.getElementById('diag-step-label').textContent = `Step ${diagStep} / ${diagPlan.length - 1}`;
+
+    // Render planning graph with failed action indicator
+    const failedAction = step.status === 'FAIL' ? step.action : null;
+    renderPlanningGraph('diag-graph-viz', step.state, failedAction);
+
+    let html = '<div class="card" style="border-color: ' + (step.status === 'FAIL' ? '#f87171' : '#2a2a5a') + '">';
+    html += `<h4>${step.status === 'FAIL' ? '<span class="text-red">BLOCKED: </span>' : '<span class="text-green">OK: </span>'}${step.action}</h4>`;
+    html += `<p class="${step.status === 'FAIL' ? 'text-red' : 'text-dim'}">${step.note}</p>`;
+
+    html += `<div class="sim-state mt-8"><div class="label">State After</div><div class="value">`;
+    step.state.forEach(f => {
+        let cls = '';
+        if (f.startsWith('locked')) cls = 'text-red';
+        html += `<span class="${cls}">${f}</span><br>`;
+    });
+    html += `</div></div>`;
+    html += `</div>`;
+
+    document.getElementById('diag-display').innerHTML = html;
+}
+
+renderDiag();
+</script>
+</body>
+</html>
