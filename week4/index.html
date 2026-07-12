@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 4: Neural Networks - COMP9414</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #222533;
+  --bg-hover: #2a2e3f;
+  --text-primary: #e8eaf0;
+  --text-secondary: #9ca3b0;
+  --accent: #6c8cff;
+  --accent-dim: #4a6ae0;
+  --success: #4cda8a;
+  --warning: #f5a623;
+  --error: #f05656;
+  --border: #2e3347;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+.header {
+  text-align: center;
+  padding: 40px 20px 20px;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header p {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-top: 6px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.tab-btn.active { background: var(--accent); color: #fff; }
+
+.tab-content {
+  display: none;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.card:hover { border-color: var(--accent-dim); }
+
+.card-header {
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.card-header::after {
+  content: '+';
+  font-size: 1.3rem;
+  color: var(--accent);
+  transition: transform 0.3s;
+}
+
+.card.open .card-header::after { content: '-'; }
+
+.card-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+  padding: 0 20px;
+}
+
+.card.open .card-body {
+  max-height: 2000px;
+  padding: 0 20px 20px;
+}
+
+.card-body p, .card-body li { color: var(--text-secondary); margin-bottom: 8px; }
+.card-body strong { color: var(--text-primary); }
+.card-body code {
+  background: var(--bg-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  color: var(--accent);
+}
+
+.truth-table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+}
+
+.truth-table th, .truth-table td {
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  text-align: center;
+}
+
+.truth-table th { background: var(--bg-primary); color: var(--accent); }
+
+/* Backprop Calculator */
+.calc-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.calc-section h3 {
+  color: var(--accent);
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.calc-input {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calc-input label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.calc-input input, .calc-input select {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+}
+
+.calc-input input:focus { outline: none; border-color: var(--accent); }
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dim); }
+.btn-secondary { background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); }
+
+.step-output {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  color: var(--text-secondary);
+}
+
+.step-output .highlight { color: var(--success); }
+.step-output .label { color: var(--accent); }
+.step-output .warn { color: var(--warning); }
+
+/* Perceptron Playground */
+.playground-container {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .playground-container { grid-template-columns: 1fr; }
+}
+
+.canvas-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.canvas-wrap canvas {
+  border-radius: 8px;
+  cursor: crosshair;
+}
+
+.playground-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-group {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.control-group h4 {
+  color: var(--accent);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preset-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.weight-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* Quiz */
+.quiz-question {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.quiz-question p { margin-bottom: 12px; font-weight: 500; }
+
+.quiz-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: inherit;
+  width: 100%;
+  max-width: 400px;
+}
+
+.quiz-input:focus { outline: none; border-color: var(--accent); }
+
+.quiz-options label {
+  display: block;
+  padding: 10px 14px;
+  margin: 6px 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quiz-options label:hover { border-color: var(--accent); }
+.quiz-options input { margin-right: 10px; }
+
+.quiz-feedback {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  display: none;
+}
+
+.quiz-feedback.correct { display: block; background: rgba(76,218,138,0.1); color: var(--success); border: 1px solid rgba(76,218,138,0.3); }
+.quiz-feedback.incorrect { display: block; background: rgba(240,86,86,0.1); color: var(--error); border: 1px solid rgba(240,86,86,0.3); }
+
+.score-display {
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.score-display h2 { color: var(--accent); font-size: 2rem; }
+
+/* Oral Practice */
+.flashcard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 30px;
+  text-align: center;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.flashcard .prompt {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.flashcard .answer {
+  display: none;
+  color: var(--text-secondary);
+  text-align: left;
+  max-width: 600px;
+  line-height: 1.7;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 10px;
+}
+
+.flashcard .answer.show { display: block; }
+
+.rating-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.rating-btns .btn { font-size: 0.8rem; }
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.progress-bar .fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* Slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Week 4: Neural Networks</h1>
+  <p>COMP9414 Artificial Intelligence</p>
+</div>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="switchTab('concepts')">Concepts</button>
+  <button class="tab-btn" onclick="switchTab('backprop')">Backprop Calculator</button>
+  <button class="tab-btn" onclick="switchTab('playground')">Perceptron Playground</button>
+  <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
+  <button class="tab-btn" onclick="switchTab('oral')">Oral Practice</button>
+</nav>
+
+<!-- CONCEPTS TAB -->
+<div id="concepts" class="tab-content active">
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">Single-Layer Perceptron (Rosenblatt 1957)</div>
+    <div class="card-body">
+      <p>The perceptron is the simplest neural network: a <strong>binary linear classifier</strong>.</p>
+      <p><strong>Discriminant function:</strong> <code>f(x) = sign(w . x + b)</code></p>
+      <p>The decision boundary is a <strong>hyperplane</strong> in the input space. For 2D inputs, this is a straight line. The weight vector <strong>w</strong> is perpendicular to the decision boundary, and the bias <strong>b</strong> shifts it from the origin.</p>
+      <p>Output: +1 if <code>w . x + b >= 0</code>, else -1 (or 0/1 variant).</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">Linear Separability</div>
+    <div class="card-body">
+      <p>A perceptron can <strong>only</strong> solve problems where the two classes can be separated by a single hyperplane (i.e., linearly separable).</p>
+      <p><strong>AND gate</strong> - linearly separable (works):</p>
+      <table class="truth-table">
+        <tr><th>x1</th><th>x2</th><th>AND</th></tr>
+        <tr><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>0</td><td>1</td><td>0</td></tr>
+        <tr><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>1</td><td>1</td><td>1</td></tr>
+      </table>
+      <p><strong>XOR gate</strong> - NOT linearly separable (fails):</p>
+      <table class="truth-table">
+        <tr><th>x1</th><th>x2</th><th>XOR</th></tr>
+        <tr><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>0</td><td>1</td><td>1</td></tr>
+        <tr><td>1</td><td>0</td><td>1</td></tr>
+        <tr><td>1</td><td>1</td><td>0</td></tr>
+      </table>
+      <p>No single line can separate the 1s from the 0s in XOR. This was famously shown by Minsky & Papert (1969) and contributed to the first "AI winter".</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">Perceptron Learning Rule</div>
+    <div class="card-body">
+      <p><strong>Weight update:</strong> <code>&Delta;W = &alpha;(y - &ycirc;) &middot; x</code></p>
+      <p>Where <strong>&alpha;</strong> is the learning rate, <strong>y</strong> is the target, and <strong>&ycirc;</strong> is the prediction.</p>
+      <p><strong>Perceptron Convergence Theorem:</strong> If the training data is linearly separable, the perceptron learning algorithm is <strong>guaranteed to converge</strong> to a solution in a finite number of steps.</p>
+      <p>Key insight: If the prediction is correct, no weight update occurs. Updates only happen on misclassified examples.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">Multi-Layer Perceptron (MLP)</div>
+    <div class="card-body">
+      <p>An MLP consists of: <strong>Input layer</strong> &rarr; <strong>Hidden layer(s)</strong> &rarr; <strong>Output layer</strong></p>
+      <p>Each layer is fully connected to the next. Hidden layers allow the network to learn non-linear decision boundaries.</p>
+      <p><strong>Universal Approximation Theorem:</strong> An MLP with at least one hidden layer containing a sufficient number of neurons can approximate <strong>any continuous function</strong> to arbitrary precision.</p>
+      <p>This overcomes the linear separability limitation of single-layer perceptrons. XOR can be solved with one hidden layer.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">Activation Functions</div>
+    <div class="card-body">
+      <p>Activation functions introduce non-linearity. They must be <strong>differentiable</strong> for gradient-based learning.</p>
+      <p><strong>Sigmoid:</strong> <code>&sigma;(s) = 1 / (1 + e^(-s))</code> &mdash; output in (0,1), derivative: <code>&sigma;(s)(1-&sigma;(s))</code></p>
+      <p><strong>Tanh:</strong> <code>tanh(s) = (e^s - e^(-s)) / (e^s + e^(-s))</code> &mdash; output in (-1,1), zero-centered</p>
+      <p><strong>ReLU:</strong> <code>f(s) = max(0, s)</code> &mdash; computationally efficient, avoids vanishing gradient for positive values</p>
+      <p>Sigmoid and tanh suffer from the <strong>vanishing gradient problem</strong> for very large or very small inputs. ReLU helps but can have "dead neurons" (always output 0).</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">Backpropagation</div>
+    <div class="card-body">
+      <p>The algorithm for training MLPs by propagating errors backward through the network:</p>
+      <ol style="padding-left:20px; color: var(--text-secondary);">
+        <li><strong>Forward pass:</strong> Compute outputs layer by layer</li>
+        <li><strong>Compute error:</strong> Compare output to target (e.g., E = &frac12;(target - output)&sup2;)</li>
+        <li><strong>Backward pass:</strong> Use the <strong>chain rule</strong> to compute &part;E/&part;w for each weight</li>
+        <li><strong>Update weights:</strong> w &larr; w - &alpha;(&part;E/&part;w)</li>
+      </ol>
+      <p style="margin-top:12px">The chain rule is key: for a weight in an earlier layer, the gradient flows through all subsequent layers via multiplication of local gradients.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">Gradient Descent</div>
+    <div class="card-body">
+      <p><strong>Update rule:</strong> <code>w &larr; w - &alpha;(&part;E/&part;w)</code></p>
+      <p>The <strong>learning rate &alpha;</strong> controls step size:</p>
+      <ul style="padding-left:20px; color: var(--text-secondary);">
+        <li>Too large: oscillation or divergence</li>
+        <li>Too small: very slow convergence</li>
+      </ul>
+      <p><strong>Risk of local minima:</strong> The error surface may have multiple local minima. Gradient descent can get stuck in a local minimum rather than finding the global minimum.</p>
+      <p>Variants: <strong>Batch</strong> (full dataset), <strong>Stochastic</strong> (single sample), <strong>Mini-batch</strong> (subset).</p>
+    </div>
+  </div>
+</div>
+
+<!-- BACKPROP CALCULATOR TAB -->
+<div id="backprop" class="tab-content">
+  <div class="calc-section">
+    <h3>Network Configuration</h3>
+    <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:14px;">2 inputs &rarr; 2 hidden neurons &rarr; 1 output neuron (sigmoid activation)</p>
+    <div class="calc-grid">
+      <div class="calc-input"><label>x1 (input 1)</label><input type="number" id="bp-x1" value="0.35" step="0.05"></div>
+      <div class="calc-input"><label>x2 (input 2)</label><input type="number" id="bp-x2" value="0.7" step="0.05"></div>
+      <div class="calc-input"><label>Target output</label><input type="number" id="bp-target" value="0.5" step="0.05"></div>
+      <div class="calc-input"><label>Learning rate (&alpha;)</label><input type="range" id="bp-lr" min="0.05" max="2" step="0.05" value="0.5" oninput="document.getElementById('bp-lr-val').textContent=this.value"><span id="bp-lr-val" style="font-family:'JetBrains Mono';font-size:0.8rem;color:var(--accent)">0.5</span></div>
+    </div>
+  </div>
+
+  <div class="calc-section">
+    <h3>Weights (Input &rarr; Hidden)</h3>
+    <div class="calc-grid">
+      <div class="calc-input"><label>w1 (x1&rarr;h1)</label><input type="number" id="bp-w1" value="0.1" step="0.05"></div>
+      <div class="calc-input"><label>w2 (x1&rarr;h2)</label><input type="number" id="bp-w2" value="0.8" step="0.05"></div>
+      <div class="calc-input"><label>w3 (x2&rarr;h1)</label><input type="number" id="bp-w3" value="0.4" step="0.05"></div>
+      <div class="calc-input"><label>w4 (x2&rarr;h2)</label><input type="number" id="bp-w4" value="0.6" step="0.05"></div>
+    </div>
+  </div>
+
+  <div class="calc-section">
+    <h3>Weights (Hidden &rarr; Output) & Biases</h3>
+    <div class="calc-grid">
+      <div class="calc-input"><label>w5 (h1&rarr;o)</label><input type="number" id="bp-w5" value="0.3" step="0.05"></div>
+      <div class="calc-input"><label>w6 (h2&rarr;o)</label><input type="number" id="bp-w6" value="0.9" step="0.05"></div>
+      <div class="calc-input"><label>b_h1 (bias&rarr;h1)</label><input type="number" id="bp-bh1" value="0.2" step="0.05"></div>
+      <div class="calc-input"><label>b_h2 (bias&rarr;h2)</label><input type="number" id="bp-bh2" value="0.6" step="0.05"></div>
+      <div class="calc-input"><label>b_o (bias&rarr;output)</label><input type="number" id="bp-bo" value="0.5" step="0.05"></div>
+    </div>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+    <button class="btn btn-primary" onclick="runBackprop()">Compute 1 Epoch</button>
+    <button class="btn btn-secondary" onclick="runMultipleEpochs(10)">Run 10 Epochs</button>
+    <button class="btn btn-secondary" onclick="runMultipleEpochs(100)">Run 100 Epochs</button>
+    <button class="btn btn-secondary" onclick="resetBackprop()">Reset</button>
+  </div>
+
+  <div id="bp-output" class="step-output" style="min-height:100px;">Click "Compute 1 Epoch" to see step-by-step calculations...</div>
+</div>
+
+<!-- PERCEPTRON PLAYGROUND TAB -->
+<div id="playground" class="tab-content">
+  <div class="playground-container">
+    <div class="canvas-wrap">
+      <canvas id="perceptron-canvas" width="450" height="450"></canvas>
+      <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:8px;">Left-click: add positive (+1, blue) | Right-click: add negative (-1, red)</p>
+    </div>
+    <div class="playground-controls">
+      <div class="control-group">
+        <h4>Presets</h4>
+        <div class="preset-btns">
+          <button class="btn btn-secondary" onclick="loadPreset('and')">AND</button>
+          <button class="btn btn-secondary" onclick="loadPreset('or')">OR</button>
+          <button class="btn btn-secondary" onclick="loadPreset('xor')">XOR</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <h4>Training</h4>
+        <button class="btn btn-primary" onclick="trainStep()" style="width:100%; margin-bottom:8px;">Step</button>
+        <button class="btn btn-secondary" id="auto-train-btn" onclick="toggleAutoTrain()" style="width:100%; margin-bottom:8px;">Auto-Train</button>
+        <button class="btn btn-secondary" onclick="resetPerceptron()" style="width:100%;">Reset</button>
+        <p style="font-size:0.75rem; color:var(--text-secondary); margin-top:8px;" id="train-status">Epoch: 0 | Errors: -</p>
+      </div>
+      <div class="control-group">
+        <h4>Weights</h4>
+        <div class="weight-display" id="weight-display">w1: 0.000<br>w2: 0.000<br>bias: 0.000</div>
+      </div>
+      <div class="control-group">
+        <h4>Learning Rate</h4>
+        <input type="range" id="perc-lr" min="0.01" max="1" step="0.01" value="0.1" oninput="document.getElementById('perc-lr-val').textContent=this.value">
+        <span id="perc-lr-val" style="font-family:'JetBrains Mono';font-size:0.8rem;color:var(--accent)">0.1</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ TAB -->
+<div id="quiz" class="tab-content">
+  <div id="quiz-container"></div>
+  <div style="text-align:center; margin-top:20px;">
+    <button class="btn btn-primary" onclick="submitQuiz()">Submit Answers</button>
+    <button class="btn btn-secondary" onclick="resetQuiz()">Reset</button>
+  </div>
+  <div id="quiz-score" class="score-display" style="display:none;"></div>
+</div>
+
+<!-- ORAL PRACTICE TAB -->
+<div id="oral" class="tab-content">
+  <div class="progress-bar"><div class="fill" id="oral-progress" style="width:0%"></div></div>
+  <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:16px;" id="oral-counter">Card 1 of 8</p>
+  <div class="flashcard" id="flashcard">
+    <div class="prompt" id="flash-prompt"></div>
+    <button class="btn btn-primary" id="reveal-btn" onclick="revealAnswer()">Reveal Answer</button>
+    <div class="answer" id="flash-answer"></div>
+    <div class="rating-btns" id="rating-btns" style="display:none;">
+      <button class="btn" style="background:var(--success);color:#000;" onclick="rateCard('got')">Got it</button>
+      <button class="btn" style="background:var(--warning);color:#000;" onclick="rateCard('partial')">Partially</button>
+      <button class="btn" style="background:var(--error);color:#fff;" onclick="rateCard('review')">Need Review</button>
+    </div>
+  </div>
+  <div style="display:flex; justify-content:space-between;">
+    <button class="btn btn-secondary" onclick="prevCard()">Previous</button>
+    <button class="btn btn-secondary" onclick="nextCard()">Next</button>
+  </div>
+  <div id="oral-summary" style="display:none; margin-top:20px;"></div>
+</div>
+
+<script>
+// Tab switching
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'playground') drawCanvas();
+}
+
+// Card toggle
+function toggleCard(el) {
+  el.parentElement.classList.toggle('open');
+}
+
+// ==================== BACKPROP CALCULATOR ====================
+function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+function getBackpropValues() {
+  return {
+    x1: +document.getElementById('bp-x1').value,
+    x2: +document.getElementById('bp-x2').value,
+    target: +document.getElementById('bp-target').value,
+    lr: +document.getElementById('bp-lr').value,
+    w1: +document.getElementById('bp-w1').value,
+    w2: +document.getElementById('bp-w2').value,
+    w3: +document.getElementById('bp-w3').value,
+    w4: +document.getElementById('bp-w4').value,
+    w5: +document.getElementById('bp-w5').value,
+    w6: +document.getElementById('bp-w6').value,
+    bh1: +document.getElementById('bp-bh1').value,
+    bh2: +document.getElementById('bp-bh2').value,
+    bo: +document.getElementById('bp-bo').value,
+  };
+}
+
+function setBackpropWeights(v) {
+  document.getElementById('bp-w1').value = v.w1.toFixed(6);
+  document.getElementById('bp-w2').value = v.w2.toFixed(6);
+  document.getElementById('bp-w3').value = v.w3.toFixed(6);
+  document.getElementById('bp-w4').value = v.w4.toFixed(6);
+  document.getElementById('bp-w5').value = v.w5.toFixed(6);
+  document.getElementById('bp-w6').value = v.w6.toFixed(6);
+  document.getElementById('bp-bh1').value = v.bh1.toFixed(6);
+  document.getElementById('bp-bh2').value = v.bh2.toFixed(6);
+  document.getElementById('bp-bo').value = v.bo.toFixed(6);
+}
+
+function computeForward(v) {
+  const net_h1 = v.x1*v.w1 + v.x2*v.w3 + v.bh1;
+  const net_h2 = v.x1*v.w2 + v.x2*v.w4 + v.bh2;
+  const out_h1 = sigmoid(net_h1);
+  const out_h2 = sigmoid(net_h2);
+  const net_o = out_h1*v.w5 + out_h2*v.w6 + v.bo;
+  const out_o = sigmoid(net_o);
+  const error = 0.5 * Math.pow(v.target - out_o, 2);
+  return { net_h1, net_h2, out_h1, out_h2, net_o, out_o, error };
+}
+
+function runBackprop() {
+  const v = getBackpropValues();
+  const f = computeForward(v);
+
+  // Backward pass
+  const dE_dout_o = -(v.target - f.out_o);
+  const dout_o_dnet_o = f.out_o * (1 - f.out_o);
+  const delta_o = dE_dout_o * dout_o_dnet_o;
+
+  const dE_dw5 = delta_o * f.out_h1;
+  const dE_dw6 = delta_o * f.out_h2;
+  const dE_dbo = delta_o;
+
+  const dE_dout_h1 = delta_o * v.w5;
+  const dE_dout_h2 = delta_o * v.w6;
+  const delta_h1 = dE_dout_h1 * f.out_h1 * (1 - f.out_h1);
+  const delta_h2 = dE_dout_h2 * f.out_h2 * (1 - f.out_h2);
+
+  const dE_dw1 = delta_h1 * v.x1;
+  const dE_dw2 = delta_h2 * v.x1;
+  const dE_dw3 = delta_h1 * v.x2;
+  const dE_dw4 = delta_h2 * v.x2;
+  const dE_dbh1 = delta_h1;
+  const dE_dbh2 = delta_h2;
+
+  // Update weights
+  v.w1 -= v.lr * dE_dw1; v.w2 -= v.lr * dE_dw2;
+  v.w3 -= v.lr * dE_dw3; v.w4 -= v.lr * dE_dw4;
+  v.w5 -= v.lr * dE_dw5; v.w6 -= v.lr * dE_dw6;
+  v.bh1 -= v.lr * dE_dbh1; v.bh2 -= v.lr * dE_dbh2;
+  v.bo -= v.lr * dE_dbo;
+
+  setBackpropWeights(v);
+
+  const out = document.getElementById('bp-output');
+  out.innerHTML = `<span class="label">══════ FORWARD PASS ══════</span>
+net_h1 = x1*w1 + x2*w3 + b_h1 = ${f.net_h1.toFixed(6)}
+out_h1 = sigmoid(${f.net_h1.toFixed(4)}) = <span class="highlight">${f.out_h1.toFixed(6)}</span>
+
+net_h2 = x1*w2 + x2*w4 + b_h2 = ${f.net_h2.toFixed(6)}
+out_h2 = sigmoid(${f.net_h2.toFixed(4)}) = <span class="highlight">${f.out_h2.toFixed(6)}</span>
+
+net_o = h1*w5 + h2*w6 + b_o = ${f.net_o.toFixed(6)}
+out_o = sigmoid(${f.net_o.toFixed(4)}) = <span class="highlight">${f.out_o.toFixed(6)}</span>
+
+<span class="label">══════ ERROR ══════</span>
+E = 0.5*(target - output)² = 0.5*(${v.target} - ${f.out_o.toFixed(6)})² = <span class="warn">${f.error.toFixed(6)}</span>
+
+<span class="label">══════ BACKWARD PASS (Output Layer) ══════</span>
+δ_o = -(target - out_o) * out_o*(1-out_o)
+    = -(${v.target} - ${f.out_o.toFixed(4)}) * ${f.out_o.toFixed(4)}*(1-${f.out_o.toFixed(4)})
+    = ${delta_o.toFixed(6)}
+
+∂E/∂w5 = δ_o * out_h1 = ${dE_dw5.toFixed(6)}
+∂E/∂w6 = δ_o * out_h2 = ${dE_dw6.toFixed(6)}
+∂E/∂b_o = δ_o = ${dE_dbo.toFixed(6)}
+
+<span class="label">══════ BACKWARD PASS (Hidden Layer) ══════</span>
+δ_h1 = (δ_o * w5) * out_h1*(1-out_h1) = ${delta_h1.toFixed(6)}
+δ_h2 = (δ_o * w6) * out_h2*(1-out_h2) = ${delta_h2.toFixed(6)}
+
+∂E/∂w1 = δ_h1 * x1 = ${dE_dw1.toFixed(6)}
+∂E/∂w2 = δ_h2 * x1 = ${dE_dw2.toFixed(6)}
+∂E/∂w3 = δ_h1 * x2 = ${dE_dw3.toFixed(6)}
+∂E/∂w4 = δ_h2 * x2 = ${dE_dw4.toFixed(6)}
+
+<span class="label">══════ WEIGHT UPDATES (α = ${v.lr}) ══════</span>
+w5: ${(v.w5+v.lr*dE_dw5).toFixed(4)} → <span class="highlight">${v.w5.toFixed(6)}</span>
+w6: ${(v.w6+v.lr*dE_dw6).toFixed(4)} → <span class="highlight">${v.w6.toFixed(6)}</span>
+w1: ${(v.w1+v.lr*dE_dw1).toFixed(4)} → <span class="highlight">${v.w1.toFixed(6)}</span>
+w2: ${(v.w2+v.lr*dE_dw2).toFixed(4)} → <span class="highlight">${v.w2.toFixed(6)}</span>
+w3: ${(v.w3+v.lr*dE_dw3).toFixed(4)} → <span class="highlight">${v.w3.toFixed(6)}</span>
+w4: ${(v.w4+v.lr*dE_dw4).toFixed(4)} → <span class="highlight">${v.w4.toFixed(6)}</span>`;
+}
+
+function runMultipleEpochs(n) {
+  let errors = [];
+  for (let i = 0; i < n; i++) {
+    const v = getBackpropValues();
+    const f = computeForward(v);
+    errors.push(f.error);
+    // run one epoch silently
+    const dE_dout_o = -(v.target - f.out_o);
+    const dout_o_dnet_o = f.out_o * (1 - f.out_o);
+    const delta_o = dE_dout_o * dout_o_dnet_o;
+    const delta_h1 = (delta_o * v.w5) * f.out_h1 * (1 - f.out_h1);
+    const delta_h2 = (delta_o * v.w6) * f.out_h2 * (1 - f.out_h2);
+    v.w5 -= v.lr * delta_o * f.out_h1;
+    v.w6 -= v.lr * delta_o * f.out_h2;
+    v.bo -= v.lr * delta_o;
+    v.w1 -= v.lr * delta_h1 * v.x1;
+    v.w2 -= v.lr * delta_h2 * v.x1;
+    v.w3 -= v.lr * delta_h1 * v.x2;
+    v.w4 -= v.lr * delta_h2 * v.x2;
+    v.bh1 -= v.lr * delta_h1;
+    v.bh2 -= v.lr * delta_h2;
+    setBackpropWeights(v);
+  }
+  const finalV = getBackpropValues();
+  const finalF = computeForward(finalV);
+  const out = document.getElementById('bp-output');
+  out.innerHTML = `<span class="label">══════ ${n} EPOCHS COMPLETE ══════</span>
+
+Initial error:  <span class="warn">${errors[0].toFixed(6)}</span>
+Final error:    <span class="highlight">${finalF.error.toFixed(6)}</span>
+Final output:   <span class="highlight">${finalF.out_o.toFixed(6)}</span>  (target: ${finalV.target})
+
+Error reduction: ${((1 - finalF.error/errors[0])*100).toFixed(2)}%
+
+<span class="label">══════ ERROR OVER EPOCHS ══════</span>
+${errors.filter((_,i) => i % Math.max(1,Math.floor(n/10)) === 0 || i === n-1).map((e,i,arr) => {
+  const epoch = i === arr.length-1 ? n : i * Math.max(1,Math.floor(n/10)) + 1;
+  const bar = '█'.repeat(Math.round(e / errors[0] * 30));
+  return `Epoch ${String(epoch).padStart(4)}: ${e.toFixed(6)} ${bar}`;
+}).join('\n')}`;
+}
+
+function resetBackprop() {
+  document.getElementById('bp-w1').value = '0.1';
+  document.getElementById('bp-w2').value = '0.8';
+  document.getElementById('bp-w3').value = '0.4';
+  document.getElementById('bp-w4').value = '0.6';
+  document.getElementById('bp-w5').value = '0.3';
+  document.getElementById('bp-w6').value = '0.9';
+  document.getElementById('bp-bh1').value = '0.2';
+  document.getElementById('bp-bh2').value = '0.6';
+  document.getElementById('bp-bo').value = '0.5';
+  document.getElementById('bp-x1').value = '0.35';
+  document.getElementById('bp-x2').value = '0.7';
+  document.getElementById('bp-target').value = '0.5';
+  document.getElementById('bp-lr').value = '0.5';
+  document.getElementById('bp-lr-val').textContent = '0.5';
+  document.getElementById('bp-output').innerHTML = 'Click "Compute 1 Epoch" to see step-by-step calculations...';
+}
+
+// ==================== PERCEPTRON PLAYGROUND ====================
+let percWeights = [0, 0, 0]; // w1, w2, bias
+let percPoints = [];
+let percEpoch = 0;
+let autoTraining = false;
+let autoInterval = null;
+
+const canvas = document.getElementById('perceptron-canvas');
+const ctx = canvas.getContext('2d');
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / canvas.width;
+  const y = 1 - (e.clientY - rect.top) / canvas.height;
+  percPoints.push({ x, y, label: 1 });
+  drawCanvas();
+});
+
+canvas.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / canvas.width;
+  const y = 1 - (e.clientY - rect.top) / canvas.height;
+  percPoints.push({ x, y, label: -1 });
+  drawCanvas();
+});
+
+function drawCanvas() {
+  const w = canvas.width, h = canvas.height;
+  ctx.fillStyle = '#181b24';
+  ctx.fillRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = '#2a2e3f';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 10; i++) {
+    ctx.beginPath(); ctx.moveTo(i*w/10, 0); ctx.lineTo(i*w/10, h); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i*h/10); ctx.lineTo(w, i*h/10); ctx.stroke();
+  }
+
+  // Decision boundary
+  if (percWeights[0] !== 0 || percWeights[1] !== 0) {
+    ctx.strokeStyle = '#f5a623';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    // w1*x + w2*y + b = 0 => y = -(w1*x + b)/w2
+    if (Math.abs(percWeights[1]) > 0.0001) {
+      const y0 = -(percWeights[0]*0 + percWeights[2]) / percWeights[1];
+      const y1 = -(percWeights[0]*1 + percWeights[2]) / percWeights[1];
+      ctx.moveTo(0, (1-y0)*h);
+      ctx.lineTo(w, (1-y1)*h);
+    } else {
+      const x0 = -percWeights[2] / percWeights[0];
+      ctx.moveTo(x0*w, 0);
+      ctx.lineTo(x0*w, h);
+    }
+    ctx.stroke();
+  }
+
+  // Points
+  percPoints.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x * w, (1-p.y) * h, 8, 0, Math.PI*2);
+    ctx.fillStyle = p.label === 1 ? '#6c8cff' : '#f05656';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Label
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.label === 1 ? '+' : '-', p.x*w, (1-p.y)*h + 4);
+  });
+
+  updateWeightDisplay();
+}
+
+function updateWeightDisplay() {
+  document.getElementById('weight-display').innerHTML =
+    `w1: ${percWeights[0].toFixed(4)}<br>w2: ${percWeights[1].toFixed(4)}<br>bias: ${percWeights[2].toFixed(4)}`;
+}
+
+function trainStep() {
+  if (percPoints.length === 0) return;
+  const lr = +document.getElementById('perc-lr').value;
+  let errors = 0;
+
+  for (const p of percPoints) {
+    const sum = percWeights[0]*p.x + percWeights[1]*p.y + percWeights[2];
+    const pred = sum >= 0 ? 1 : -1;
+    if (pred !== p.label) {
+      errors++;
+      percWeights[0] += lr * p.label * p.x;
+      percWeights[1] += lr * p.label * p.y;
+      percWeights[2] += lr * p.label;
+    }
+  }
+
+  percEpoch++;
+  document.getElementById('train-status').textContent = `Epoch: ${percEpoch} | Errors: ${errors}`;
+  drawCanvas();
+
+  if (errors === 0 && autoTraining) {
+    toggleAutoTrain();
+    document.getElementById('train-status').textContent = `Epoch: ${percEpoch} | CONVERGED!`;
+  }
+}
+
+function toggleAutoTrain() {
+  autoTraining = !autoTraining;
+  const btn = document.getElementById('auto-train-btn');
+  if (autoTraining) {
+    btn.textContent = 'Stop';
+    btn.style.background = 'var(--error)';
+    autoInterval = setInterval(() => {
+      trainStep();
+      if (!autoTraining) clearInterval(autoInterval);
+    }, 100);
+  } else {
+    btn.textContent = 'Auto-Train';
+    btn.style.background = '';
+    clearInterval(autoInterval);
+  }
+}
+
+function resetPerceptron() {
+  if (autoTraining) toggleAutoTrain();
+  percWeights = [0, 0, 0];
+  percPoints = [];
+  percEpoch = 0;
+  document.getElementById('train-status').textContent = 'Epoch: 0 | Errors: -';
+  drawCanvas();
+}
+
+function loadPreset(name) {
+  if (autoTraining) toggleAutoTrain();
+  percWeights = [0, 0, 0];
+  percEpoch = 0;
+
+  if (name === 'and') {
+    percPoints = [
+      {x:0.2, y:0.2, label:-1}, {x:0.2, y:0.8, label:-1},
+      {x:0.8, y:0.2, label:-1}, {x:0.8, y:0.8, label:1}
+    ];
+  } else if (name === 'or') {
+    percPoints = [
+      {x:0.2, y:0.2, label:-1}, {x:0.2, y:0.8, label:1},
+      {x:0.8, y:0.2, label:1}, {x:0.8, y:0.8, label:1}
+    ];
+  } else if (name === 'xor') {
+    percPoints = [
+      {x:0.2, y:0.2, label:-1}, {x:0.2, y:0.8, label:1},
+      {x:0.8, y:0.2, label:1}, {x:0.8, y:0.8, label:-1}
+    ];
+  }
+  document.getElementById('train-status').textContent = `Epoch: 0 | Preset: ${name.toUpperCase()}`;
+  drawCanvas();
+}
+
+// ==================== QUIZ ====================
+const quizData = [
+  { type: 'fill', q: 'The perceptron convergence theorem guarantees convergence only if the data is ___', a: 'linearly separable', accept: ['linearly separable', 'linear separable'] },
+  { type: 'fill', q: 'Backpropagation uses the ___ rule to compute gradients through layers', a: 'chain', accept: ['chain', 'chain rule'] },
+  { type: 'fill', q: 'The sigmoid function σ(x) = ___', a: '1/(1+e^(-x))', accept: ['1/(1+e^(-x))', '1/(1+exp(-x))', '1 / (1 + e^(-x))'] },
+  { type: 'fill', q: 'In gradient descent, a learning rate that is too large can cause ___', a: 'oscillation/divergence', accept: ['oscillation', 'divergence', 'oscillation/divergence', 'overshoot', 'overshooting'] },
+  { type: 'fill', q: 'XOR cannot be solved by a single perceptron because it is not ___', a: 'linearly separable', accept: ['linearly separable', 'linear separable'] },
+  { type: 'fill', q: 'The derivative of sigmoid σ(x) is ___', a: 'σ(x)(1-σ(x))', accept: ['σ(x)(1-σ(x))', 'sigmoid(x)(1-sigmoid(x))', 's(x)(1-s(x))', 'sigma(x)(1-sigma(x))'] },
+  { type: 'fill', q: 'An MLP with at least one hidden layer can approximate any ___', a: 'continuous function', accept: ['continuous function', 'function'] },
+  { type: 'mc', q: 'Which activation function is most likely to cause the vanishing gradient problem?', options: ['ReLU', 'Sigmoid', 'Leaky ReLU', 'Linear'], a: 1 },
+  { type: 'mc', q: 'What type of gradient descent updates weights after each individual training example?', options: ['Batch gradient descent', 'Stochastic gradient descent', 'Mini-batch gradient descent', 'Full gradient descent'], a: 1 },
+  { type: 'mc', q: 'A perceptron with two inputs has a decision boundary that is a:', options: ['Point', 'Line', 'Plane', 'Hypercube'], a: 1 },
+  { type: 'mc', q: 'What happens if you set the learning rate to 0?', options: ['Network converges instantly', 'Weights never update', 'Gradients explode', 'Network oscillates'], a: 1 },
+  { type: 'mc', q: 'The universal approximation theorem applies to networks with at least:', options: ['Zero hidden layers', 'One hidden layer', 'Two hidden layers', 'Three hidden layers'], a: 1 },
+];
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = quizData.map((q, i) => {
+    if (q.type === 'fill') {
+      return `<div class="quiz-question" id="qq-${i}">
+        <p>${i+1}. ${q.q}</p>
+        <input class="quiz-input" id="qa-${i}" placeholder="Your answer...">
+        <div class="quiz-feedback" id="qf-${i}"></div>
+      </div>`;
+    } else {
+      return `<div class="quiz-question" id="qq-${i}">
+        <p>${i+1}. ${q.q}</p>
+        <div class="quiz-options">
+          ${q.options.map((opt, j) => `<label><input type="radio" name="qa-${i}" value="${j}"> ${opt}</label>`).join('')}
+        </div>
+        <div class="quiz-feedback" id="qf-${i}"></div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function submitQuiz() {
+  let score = 0;
+  quizData.forEach((q, i) => {
+    const fb = document.getElementById(`qf-${i}`);
+    if (q.type === 'fill') {
+      const ans = document.getElementById(`qa-${i}`).value.trim().toLowerCase();
+      const correct = q.accept.some(a => ans.includes(a.toLowerCase()));
+      if (correct) { score++; fb.className = 'quiz-feedback correct'; fb.textContent = 'Correct!'; }
+      else { fb.className = 'quiz-feedback incorrect'; fb.textContent = `Incorrect. Answer: ${q.a}`; }
+    } else {
+      const sel = document.querySelector(`input[name="qa-${i}"]:checked`);
+      if (sel && +sel.value === q.a) { score++; fb.className = 'quiz-feedback correct'; fb.textContent = 'Correct!'; }
+      else { fb.className = 'quiz-feedback incorrect'; fb.textContent = `Incorrect. Answer: ${q.options[q.a]}`; }
+    }
+  });
+  const scoreDiv = document.getElementById('quiz-score');
+  scoreDiv.style.display = 'block';
+  scoreDiv.innerHTML = `<h2>${score} / ${quizData.length}</h2><p style="color:var(--text-secondary);margin-top:8px;">${score === quizData.length ? 'Perfect! You know your neural networks.' : score >= quizData.length*0.7 ? 'Good job! Review the ones you missed.' : 'Keep studying! Review the concepts tab.'}</p>`;
+}
+
+function resetQuiz() {
+  document.getElementById('quiz-score').style.display = 'none';
+  renderQuiz();
+}
+
+// ==================== ORAL PRACTICE ====================
+const oralCards = [
+  { prompt: 'Explain why a single perceptron cannot solve XOR.', answer: 'XOR is not linearly separable - there is no single straight line (hyperplane) that can separate the positive cases (0,1) and (1,0) from the negative cases (0,0) and (1,1). A single perceptron can only learn linear decision boundaries, so it fundamentally cannot represent the XOR function. You need at least one hidden layer (i.e., an MLP) to solve XOR.' },
+  { prompt: 'Walk through one step of backpropagation.', answer: '1) Forward pass: compute each neuron\'s output layer by layer. 2) Compute the error at the output (e.g., E = 1/2(target-output)^2). 3) Compute the output layer delta: δ_o = -(target-output) * σ\'(net_o). 4) Propagate delta backward: for each hidden neuron, δ_h = (Σ δ_next * w_next) * σ\'(net_h). 5) Update each weight: w_new = w_old - α * δ * input_to_that_weight.' },
+  { prompt: 'What is the vanishing gradient problem?', answer: 'When using sigmoid or tanh activations in deep networks, gradients get multiplied through many layers during backpropagation. Since sigmoid\'s derivative is at most 0.25, repeated multiplication makes gradients exponentially small in early layers. This means early layers learn extremely slowly or not at all. Solutions include ReLU activation, residual connections, and batch normalization.' },
+  { prompt: 'Explain the perceptron learning rule and when it converges.', answer: 'The perceptron learning rule updates weights when a misclassification occurs: ΔW = α(y - ŷ) * x. If the prediction is correct, no update happens. The Perceptron Convergence Theorem guarantees that if the data is linearly separable, the algorithm will converge to a correct solution in finite steps. If data is NOT linearly separable, it will never converge and oscillate indefinitely.' },
+  { prompt: 'Compare sigmoid, tanh, and ReLU activation functions.', answer: 'Sigmoid: output (0,1), good for probabilities, suffers from vanishing gradient. Tanh: output (-1,1), zero-centered so often converges faster than sigmoid, still has vanishing gradient. ReLU: output [0,∞), computationally efficient, helps with vanishing gradient for positive values, but can have "dead neurons" that always output 0. ReLU is most commonly used in modern deep networks.' },
+  { prompt: 'What is the universal approximation theorem?', answer: 'The theorem states that a feedforward neural network with a single hidden layer containing a finite number of neurons can approximate any continuous function on compact subsets of R^n, to any desired degree of accuracy, given appropriate weights. Important: it guarantees existence but not that gradient descent will find the right weights, nor does it say how many neurons are needed.' },
+  { prompt: 'Explain the difference between batch, stochastic, and mini-batch gradient descent.', answer: 'Batch GD: computes gradient over the entire training set before updating - stable but slow and memory-intensive. Stochastic GD (SGD): updates after each single example - fast and can escape local minima but noisy. Mini-batch GD: updates after a small batch (e.g., 32-128 examples) - balances stability and speed, enables GPU parallelism. Mini-batch is most commonly used in practice.' },
+  { prompt: 'What role does the learning rate play in neural network training?', answer: 'The learning rate α controls the step size of weight updates. Too large: the network overshoots minima, oscillates, or diverges entirely. Too small: convergence is extremely slow and the network may get stuck in poor local minima. Common strategies: start with a moderate rate and decay it over time (learning rate scheduling), or use adaptive methods like Adam that adjust the rate per-parameter.' },
+];
+
+let currentCard = 0;
+let cardRatings = new Array(oralCards.length).fill(null);
+
+function renderCard() {
+  document.getElementById('flash-prompt').textContent = oralCards[currentCard].prompt;
+  document.getElementById('flash-answer').textContent = oralCards[currentCard].answer;
+  document.getElementById('flash-answer').classList.remove('show');
+  document.getElementById('reveal-btn').style.display = 'inline-block';
+  document.getElementById('rating-btns').style.display = 'none';
+  document.getElementById('oral-counter').textContent = `Card ${currentCard+1} of ${oralCards.length}`;
+  document.getElementById('oral-progress').style.width = ((currentCard+1)/oralCards.length*100) + '%';
+  updateOralSummary();
+}
+
+function revealAnswer() {
+  document.getElementById('flash-answer').classList.add('show');
+  document.getElementById('reveal-btn').style.display = 'none';
+  document.getElementById('rating-btns').style.display = 'flex';
+}
+
+function rateCard(rating) {
+  cardRatings[currentCard] = rating;
+  if (currentCard < oralCards.length - 1) {
+    currentCard++;
+    renderCard();
+  } else {
+    updateOralSummary();
+  }
+}
+
+function nextCard() {
+  if (currentCard < oralCards.length - 1) { currentCard++; renderCard(); }
+}
+
+function prevCard() {
+  if (currentCard > 0) { currentCard--; renderCard(); }
+}
+
+function updateOralSummary() {
+  const rated = cardRatings.filter(r => r !== null);
+  if (rated.length === 0) { document.getElementById('oral-summary').style.display = 'none'; return; }
+  const got = cardRatings.filter(r => r === 'got').length;
+  const partial = cardRatings.filter(r => r === 'partial').length;
+  const review = cardRatings.filter(r => r === 'review').length;
+  const summary = document.getElementById('oral-summary');
+  summary.style.display = 'block';
+  summary.innerHTML = `<div class="calc-section"><h3>Progress Summary</h3>
+    <p style="color:var(--success)">Got it: ${got}</p>
+    <p style="color:var(--warning)">Partially: ${partial}</p>
+    <p style="color:var(--error)">Need review: ${review}</p>
+    ${review > 0 ? '<p style="color:var(--text-secondary);margin-top:8px;">Cards to review: ' + cardRatings.map((r,i) => r==='review' ? (i+1) : null).filter(Boolean).join(', ') + '</p>' : ''}
+  </div>`;
+}
+
+// Init
+renderQuiz();
+renderCard();
+drawCanvas();
+</script>
+</body>
+</html>

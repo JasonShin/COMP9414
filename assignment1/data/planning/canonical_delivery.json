@@ -11,7 +11,7 @@
   ],
   "robot_start": "corridor",
   "parcel_start": "mail_room",
-  "keycard_start": "office_a",
+  "keycard_start": "mail_room",
   "locked_edge": [
     "corridor",
     "lab"

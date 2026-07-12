@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 5: Reinforcement Learning - COMP9414</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-tertiary: #242836;
+  --bg-card: #1e2230;
+  --text-primary: #e8eaed;
+  --text-secondary: #9aa0ac;
+  --text-muted: #6b7280;
+  --accent: #6c63ff;
+  --accent-hover: #7f78ff;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --blue: #60a5fa;
+  --border: #2d3348;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+.header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border-bottom: 1px solid var(--border);
+}
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.3rem; }
+.header p { color: var(--text-secondary); font-size: 0.95rem; }
+.tabs {
+  display: flex; justify-content: center; gap: 0.5rem;
+  padding: 1rem; background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 0.6rem 1.2rem; border: 1px solid var(--border);
+  background: var(--bg-tertiary); color: var(--text-secondary);
+  border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+  font-weight: 500; transition: all 0.2s;
+}
+.tab-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab-content { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* Concepts */
+.concept-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 1rem; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.concept-card:hover { border-color: var(--accent); }
+.concept-header {
+  padding: 1rem 1.5rem; cursor: pointer; display: flex;
+  justify-content: space-between; align-items: center;
+  font-weight: 600; font-size: 0.95rem;
+}
+.concept-header .arrow { transition: transform 0.3s; font-size: 0.8rem; color: var(--text-muted); }
+.concept-card.open .arrow { transform: rotate(180deg); }
+.concept-body {
+  max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+  padding: 0 1.5rem;
+}
+.concept-card.open .concept-body { max-height: 2000px; padding: 0 1.5rem 1.5rem; }
+.concept-body p, .concept-body li { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; }
+.concept-body ul { padding-left: 1.2rem; }
+.formula {
+  background: var(--bg-tertiary); padding: 0.8rem 1rem; border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  margin: 0.5rem 0; border-left: 3px solid var(--accent); overflow-x: auto;
+}
+
+/* Gridworld */
+.grid-container { display: flex; gap: 2rem; flex-wrap: wrap; }
+.grid-panel { flex: 1; min-width: 300px; }
+.controls { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1rem; }
+.controls h3 { margin-bottom: 1rem; font-size: 0.95rem; }
+.control-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+.control-row label { font-size: 0.85rem; color: var(--text-secondary); min-width: 80px; }
+.control-row input[type="range"] { flex: 1; min-width: 100px; accent-color: var(--accent); }
+.control-row .val { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; min-width: 40px; }
+.btn {
+  padding: 0.5rem 1rem; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { opacity: 0.8; }
+.btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+canvas { border-radius: 8px; display: block; margin: 0 auto; }
+.stats { background: var(--bg-card); padding: 1rem 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-top: 1rem; font-size: 0.85rem; }
+.stats span { color: var(--text-secondary); }
+.stats strong { color: var(--green); font-family: 'JetBrains Mono', monospace; }
+.toggle-group { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.toggle-btn {
+  padding: 0.5rem 1rem; cursor: pointer; font-size: 0.8rem;
+  background: var(--bg-tertiary); color: var(--text-secondary); border: none;
+  transition: all 0.2s;
+}
+.toggle-btn.active { background: var(--accent); color: #fff; }
+
+/* Q-Table */
+.qtable-container { overflow-x: auto; margin-top: 1rem; }
+.qtable { width: 100%; border-collapse: collapse; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; }
+.qtable th, .qtable td { padding: 0.4rem 0.6rem; border: 1px solid var(--border); text-align: center; }
+.qtable th { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+/* Comparison */
+.comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+@media (max-width: 768px) { .comparison-grid { grid-template-columns: 1fr; } }
+.comp-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+.comp-panel h3 { margin-bottom: 1rem; font-size: 1rem; }
+.comp-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; font-size: 0.8rem; }
+.comp-stat { background: var(--bg-tertiary); padding: 0.5rem; border-radius: 6px; text-align: center; }
+.comp-stat .label { color: var(--text-muted); font-size: 0.7rem; }
+.comp-stat .value { font-family: 'JetBrains Mono', monospace; color: var(--green); }
+
+/* Quiz */
+.quiz-question {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
+}
+.quiz-question .q-text { font-size: 0.95rem; margin-bottom: 1rem; }
+.quiz-question input[type="text"] {
+  width: 100%; padding: 0.6rem 1rem; background: var(--bg-tertiary);
+  border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);
+  font-size: 0.9rem; outline: none;
+}
+.quiz-question input[type="text"]:focus { border-color: var(--accent); }
+.quiz-options label {
+  display: block; padding: 0.6rem 1rem; margin-bottom: 0.5rem;
+  background: var(--bg-tertiary); border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.quiz-options label:hover { border-color: var(--accent); }
+.quiz-options input { margin-right: 0.5rem; accent-color: var(--accent); }
+.quiz-feedback { margin-top: 0.8rem; padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+.quiz-feedback.correct { display: block; background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+.quiz-feedback.incorrect { display: block; background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+.score-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center; }
+.score-box .score { font-size: 2.5rem; font-weight: 700; color: var(--accent); }
+
+/* Oral */
+.flashcard {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem; text-align: center;
+  min-height: 300px; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  position: relative;
+}
+.flashcard .prompt { font-size: 1.1rem; font-weight: 500; margin-bottom: 1.5rem; max-width: 600px; }
+.flashcard .answer {
+  background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px;
+  font-size: 0.9rem; color: var(--text-secondary); max-width: 600px;
+  text-align: left; line-height: 1.7; display: none;
+}
+.flashcard .answer.visible { display: block; }
+.flashcard-nav { display: flex; gap: 1rem; margin-top: 1.5rem; align-items: center; }
+.flashcard-counter { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+.rating-btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.rating-btn {
+  padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem;
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg-tertiary);
+  color: var(--text-secondary); transition: all 0.2s;
+}
+.rating-btn:hover { border-color: var(--accent); }
+.rating-btn.got-it { color: var(--green); }
+.rating-btn.partial { color: var(--yellow); }
+.rating-btn.review { color: var(--red); }
+.progress-bar { width: 100%; height: 4px; background: var(--bg-tertiary); border-radius: 2px; margin-top: 1rem; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+/* Update display */
+.update-display {
+  background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+  margin-top: 1rem; border-left: 3px solid var(--yellow);
+  color: var(--text-secondary); white-space: pre-wrap;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Week 5: Reinforcement Learning</h1>
+  <p>COMP9414 Artificial Intelligence</p>
+</div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('concepts')">Concepts</button>
+  <button class="tab-btn" onclick="switchTab('gridworld')">Interactive Gridworld</button>
+  <button class="tab-btn" onclick="switchTab('comparison')">SARSA vs Q-Learning</button>
+  <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
+  <button class="tab-btn" onclick="switchTab('oral')">Oral Practice</button>
+</div>
+
+<!-- CONCEPTS TAB -->
+<div id="concepts" class="tab-content active"></div>
+
+<!-- GRIDWORLD TAB -->
+<div id="gridworld" class="tab-content">
+  <div class="grid-container">
+    <div class="grid-panel">
+      <div class="controls">
+        <h3>Algorithm</h3>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="alg-sarsa" onclick="setAlgorithm('sarsa')">SARSA</button>
+          <button class="toggle-btn" id="alg-qlearn" onclick="setAlgorithm('qlearning')">Q-Learning</button>
+        </div>
+        <h3 style="margin-top:1rem">Parameters</h3>
+        <div class="control-row">
+          <label>α (learning rate)</label>
+          <input type="range" min="0.01" max="1" step="0.01" value="0.7" id="alpha-slider" oninput="updateParam('alpha',this.value)">
+          <span class="val" id="alpha-val">0.70</span>
+        </div>
+        <div class="control-row">
+          <label>γ (discount)</label>
+          <input type="range" min="0" max="0.99" step="0.01" value="0.4" id="gamma-slider" oninput="updateParam('gamma',this.value)">
+          <span class="val" id="gamma-val">0.40</span>
+        </div>
+        <div class="control-row">
+          <label>ε (exploration)</label>
+          <input type="range" min="0" max="1" step="0.01" value="0.25" id="epsilon-slider" oninput="updateParam('epsilon',this.value)">
+          <span class="val" id="epsilon-val">0.25</span>
+        </div>
+        <div class="control-row">
+          <label>Episodes</label>
+          <input type="range" min="1" max="1000" step="1" value="100" id="episodes-slider" oninput="document.getElementById('episodes-val').textContent=this.value">
+          <span class="val" id="episodes-val">100</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="gwStep()">Step</button>
+          <button class="btn btn-primary" onclick="gwRunEpisode()">Run 1 Episode</button>
+          <button class="btn btn-secondary" onclick="gwAutoTrain()">Auto Train</button>
+          <button class="btn btn-danger" onclick="gwReset()">Reset</button>
+        </div>
+      </div>
+      <div class="stats">
+        <span>Episodes:</span> <strong id="gw-episodes">0</strong> &nbsp;|&nbsp;
+        <span>Steps this episode:</span> <strong id="gw-steps">0</strong> &nbsp;|&nbsp;
+        <span>Total reward:</span> <strong id="gw-reward">0.00</strong>
+      </div>
+      <div class="update-display" id="gw-update">Click "Step" to see the update equation with real numbers.</div>
+    </div>
+    <div class="grid-panel">
+      <canvas id="gw-canvas" width="480" height="360"></canvas>
+      <div class="qtable-container">
+        <h3 style="margin:1rem 0 0.5rem;font-size:0.9rem">Q-Table</h3>
+        <table class="qtable" id="gw-qtable"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON TAB -->
+<div id="comparison" class="tab-content">
+  <div class="controls" style="margin-bottom:1.5rem">
+    <h3>Side-by-Side Comparison</h3>
+    <p style="color:var(--text-secondary);font-size:0.85rem;margin:0.5rem 0">Run both algorithms on the same gridworld simultaneously to see how they differ.</p>
+    <div class="control-row">
+      <label>Episodes</label>
+      <input type="range" min="10" max="1000" step="10" value="200" id="comp-episodes-slider" oninput="document.getElementById('comp-episodes-val').textContent=this.value">
+      <span class="val" id="comp-episodes-val">200</span>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="compRun()">Run Comparison</button>
+      <button class="btn btn-secondary" onclick="compRunCliff()">Cliff Walking Example</button>
+      <button class="btn btn-danger" onclick="compReset()">Reset</button>
+    </div>
+  </div>
+  <div class="comparison-grid">
+    <div class="comp-panel">
+      <h3 style="color:var(--blue)">SARSA (On-Policy)</h3>
+      <canvas id="comp-sarsa-canvas" width="400" height="300"></canvas>
+      <div class="comp-stats" id="comp-sarsa-stats">
+        <div class="comp-stat"><div class="label">Avg Reward</div><div class="value" id="sarsa-avg">--</div></div>
+        <div class="comp-stat"><div class="label">Episodes</div><div class="value" id="sarsa-eps">0</div></div>
+      </div>
+    </div>
+    <div class="comp-panel">
+      <h3 style="color:var(--yellow)">Q-Learning (Off-Policy)</h3>
+      <canvas id="comp-qlearn-canvas" width="400" height="300"></canvas>
+      <div class="comp-stats" id="comp-qlearn-stats">
+        <div class="comp-stat"><div class="label">Avg Reward</div><div class="value" id="qlearn-avg">--</div></div>
+        <div class="comp-stat"><div class="label">Episodes</div><div class="value" id="qlearn-eps">0</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="stats" style="margin-top:1.5rem" id="comp-description">
+    <p style="color:var(--text-secondary);font-size:0.85rem"><strong style="color:var(--text-primary)">Key Insight:</strong> In the cliff walking problem, SARSA learns a safer path away from the cliff edge because it accounts for the fact that exploration (random actions) might send it off the cliff. Q-learning learns the optimal shortest path along the cliff edge, but during training it falls off more often due to exploration.</p>
+  </div>
+</div>
+
+<!-- QUIZ TAB -->
+<div id="quiz" class="tab-content">
+  <div id="quiz-questions"></div>
+  <div style="text-align:center;margin-top:1.5rem">
+    <button class="btn btn-primary" onclick="submitQuiz()" id="quiz-submit-btn">Submit Answers</button>
+    <button class="btn btn-secondary" onclick="resetQuiz()" style="display:none" id="quiz-reset-btn">Try Again</button>
+  </div>
+  <div class="score-box" id="quiz-score" style="display:none;margin-top:1.5rem">
+    <p style="color:var(--text-secondary);margin-bottom:0.5rem">Your Score</p>
+    <div class="score" id="quiz-score-val"></div>
+  </div>
+</div>
+
+<!-- ORAL PRACTICE TAB -->
+<div id="oral" class="tab-content">
+  <div class="flashcard-counter" id="fc-counter">Card 1 of 6</div>
+  <div class="flashcard" id="flashcard">
+    <div class="prompt" id="fc-prompt"></div>
+    <button class="btn btn-primary" id="fc-reveal-btn" onclick="fcReveal()">Reveal Answer</button>
+    <div class="answer" id="fc-answer"></div>
+    <div class="rating-btns" id="fc-rating" style="display:none">
+      <button class="rating-btn got-it" onclick="fcRate('got')">Got it</button>
+      <button class="rating-btn partial" onclick="fcRate('partial')">Partially</button>
+      <button class="rating-btn review" onclick="fcRate('review')">Need Review</button>
+    </div>
+  </div>
+  <div class="flashcard-nav">
+    <button class="btn btn-secondary" onclick="fcPrev()">Previous</button>
+    <button class="btn btn-primary" onclick="fcNext()">Next</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="fc-progress"></div></div>
+</div>
+
+<script>
+// ====== TAB NAVIGATION ======
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => { if(b.textContent.toLowerCase().includes(id.slice(0,4))) b.classList.add('active'); });
+  if(id === 'gridworld') gwDraw();
+  if(id === 'comparison') { compDraw('sarsa'); compDraw('qlearn'); }
+}
+
+// ====== CONCEPTS TAB ======
+const concepts = [
+  { title: "RL Fundamentals", body: `<ul>
+    <li>Learning by <strong>interaction</strong> with an environment</li>
+    <li>No explicit instructor or labeled data - the agent discovers good behavior through <strong>trial-and-error</strong></li>
+    <li>Reward signal may be <strong>delayed</strong> - actions taken now may not pay off until many steps later</li>
+    <li>The agent must balance exploring new actions vs exploiting known good actions</li>
+    </ul>` },
+  { title: "Four Elements of RL", body: `<ul>
+    <li><strong>Policy (π)</strong>: Mapping from states to actions. Defines the agent's behavior. Can be deterministic π(s)=a or stochastic π(a|s)=P(A_t=a|S_t=s)</li>
+    <li><strong>Reward Function</strong>: Immediate scalar signal from environment. Defines the goal. R_t ∈ ℝ</li>
+    <li><strong>Value Function</strong>: Expected long-term cumulative reward from a state. V(s) or Q(s,a). Used for decision making.</li>
+    <li><strong>Model (optional)</strong>: Predicts next state and reward. Model-based RL uses planning; model-free RL (SARSA, Q-learning) learns directly from experience.</li>
+    </ul>` },
+  { title: "Agent-Environment Interface", body: `<p>At each discrete time step t:</p>
+    <div class="formula">Agent observes state S_t
+Agent selects action A_t based on policy π
+Environment returns reward R_{t+1} and next state S_{t+1}
+Loop: S_0, A_0, R_1, S_1, A_1, R_2, S_2, ...</div>
+    <p>The agent's goal: maximize cumulative reward over time (the return).</p>` },
+  { title: "Exploration vs Exploitation", body: `<p><strong>The dilemma:</strong> Should the agent exploit current best knowledge or explore to find potentially better actions?</p>
+    <ul>
+    <li><strong>ε-greedy:</strong> With probability (1-ε) take the greedy (best known) action; with probability ε take a uniformly random action.</li>
+    <li><strong>Softmax/Boltzmann:</strong> Action probability proportional to e^(Q(a)/τ) where τ is temperature. Higher τ = more exploration. As τ→0, becomes greedy.</li>
+    </ul>
+    <div class="formula">ε-greedy: P(a) = (1-ε) if a = argmax Q(s,a'), else ε/(|A|-1)
+Boltzmann: P(a) = e^(Q(s,a)/τ) / Σ_b e^(Q(s,b)/τ)</div>` },
+  { title: "MDP (Markov Decision Process)", body: `<p>Formal framework for sequential decision making under uncertainty.</p>
+    <div class="formula">MDP = ⟨S, A, δ, r⟩
+S = set of states
+A = set of actions
+δ: S × A → S (transition function, can be stochastic)
+r: S × A → ℝ (reward function)</div>
+    <p><strong>Markov Property:</strong> The future depends only on the current state, not on the history of states visited.</p>
+    <div class="formula">P(S_{t+1} | S_t, A_t) = P(S_{t+1} | S_t, A_t, S_{t-1}, A_{t-1}, ...)</div>` },
+  { title: "Returns and Discounting", body: `<div class="formula">G_t = R_{t+1} + γR_{t+2} + γ²R_{t+3} + ... = Σ_{k=0}^{∞} γ^k R_{t+k+1}</div>
+    <ul>
+    <li><strong>γ = 0</strong>: Myopic/short-sighted agent - only cares about immediate reward</li>
+    <li><strong>γ → 1</strong>: Far-sighted agent - future rewards weighted almost equally</li>
+    <li>γ < 1 ensures finite returns for continuing (non-episodic) tasks</li>
+    <li><strong>Episodic tasks</strong>: Natural end point (game over). Can use γ=1.</li>
+    <li><strong>Continuing tasks</strong>: No natural end. Must use γ < 1.</li>
+    </ul>
+    <div class="formula">Recursive: G_t = R_{t+1} + γG_{t+1}</div>` },
+  { title: "Value Functions", body: `<div class="formula">State-value: V^π(s) = E_π[G_t | S_t = s]
+  = E_π[R_{t+1} + γG_{t+1} | S_t = s]
+
+Action-value: Q^π(s,a) = E_π[G_t | S_t = s, A_t = a]
+  = E_π[R_{t+1} + γQ^π(S_{t+1}, A_{t+1}) | S_t = s, A_t = a]</div>
+    <p>V(s) tells us how good it is to be in state s. Q(s,a) tells us how good it is to take action a in state s.</p>
+    <p>The optimal value function: V*(s) = max_π V^π(s), Q*(s,a) = max_π Q^π(s,a)</p>` },
+  { title: "SARSA (On-Policy TD)", body: `<div class="formula">Q(S_t, A_t) ← Q(S_t, A_t) + α [R_{t+1} + γQ(S_{t+1}, A_{t+1}) - Q(S_t, A_t)]</div>
+    <p><strong>On-policy</strong>: Updates using the action A_{t+1} actually taken by the current policy (including exploration).</p>
+    <p>Name comes from the quintuple used: (S_t, A_t, R_{t+1}, S_{t+1}, A_{t+1})</p>
+    <ul>
+    <li>α = learning rate (step size)</li>
+    <li>The term [R_{t+1} + γQ(S_{t+1}, A_{t+1}) - Q(S_t, A_t)] is the <strong>TD error</strong></li>
+    <li>Converges to Q^π (the Q-values of the policy being followed)</li>
+    </ul>` },
+  { title: "Q-Learning (Off-Policy TD)", body: `<div class="formula">Q(S_t, A_t) ← Q(S_t, A_t) + α [R_{t+1} + γ max_a Q(S_{t+1}, a) - Q(S_t, A_t)]</div>
+    <p><strong>Off-policy</strong>: Updates using max_a Q(S_{t+1}, a) regardless of what action is actually taken next.</p>
+    <ul>
+    <li>Directly approximates Q* (optimal action-value function)</li>
+    <li>Can follow any exploration policy and still converge to optimal</li>
+    <li>The key difference from SARSA: uses <strong>max</strong> over next actions, not the actual next action</li>
+    </ul>` },
+  { title: "SARSA vs Q-Learning", body: `<ul>
+    <li><strong>SARSA is safer during learning</strong>: Because it accounts for the fact that exploration might lead to bad states. It learns the value of the policy it's actually following (including mistakes).</li>
+    <li><strong>Q-Learning converges to optimal faster</strong>: Because it always assumes the best next action will be taken, it directly learns Q* regardless of exploration.</li>
+    <li><strong>Cliff Walking Example</strong>: SARSA learns a safe path far from the cliff (because ε-greedy might push it off). Q-learning learns the optimal shortest path along the cliff edge (but falls off during training).</li>
+    <li>After learning (ε=0): both produce the same optimal policy. The difference is <em>during</em> learning.</li>
+    </ul>` },
+];
+const conceptsDiv = document.getElementById('concepts');
+concepts.forEach((c, i) => {
+  conceptsDiv.innerHTML += `<div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>${c.title}</span><span class="arrow">▼</span></div>
+    <div class="concept-body">${c.body}</div></div>`;
+});
+function toggleConcept(el) { el.classList.toggle('open'); }
+
+// ====== GRIDWORLD TAB ======
+const ROWS=3, COLS=4;
+const GOAL=[2,3], FEAR=[1,1];
+const ACTIONS=['up','down','left','right'];
+const ARROWS={up:'↑',down:'↓',left:'←',right:'→'};
+const DX={up:0,down:0,left:-1,right:1};
+const DY={up:1,down:-1,left:0,right:0};
+
+let gwParams = {alpha:0.7, gamma:0.4, epsilon:0.25, algorithm:'sarsa'};
+let gwQ = {}; // "r,c,a" -> value
+let gwAgent = [0,0];
+let gwEpisodes = 0, gwStepsThisEp = 0, gwTotalReward = 0;
+let gwEpRewards = [];
+let gwCurrentAction = null;
+let gwDone = false;
+
+function qKey(r,c,a) { return `${r},${c},${a}`; }
+function getQ(r,c,a) { return gwQ[qKey(r,c,a)] || 0; }
+function setQ(r,c,a,v) { gwQ[qKey(r,c,a)] = v; }
+
+function gwGetReward(r,c) {
+  if(r===GOAL[0]&&c===GOAL[1]) return 1.0;
+  if(r===FEAR[0]&&c===FEAR[1]) return -1.0;
+  return -0.04;
+}
+function gwIsTerminal(r,c) { return (r===GOAL[0]&&c===GOAL[1])||(r===FEAR[0]&&c===FEAR[1]); }
+function gwNextState(r,c,a) {
+  let nr=r+DY[a], nc=c+DX[a];
+  if(nr<0||nr>=ROWS||nc<0||nc>=COLS) return [r,c];
+  return [nr,nc];
+}
+function gwChooseAction(r,c) {
+  if(Math.random()<gwParams.epsilon) return ACTIONS[Math.floor(Math.random()*4)];
+  let best=-Infinity, bestA=ACTIONS[0];
+  for(let a of ACTIONS) { let q=getQ(r,c,a); if(q>best){best=q;bestA=a;} }
+  return bestA;
+}
+function gwBestAction(r,c) {
+  let best=-Infinity, bestA='up';
+  for(let a of ACTIONS) { let q=getQ(r,c,a); if(q>best){best=q;bestA=a;} }
+  return bestA;
+}
+
+function gwStep() {
+  if(gwDone) { gwStartEpisode(); }
+  let [r,c] = gwAgent;
+  if(!gwCurrentAction) gwCurrentAction = gwChooseAction(r,c);
+  let a = gwCurrentAction;
+  let [nr,nc] = gwNextState(r,c,a);
+  let reward = gwGetReward(nr,nc);
+  gwStepsThisEp++; gwTotalReward += reward;
+
+  let updateText = '';
+  if(gwParams.algorithm==='sarsa') {
+    let na = gwChooseAction(nr,nc);
+    let oldQ = getQ(r,c,a);
+    let td = reward + gwParams.gamma*getQ(nr,nc,na) - oldQ;
+    let newQ = oldQ + gwParams.alpha * td;
+    setQ(r,c,a,newQ);
+    updateText = `SARSA Update:\nQ(${r},${c},${a}) ← ${oldQ.toFixed(3)} + ${gwParams.alpha} × [${reward} + ${gwParams.gamma}×Q(${nr},${nc},${na}) - ${oldQ.toFixed(3)}]\n= ${oldQ.toFixed(3)} + ${gwParams.alpha} × [${reward} + ${gwParams.gamma}×${getQ(nr,nc,na).toFixed(3)} - ${oldQ.toFixed(3)}]\n= ${oldQ.toFixed(3)} + ${gwParams.alpha} × ${td.toFixed(3)} = ${newQ.toFixed(3)}\nNext action: ${na}`;
+    gwCurrentAction = na;
+  } else {
+    let oldQ = getQ(r,c,a);
+    let maxQ = Math.max(...ACTIONS.map(aa=>getQ(nr,nc,aa)));
+    let td = reward + gwParams.gamma*maxQ - oldQ;
+    let newQ = oldQ + gwParams.alpha * td;
+    setQ(r,c,a,newQ);
+    let bestNA = gwBestAction(nr,nc);
+    updateText = `Q-Learning Update:\nQ(${r},${c},${a}) ← ${oldQ.toFixed(3)} + ${gwParams.alpha} × [${reward} + ${gwParams.gamma}×max Q(${nr},${nc},·) - ${oldQ.toFixed(3)}]\n= ${oldQ.toFixed(3)} + ${gwParams.alpha} × [${reward} + ${gwParams.gamma}×${maxQ.toFixed(3)} - ${oldQ.toFixed(3)}]\n= ${oldQ.toFixed(3)} + ${gwParams.alpha} × ${td.toFixed(3)} = ${newQ.toFixed(3)}\nmax action at (${nr},${nc}): ${bestNA}`;
+    gwCurrentAction = gwChooseAction(nr,nc);
+  }
+
+  gwAgent = [nr,nc];
+  document.getElementById('gw-update').textContent = updateText;
+  if(gwIsTerminal(nr,nc)) {
+    gwDone = true; gwEpisodes++; gwEpRewards.push(gwTotalReward);
+    gwCurrentAction = null;
+  }
+  gwUpdateStats(); gwDraw(); gwDrawQTable();
+}
+
+function gwStartEpisode() {
+  gwAgent=[0,0]; gwDone=false; gwStepsThisEp=0; gwTotalReward=0; gwCurrentAction=null;
+}
+
+function gwRunEpisode() {
+  gwStartEpisode();
+  let maxSteps=200;
+  while(!gwDone && maxSteps-->0) { gwStep(); }
+}
+
+function gwAutoTrain() {
+  let n = parseInt(document.getElementById('episodes-slider').value);
+  for(let i=0;i<n;i++) gwRunEpisode();
+  gwDraw(); gwDrawQTable(); gwUpdateStats();
+}
+
+function gwReset() {
+  gwQ={}; gwAgent=[0,0]; gwEpisodes=0; gwStepsThisEp=0; gwTotalReward=0;
+  gwEpRewards=[]; gwDone=false; gwCurrentAction=null;
+  document.getElementById('gw-update').textContent='Click "Step" to see the update equation with real numbers.';
+  gwUpdateStats(); gwDraw(); gwDrawQTable();
+}
+
+function gwUpdateStats() {
+  document.getElementById('gw-episodes').textContent=gwEpisodes;
+  document.getElementById('gw-steps').textContent=gwStepsThisEp;
+  document.getElementById('gw-reward').textContent=gwTotalReward.toFixed(2);
+}
+
+function setAlgorithm(a) {
+  gwParams.algorithm=a;
+  document.getElementById('alg-sarsa').classList.toggle('active',a==='sarsa');
+  document.getElementById('alg-qlearn').classList.toggle('active',a==='qlearning');
+}
+function updateParam(p,v) {
+  gwParams[p]=parseFloat(v);
+  document.getElementById(p+'-val').textContent=parseFloat(v).toFixed(2);
+}
+
+function gwDraw() {
+  const canvas=document.getElementById('gw-canvas');
+  const ctx=canvas.getContext('2d');
+  const cw=canvas.width, ch=canvas.height;
+  const cellW=cw/COLS, cellH=ch/ROWS;
+  ctx.clearRect(0,0,cw,ch);
+
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    let x=c*cellW, y=(ROWS-1-r)*cellH;
+    // background
+    let bg='#1e2230';
+    if(r===GOAL[0]&&c===GOAL[1]) bg='#064e3b';
+    else if(r===FEAR[0]&&c===FEAR[1]) bg='#7f1d1d';
+    ctx.fillStyle=bg; ctx.fillRect(x,y,cellW,cellH);
+    ctx.strokeStyle='#2d3348'; ctx.strokeRect(x,y,cellW,cellH);
+
+    // Q-value coloring
+    if(!gwIsTerminal(r,c)) {
+      let best=gwBestAction(r,c);
+      let qval=getQ(r,c,best);
+      // Arrow
+      ctx.fillStyle=qval>0?'#4ade80':qval<0?'#f87171':'#6b7280';
+      ctx.font='bold 24px Inter';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      if(gwEpisodes>0) ctx.fillText(ARROWS[best],x+cellW/2,y+cellH/2);
+    } else {
+      ctx.font='bold 16px Inter'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillStyle=r===GOAL[0]?'#4ade80':'#f87171';
+      ctx.fillText(r===GOAL[0]?'+1.0':'-1.0',x+cellW/2,y+cellH/2);
+    }
+    // Coords
+    ctx.font='11px JetBrains Mono'; ctx.fillStyle='#6b7280';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText(`(${r},${c})`,x+4,y+4);
+  }
+
+  // Agent
+  let [ar,ac]=gwAgent;
+  let ax=ac*cellW+cellW/2, ay=(ROWS-1-ar)*cellH+cellH/2;
+  ctx.beginPath(); ctx.arc(ax,ay,14,0,Math.PI*2);
+  ctx.fillStyle='#6c63ff'; ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='bold 12px Inter';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('A',ax,ay);
+}
+
+function gwDrawQTable() {
+  let html='<tr><th>State</th>';
+  ACTIONS.forEach(a=>html+=`<th>${a}</th>`);
+  html+='<th>Best</th></tr>';
+  for(let r=ROWS-1;r>=0;r--) for(let c=0;c<COLS;c++) {
+    html+=`<tr><td>(${r},${c})</td>`;
+    let best=-Infinity, bestA='up';
+    for(let a of ACTIONS) {
+      let q=getQ(r,c,a);
+      if(q>best){best=q;bestA=a;}
+      let color=q>0.1?'#4ade80':q<-0.1?'#f87171':'#9aa0ac';
+      html+=`<td style="color:${color}">${q.toFixed(3)}</td>`;
+    }
+    html+=`<td style="color:var(--accent)">${ARROWS[bestA]}</td></tr>`;
+  }
+  document.getElementById('gw-qtable').innerHTML=html;
+}
+
+// Init gridworld
+gwDraw(); gwDrawQTable();
+
+// ====== COMPARISON TAB ======
+let compMode='grid'; // 'grid' or 'cliff'
+let compSarsaQ={}, compQlearnQ={};
+let compSarsaRewards=[], compQlearnRewards=[];
+
+function compReset() {
+  compSarsaQ={}; compQlearnQ={};
+  compSarsaRewards=[]; compQlearnRewards=[];
+  document.getElementById('sarsa-avg').textContent='--';
+  document.getElementById('qlearn-avg').textContent='--';
+  document.getElementById('sarsa-eps').textContent='0';
+  document.getElementById('qlearn-eps').textContent='0';
+  compMode='grid'; compDraw('sarsa'); compDraw('qlearn');
+}
+
+function compGetQ(table,r,c,a) { return table[`${r},${c},${a}`]||0; }
+function compSetQ(table,r,c,a,v) { table[`${r},${c},${a}`]=v; }
+
+function compRunAlgo(algo, table, env) {
+  let {rows,cols,goal,fear,start,rewards,episodes,alpha,gamma,epsilon} = env;
+  let totalRewards=[];
+  for(let ep=0;ep<episodes;ep++) {
+    let [r,c]=start; let epR=0; let steps=0;
+    let action=compChoose(table,r,c,epsilon,env);
+    while(!compIsTerminal(r,c,env)&&steps<200) {
+      let [nr,nc]=compNext(r,c,action,env);
+      let reward=compReward(nr,nc,env);
+      epR+=reward; steps++;
+      if(algo==='sarsa') {
+        let na=compChoose(table,nr,nc,epsilon,env);
+        let old=compGetQ(table,r,c,action);
+        compSetQ(table,r,c,action, old+alpha*(reward+gamma*compGetQ(table,nr,nc,na)-old));
+        action=na;
+      } else {
+        let old=compGetQ(table,r,c,action);
+        let maxQ=Math.max(...['up','down','left','right'].map(a=>compGetQ(table,nr,nc,a)));
+        compSetQ(table,r,c,action, old+alpha*(reward+gamma*maxQ-old));
+        action=compChoose(table,nr,nc,epsilon,env);
+      }
+      r=nr; c=nc;
+    }
+    totalRewards.push(epR);
+  }
+  return totalRewards;
+}
+
+function compChoose(table,r,c,eps,env) {
+  if(Math.random()<eps) return ACTIONS[Math.floor(Math.random()*4)];
+  let best=-Infinity,bestA='up';
+  for(let a of ACTIONS){let q=compGetQ(table,r,c,a);if(q>best){best=q;bestA=a;}}
+  return bestA;
+}
+function compIsTerminal(r,c,env) {
+  if(r===env.goal[0]&&c===env.goal[1]) return true;
+  if(env.fear && r===env.fear[0]&&c===env.fear[1]) return true;
+  if(env.cliff) for(let cl of env.cliff) if(r===cl[0]&&c===cl[1]) return true;
+  return false;
+}
+function compNext(r,c,a,env) {
+  let nr=r+DY[a], nc=c+DX[a];
+  if(nr<0||nr>=env.rows||nc<0||nc>=env.cols) return [r,c];
+  if(env.walls) for(let w of env.walls) if(nr===w[0]&&nc===w[1]) return [r,c];
+  return [nr,nc];
+}
+function compReward(r,c,env) {
+  if(r===env.goal[0]&&c===env.goal[1]) return env.goalR||1.0;
+  if(env.fear&&r===env.fear[0]&&c===env.fear[1]) return env.fearR||-1.0;
+  if(env.cliff) for(let cl of env.cliff) if(r===cl[0]&&c===cl[1]) return -100;
+  return env.stepR||-0.04;
+}
+
+function compRun() {
+  compMode='grid';
+  compSarsaQ={}; compQlearnQ={};
+  let eps=parseInt(document.getElementById('comp-episodes-slider').value);
+  let env={rows:3,cols:4,goal:[2,3],fear:[1,1],start:[0,0],goalR:1,fearR:-1,stepR:-0.04,episodes:eps};
+  compSarsaRewards=compRunAlgo('sarsa',compSarsaQ,{...env,alpha:0.7,gamma:0.4,epsilon:0.25});
+  compQlearnRewards=compRunAlgo('qlearning',compQlearnQ,{...env,alpha:0.7,gamma:0.4,epsilon:0.25});
+  let sAvg=compSarsaRewards.slice(-50).reduce((a,b)=>a+b,0)/Math.min(50,compSarsaRewards.length);
+  let qAvg=compQlearnRewards.slice(-50).reduce((a,b)=>a+b,0)/Math.min(50,compQlearnRewards.length);
+  document.getElementById('sarsa-avg').textContent=sAvg.toFixed(2);
+  document.getElementById('qlearn-avg').textContent=qAvg.toFixed(2);
+  document.getElementById('sarsa-eps').textContent=eps;
+  document.getElementById('qlearn-eps').textContent=eps;
+  compDraw('sarsa'); compDraw('qlearn');
+}
+
+function compRunCliff() {
+  compMode='cliff';
+  compSarsaQ={}; compQlearnQ={};
+  let eps=parseInt(document.getElementById('comp-episodes-slider').value);
+  let cliff=[]; for(let c=1;c<11;c++) cliff.push([0,c]);
+  let env={rows:4,cols:12,goal:[0,11],fear:null,start:[0,0],goalR:1,stepR:-1,cliff:cliff,episodes:eps};
+  compSarsaRewards=compRunAlgo('sarsa',compSarsaQ,{...env,alpha:0.5,gamma:0.95,epsilon:0.1});
+  compQlearnRewards=compRunAlgo('qlearning',compQlearnQ,{...env,alpha:0.5,gamma:0.95,epsilon:0.1});
+  let sAvg=compSarsaRewards.slice(-50).reduce((a,b)=>a+b,0)/Math.min(50,compSarsaRewards.length);
+  let qAvg=compQlearnRewards.slice(-50).reduce((a,b)=>a+b,0)/Math.min(50,compQlearnRewards.length);
+  document.getElementById('sarsa-avg').textContent=sAvg.toFixed(2);
+  document.getElementById('qlearn-avg').textContent=qAvg.toFixed(2);
+  document.getElementById('sarsa-eps').textContent=eps;
+  document.getElementById('qlearn-eps').textContent=eps;
+  compDraw('sarsa'); compDraw('qlearn');
+}
+
+function compDraw(which) {
+  let canvas=document.getElementById(which==='sarsa'?'comp-sarsa-canvas':'comp-qlearn-canvas');
+  let ctx=canvas.getContext('2d');
+  let table=which==='sarsa'?compSarsaQ:compQlearnQ;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  let rows,cols,goal,fear,cliff;
+  if(compMode==='cliff') { rows=4;cols=12;goal=[0,11];fear=null;cliff=[];for(let c=1;c<11;c++)cliff.push([0,c]); }
+  else { rows=3;cols=4;goal=[2,3];fear=[1,1];cliff=null; }
+
+  let cellW=canvas.width/cols, cellH=canvas.height/rows;
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) {
+    let x=c*cellW, y=(rows-1-r)*cellH;
+    let bg='#1e2230';
+    if(r===goal[0]&&c===goal[1]) bg='#064e3b';
+    else if(fear&&r===fear[0]&&c===fear[1]) bg='#7f1d1d';
+    else if(cliff) { for(let cl of cliff) if(r===cl[0]&&c===cl[1]) bg='#451a03'; }
+    ctx.fillStyle=bg; ctx.fillRect(x,y,cellW,cellH);
+    ctx.strokeStyle='#2d3348'; ctx.lineWidth=0.5; ctx.strokeRect(x,y,cellW,cellH);
+
+    let isT=(r===goal[0]&&c===goal[1])||(fear&&r===fear[0]&&c===fear[1]);
+    if(cliff) for(let cl of cliff) if(r===cl[0]&&c===cl[1]) isT=true;
+    if(!isT) {
+      let best=-Infinity,bestA='up';
+      for(let a of ACTIONS){let q=compGetQ(table,r,c,a);if(q>best){best=q;bestA=a;}}
+      if(best!==0||Object.keys(table).length>0) {
+        ctx.fillStyle=best>0?'#4ade80':best<0?'#f87171':'#6b7280';
+        ctx.font=`bold ${Math.min(cellW,cellH)*0.4}px Inter`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(ARROWS[bestA],x+cellW/2,y+cellH/2);
+      }
+    }
+  }
+}
+
+// ====== QUIZ TAB ======
+const quizData = [
+  {type:'fill',q:'In ε-greedy exploration, the agent takes a random action with probability ___',a:['ε','epsilon','e']},
+  {type:'fill',q:'The discount factor γ=0 makes the agent ___',a:['myopic','short-sighted','shortsighted','short sighted']},
+  {type:'fill',q:'Q-learning is called off-policy because it updates using ___ rather than the actual next action',a:['max q(s\',a\')','max q','max_a q','the maximum q value','max q(s\' a\')','max']},
+  {type:'fill',q:'The Markov property states that the future depends only on the ___, not the history',a:['current state','present state','state']},
+  {type:'fill',q:'SARSA stands for ___',a:['state-action-reward-state-action','state action reward state action']},
+  {type:'fill',q:'In the return formula G_t = R_{t+1} + γR_{t+2} + ..., γ must be less than 1 for ___ tasks to ensure finite returns',a:['continuous','non-episodic','continuing','infinite-horizon']},
+  {type:'fill',q:'The TD error in Q-learning is ___',a:['r + γ max q(s\',a\') - q(s,a)','r + gamma max q(s\',a\') - q(s,a)','reward + gamma * max q - q']},
+  {type:'fill',q:'A policy π(a|s) maps ___ to ___',a:['states to actions','states to action probabilities','state to action']},
+  {type:'mc',q:'When is SARSA preferred over Q-learning?',options:['When we want faster convergence to optimal','When safety during learning matters (e.g., robot near cliff)','When we have a perfect model of the environment','When the state space is very large'],correct:1},
+  {type:'mc',q:'What happens as ε increases in ε-greedy?',options:['The agent becomes more greedy','The agent explores more randomly','The learning rate increases','The discount factor changes'],correct:1},
+  {type:'mc',q:'Which statement about Q-learning is TRUE?',options:['It always takes the greedy action','It converges to the optimal Q-values regardless of exploration policy','It is on-policy','It cannot handle stochastic environments'],correct:1},
+];
+
+function renderQuiz() {
+  let html='';
+  quizData.forEach((q,i) => {
+    html+=`<div class="quiz-question" id="qq-${i}"><div class="q-text"><strong>Q${i+1}.</strong> ${q.q}</div>`;
+    if(q.type==='fill') {
+      html+=`<input type="text" id="qa-${i}" placeholder="Type your answer...">`;
+    } else {
+      html+=`<div class="quiz-options">`;
+      q.options.forEach((o,j)=>html+=`<label><input type="radio" name="qa-${i}" value="${j}">${o}</label>`);
+      html+=`</div>`;
+    }
+    html+=`<div class="quiz-feedback" id="qf-${i}"></div></div>`;
+  });
+  document.getElementById('quiz-questions').innerHTML=html;
+}
+renderQuiz();
+
+function submitQuiz() {
+  let score=0;
+  quizData.forEach((q,i) => {
+    let fb=document.getElementById(`qf-${i}`);
+    let correct=false;
+    if(q.type==='fill') {
+      let ans=document.getElementById(`qa-${i}`).value.trim().toLowerCase();
+      correct=q.a.some(a=>ans.includes(a.toLowerCase())||a.toLowerCase().includes(ans));
+      if(!ans) correct=false;
+      fb.textContent=correct?'Correct!':'Incorrect. Answer: '+q.a[0];
+    } else {
+      let sel=document.querySelector(`input[name="qa-${i}"]:checked`);
+      correct=sel&&parseInt(sel.value)===q.correct;
+      fb.textContent=correct?'Correct!':'Incorrect. Answer: '+q.options[q.correct];
+    }
+    fb.className='quiz-feedback '+(correct?'correct':'incorrect');
+    if(correct) score++;
+  });
+  document.getElementById('quiz-score').style.display='block';
+  document.getElementById('quiz-score-val').textContent=`${score}/${quizData.length}`;
+  document.getElementById('quiz-submit-btn').style.display='none';
+  document.getElementById('quiz-reset-btn').style.display='inline-block';
+}
+
+function resetQuiz() {
+  renderQuiz();
+  document.getElementById('quiz-score').style.display='none';
+  document.getElementById('quiz-submit-btn').style.display='inline-block';
+  document.getElementById('quiz-reset-btn').style.display='none';
+}
+
+// ====== ORAL PRACTICE TAB ======
+const flashcards = [
+  {prompt:"Explain the difference between SARSA and Q-learning.",answer:"SARSA is on-policy: it updates Q(s,a) using the actual next action chosen by the policy (including exploration). Q-learning is off-policy: it updates using the maximum Q-value over all possible next actions, regardless of what action is actually taken.\n\nThis means SARSA learns the value of the policy being followed (which includes exploration mistakes), while Q-learning directly approximates the optimal value function. In practice, SARSA is safer during training (avoids risky states that exploration might lead to), while Q-learning converges faster to the true optimal policy."},
+  {prompt:"What is the exploration-exploitation dilemma and how does ε-greedy address it?",answer:"The dilemma: if the agent always exploits (takes the best known action), it may miss better alternatives. If it always explores (takes random actions), it never capitalizes on what it has learned.\n\nε-greedy balances this by choosing the greedy (best known) action with probability (1-ε) and a random action with probability ε. This guarantees all actions are tried infinitely often (ensuring convergence) while mostly exploiting current knowledge. ε can be decayed over time to explore less as learning progresses."},
+  {prompt:"Walk through one Q-learning update step with concrete numbers.",answer:"Suppose: Q(s=A, a=right) = 2.0, we take action 'right', get reward R=1, arrive at state B.\nAt state B: Q(B,up)=3.0, Q(B,down)=1.0, Q(B,left)=0.5, Q(B,right)=2.5\nSo max_a' Q(B,a') = 3.0\n\nWith α=0.1, γ=0.9:\nTD error = R + γ·max Q(B,·) - Q(A,right) = 1 + 0.9×3.0 - 2.0 = 1.7\nQ(A,right) ← 2.0 + 0.1 × 1.7 = 2.17\n\nNote: it doesn't matter what action we actually take at B; the update uses the max."},
+  {prompt:"Why does Q-learning converge to the optimal policy even with ε-greedy exploration?",answer:"Q-learning's update rule uses max_a' Q(s',a') regardless of what action is actually taken. This means it's learning about the optimal policy (greedy policy) while following a different behavior policy (ε-greedy). As long as every state-action pair is visited infinitely often (guaranteed by ε > 0) and the learning rate satisfies certain conditions (decreasing appropriately), Q-learning provably converges to Q* - the optimal action-value function. This is the power of off-policy learning: the behavior policy only needs to be exploratory enough, not optimal."},
+  {prompt:"Explain what the discount factor γ represents intuitively.",answer:"γ (gamma) represents how much the agent cares about future rewards relative to immediate rewards. With γ=0, the agent is completely myopic - it only maximizes immediate reward. With γ close to 1, future rewards are weighted almost as much as immediate rewards, making the agent far-sighted.\n\nMathematically, a reward k steps in the future is worth γ^k times its face value. So γ=0.9 means a reward 10 steps away is worth 0.9^10 ≈ 0.35 of its value. For continuing tasks, γ<1 is required to keep the return finite. γ also controls the effective planning horizon: roughly 1/(1-γ) steps ahead."},
+  {prompt:"What is the Markov property and why is it important for RL?",answer:"The Markov property states that the future state depends only on the current state and action, not on the history of previous states. Formally: P(S_{t+1}|S_t,A_t) = P(S_{t+1}|S_0,A_0,...,S_t,A_t).\n\nThis is crucial because it means the current state contains all information needed for decision-making. Without this property, we'd need to remember and process entire histories, making the problem intractable. It enables: (1) value functions that depend only on current state, (2) the Bellman equations that recursively define optimal values, (3) efficient dynamic programming and TD learning algorithms. If a problem isn't naturally Markov, we can often make it so by enriching the state representation."}
+];
+
+let fcIndex=0, fcRatings=new Array(flashcards.length).fill(null);
+
+function fcRender() {
+  document.getElementById('fc-counter').textContent=`Card ${fcIndex+1} of ${flashcards.length}`;
+  document.getElementById('fc-prompt').textContent=flashcards[fcIndex].prompt;
+  document.getElementById('fc-answer').textContent=flashcards[fcIndex].answer;
+  document.getElementById('fc-answer').classList.remove('visible');
+  document.getElementById('fc-reveal-btn').style.display='inline-block';
+  document.getElementById('fc-rating').style.display='none';
+  document.getElementById('fc-progress').style.width=((fcIndex+1)/flashcards.length*100)+'%';
+}
+function fcReveal() {
+  document.getElementById('fc-answer').classList.add('visible');
+  document.getElementById('fc-reveal-btn').style.display='none';
+  document.getElementById('fc-rating').style.display='flex';
+}
+function fcRate(r) { fcRatings[fcIndex]=r; fcNext(); }
+function fcNext() { fcIndex=Math.min(fcIndex+1,flashcards.length-1); fcRender(); }
+function fcPrev() { fcIndex=Math.max(fcIndex-1,0); fcRender(); }
+fcRender();
+</script>
+</body>
+</html>
