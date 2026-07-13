@@ -1011,13 +1011,13 @@ function loadPreset(name) {
 
 // ==================== QUIZ ====================
 const quizData = [
-  { type: 'fill', q: 'The perceptron convergence theorem guarantees convergence only if the data is ___', a: 'linearly separable', accept: ['linearly separable', 'linear separable'] },
-  { type: 'fill', q: 'Backpropagation uses the ___ rule to compute gradients through layers', a: 'chain', accept: ['chain', 'chain rule'] },
-  { type: 'fill', q: 'The sigmoid function σ(x) = ___', a: '1/(1+e^(-x))', accept: ['1/(1+e^(-x))', '1/(1+exp(-x))', '1 / (1 + e^(-x))'] },
-  { type: 'fill', q: 'In gradient descent, a learning rate that is too large can cause ___', a: 'oscillation/divergence', accept: ['oscillation', 'divergence', 'oscillation/divergence', 'overshoot', 'overshooting'] },
-  { type: 'fill', q: 'XOR cannot be solved by a single perceptron because it is not ___', a: 'linearly separable', accept: ['linearly separable', 'linear separable'] },
-  { type: 'fill', q: 'The derivative of sigmoid σ(x) is ___', a: 'σ(x)(1-σ(x))', accept: ['σ(x)(1-σ(x))', 'sigmoid(x)(1-sigmoid(x))', 's(x)(1-s(x))', 'sigma(x)(1-sigma(x))'] },
-  { type: 'fill', q: 'An MLP with at least one hidden layer can approximate any ___', a: 'continuous function', accept: ['continuous function', 'function'] },
+  { type: 'mc', q: 'The perceptron convergence theorem guarantees convergence only if the data is:', options: ['Normally distributed', 'Linearly separable', 'High-dimensional', 'Standardised'], a: 1 },
+  { type: 'mc', q: 'Backpropagation uses which rule to compute gradients through layers?', options: ['Product rule', 'Quotient rule', 'Chain rule', 'Power rule'], a: 2 },
+  { type: 'mc', q: 'Which is the correct formula for the sigmoid function σ(x)?', options: ['e^x / (1 + e^x)', '1 / (1 + e^(-x))', 'max(0, x)', '(e^x - e^(-x)) / (e^x + e^(-x))'], a: 1 },
+  { type: 'mc', q: 'In gradient descent, a learning rate that is too large can cause:', options: ['Underfitting', 'Vanishing gradients', 'Oscillation or divergence', 'Faster convergence'], a: 2 },
+  { type: 'mc', q: 'XOR cannot be solved by a single perceptron because it is not:', options: ['Differentiable', 'Linearly separable', 'Continuous', 'Symmetric'], a: 1 },
+  { type: 'mc', q: 'The derivative of sigmoid σ(x) is:', options: ['σ(x) + (1 - σ(x))', 'σ(x)(1 - σ(x))', '1 / σ(x)', 'σ(x)²'], a: 1 },
+  { type: 'mc', q: 'An MLP with at least one hidden layer can approximate any:', options: ['Discrete function', 'Continuous function', 'Polynomial only', 'Linear function only'], a: 1 },
   { type: 'mc', q: 'Which activation function is most likely to cause the vanishing gradient problem?', options: ['ReLU', 'Sigmoid', 'Leaky ReLU', 'Linear'], a: 1 },
   { type: 'mc', q: 'What type of gradient descent updates weights after each individual training example?', options: ['Batch gradient descent', 'Stochastic gradient descent', 'Mini-batch gradient descent', 'Full gradient descent'], a: 1 },
   { type: 'mc', q: 'A perceptron with two inputs has a decision boundary that is a:', options: ['Point', 'Line', 'Plane', 'Hypercube'], a: 1 },
@@ -1028,21 +1028,13 @@ const quizData = [
 function renderQuiz() {
   const container = document.getElementById('quiz-container');
   container.innerHTML = quizData.map((q, i) => {
-    if (q.type === 'fill') {
-      return `<div class="quiz-question" id="qq-${i}">
-        <p>${i+1}. ${q.q}</p>
-        <input class="quiz-input" id="qa-${i}" placeholder="Your answer...">
-        <div class="quiz-feedback" id="qf-${i}"></div>
-      </div>`;
-    } else {
-      return `<div class="quiz-question" id="qq-${i}">
-        <p>${i+1}. ${q.q}</p>
-        <div class="quiz-options">
-          ${q.options.map((opt, j) => `<label><input type="radio" name="qa-${i}" value="${j}"> ${opt}</label>`).join('')}
-        </div>
-        <div class="quiz-feedback" id="qf-${i}"></div>
-      </div>`;
-    }
+    return `<div class="quiz-question" id="qq-${i}">
+      <p>${i+1}. ${q.q}</p>
+      <div class="quiz-options">
+        ${q.options.map((opt, j) => `<label><input type="radio" name="qa-${i}" value="${j}"> ${opt}</label>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="qf-${i}"></div>
+    </div>`;
   }).join('');
 }
 
@@ -1050,16 +1042,9 @@ function submitQuiz() {
   let score = 0;
   quizData.forEach((q, i) => {
     const fb = document.getElementById(`qf-${i}`);
-    if (q.type === 'fill') {
-      const ans = document.getElementById(`qa-${i}`).value.trim().toLowerCase();
-      const correct = q.accept.some(a => ans.includes(a.toLowerCase()));
-      if (correct) { score++; fb.className = 'quiz-feedback correct'; fb.textContent = 'Correct!'; }
-      else { fb.className = 'quiz-feedback incorrect'; fb.textContent = `Incorrect. Answer: ${q.a}`; }
-    } else {
-      const sel = document.querySelector(`input[name="qa-${i}"]:checked`);
-      if (sel && +sel.value === q.a) { score++; fb.className = 'quiz-feedback correct'; fb.textContent = 'Correct!'; }
-      else { fb.className = 'quiz-feedback incorrect'; fb.textContent = `Incorrect. Answer: ${q.options[q.a]}`; }
-    }
+    const sel = document.querySelector(`input[name="qa-${i}"]:checked`);
+    if (sel && +sel.value === q.a) { score++; fb.className = 'quiz-feedback correct'; fb.textContent = 'Correct!'; }
+    else { fb.className = 'quiz-feedback incorrect'; fb.textContent = `Incorrect. Answer: ${q.options[q.a]}`; }
   });
   const scoreDiv = document.getElementById('quiz-score');
   scoreDiv.style.display = 'block';

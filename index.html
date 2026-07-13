@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMP9414 - Study Guides</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            min-height: 100vh;
+            font-size: 17px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 40px;
+        }
+        header h1 {
+            font-size: 2rem;
+            color: #7cb7ff;
+            margin-bottom: 8px;
+        }
+        header p { color: #888; font-size: 1rem; }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .link-card {
+            display: block;
+            padding: 20px 24px;
+            background: #1a1a3e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #e0e0e0;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .link-card:hover {
+            border-color: #7cb7ff;
+            background: #222250;
+            transform: translateY(-2px);
+        }
+        .link-card h2 {
+            font-size: 1.1rem;
+            color: #7cb7ff;
+            margin-bottom: 4px;
+        }
+        .link-card p {
+            font-size: 0.85rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>COMP9414 Artificial Intelligence</h1>
+            <p>Interactive Study Guides</p>
+        </header>
+        <div class="links">
+            <a class="link-card" href="week1/index.html">
+                <h2>Week 1: Agents & Search</h2>
+                <p>Intelligent agents, search strategies, uninformed search</p>
+            </a>
+            <a class="link-card" href="week2/index.html">
+                <h2>Week 2: Informed Search</h2>
+                <p>Heuristics, A* search, greedy best-first search</p>
+            </a>
+            <a class="link-card" href="week3/index.html">
+                <h2>Week 3: Adversarial Search</h2>
+                <p>Game trees, minimax, alpha-beta pruning</p>
+            </a>
+            <a class="link-card" href="assignment1/index.html">
+                <h2>Assignment 1: Search Algorithms</h2>
+                <p>Discussion prep quiz - BFS, DFS, UCS, Greedy, A*</p>
+            </a>
+            <a class="link-card" href="week4/index.html">
+                <h2>Week 4: Neural Networks</h2>
+                <p>Perceptrons, MLP, backpropagation, gradient descent</p>
+            </a>
+            <a class="link-card" href="week5/index.html">
+                <h2>Week 5: Reinforcement Learning</h2>
+                <p>MDP, SARSA, Q-learning, exploration vs exploitation</p>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

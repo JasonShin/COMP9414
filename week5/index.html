@@ -760,14 +760,14 @@ function compDraw(which) {
 
 // ====== QUIZ TAB ======
 const quizData = [
-  {type:'fill',q:'In ε-greedy exploration, the agent takes a random action with probability ___',a:['ε','epsilon','e']},
-  {type:'fill',q:'The discount factor γ=0 makes the agent ___',a:['myopic','short-sighted','shortsighted','short sighted']},
-  {type:'fill',q:'Q-learning is called off-policy because it updates using ___ rather than the actual next action',a:['max q(s\',a\')','max q','max_a q','the maximum q value','max q(s\' a\')','max']},
-  {type:'fill',q:'The Markov property states that the future depends only on the ___, not the history',a:['current state','present state','state']},
-  {type:'fill',q:'SARSA stands for ___',a:['state-action-reward-state-action','state action reward state action']},
-  {type:'fill',q:'In the return formula G_t = R_{t+1} + γR_{t+2} + ..., γ must be less than 1 for ___ tasks to ensure finite returns',a:['continuous','non-episodic','continuing','infinite-horizon']},
-  {type:'fill',q:'The TD error in Q-learning is ___',a:['r + γ max q(s\',a\') - q(s,a)','r + gamma max q(s\',a\') - q(s,a)','reward + gamma * max q - q']},
-  {type:'fill',q:'A policy π(a|s) maps ___ to ___',a:['states to actions','states to action probabilities','state to action']},
+  {type:'mc',q:'In ε-greedy exploration, the agent takes a random action with probability:',options:['1 - ε','ε','γ','α'],correct:1},
+  {type:'mc',q:'The discount factor γ=0 makes the agent:',options:['Far-sighted','Risk-averse','Myopic (short-sighted)','Unable to learn'],correct:2},
+  {type:'mc',q:'Q-learning is called off-policy because it updates using:',options:['The actual next action taken','A random action','The minimum Q-value of the next state','The maximum Q-value of the next state'],correct:3},
+  {type:'mc',q:'The Markov property states that the future depends only on:',options:['The full history of states','The current state','The initial state','The reward function'],correct:1},
+  {type:'mc',q:'SARSA stands for:',options:['State-Action-Return-State-Action','State-Action-Reward-State-Action','Sequential-Action-Reward-Sequential-Action','State-Agent-Reward-State-Agent'],correct:1},
+  {type:'mc',q:'In the return formula G_t = R_{t+1} + γR_{t+2} + ..., γ must be less than 1 for which type of tasks to ensure finite returns?',options:['Episodic tasks','Deterministic tasks','Continuous (non-episodic) tasks','Single-step tasks'],correct:2},
+  {type:'mc',q:'The TD error in Q-learning is:',options:['r + γ Q(s\',a\') - Q(s,a)','r - Q(s,a)','r + γ max Q(s\',a\') - Q(s,a)','γ max Q(s\',a\') - r'],correct:2},
+  {type:'mc',q:'A policy π(a|s) maps:',options:['Actions to states','States to action probabilities','Rewards to states','States to rewards'],correct:1},
   {type:'mc',q:'When is SARSA preferred over Q-learning?',options:['When we want faster convergence to optimal','When safety during learning matters (e.g., robot near cliff)','When we have a perfect model of the environment','When the state space is very large'],correct:1},
   {type:'mc',q:'What happens as ε increases in ε-greedy?',options:['The agent becomes more greedy','The agent explores more randomly','The learning rate increases','The discount factor changes'],correct:1},
   {type:'mc',q:'Which statement about Q-learning is TRUE?',options:['It always takes the greedy action','It converges to the optimal Q-values regardless of exploration policy','It is on-policy','It cannot handle stochastic environments'],correct:1},
@@ -777,13 +777,9 @@ function renderQuiz() {
   let html='';
   quizData.forEach((q,i) => {
     html+=`<div class="quiz-question" id="qq-${i}"><div class="q-text"><strong>Q${i+1}.</strong> ${q.q}</div>`;
-    if(q.type==='fill') {
-      html+=`<input type="text" id="qa-${i}" placeholder="Type your answer...">`;
-    } else {
-      html+=`<div class="quiz-options">`;
-      q.options.forEach((o,j)=>html+=`<label><input type="radio" name="qa-${i}" value="${j}">${o}</label>`);
-      html+=`</div>`;
-    }
+    html+=`<div class="quiz-options">`;
+    q.options.forEach((o,j)=>html+=`<label><input type="radio" name="qa-${i}" value="${j}">${o}</label>`);
+    html+=`</div>`;
     html+=`<div class="quiz-feedback" id="qf-${i}"></div></div>`;
   });
   document.getElementById('quiz-questions').innerHTML=html;
@@ -794,17 +790,9 @@ function submitQuiz() {
   let score=0;
   quizData.forEach((q,i) => {
     let fb=document.getElementById(`qf-${i}`);
-    let correct=false;
-    if(q.type==='fill') {
-      let ans=document.getElementById(`qa-${i}`).value.trim().toLowerCase();
-      correct=q.a.some(a=>ans.includes(a.toLowerCase())||a.toLowerCase().includes(ans));
-      if(!ans) correct=false;
-      fb.textContent=correct?'Correct!':'Incorrect. Answer: '+q.a[0];
-    } else {
-      let sel=document.querySelector(`input[name="qa-${i}"]:checked`);
-      correct=sel&&parseInt(sel.value)===q.correct;
-      fb.textContent=correct?'Correct!':'Incorrect. Answer: '+q.options[q.correct];
-    }
+    let sel=document.querySelector(`input[name="qa-${i}"]:checked`);
+    let correct=sel&&parseInt(sel.value)===q.correct;
+    fb.textContent=correct?'Correct!':'Incorrect. Answer: '+q.options[q.correct];
     fb.className='quiz-feedback '+(correct?'correct':'incorrect');
     if(correct) score++;
   });
