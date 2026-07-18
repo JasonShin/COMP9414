@@ -201,11 +201,13 @@ canvas { border-radius: 8px; display: block; margin: 0 auto; }
 <div class="header">
   <h1>Week 5: Reinforcement Learning</h1>
   <p>COMP9414 Artificial Intelligence</p>
+  <a href="learn.html" style="display:inline-block;margin-top:12px;padding:8px 20px;background:linear-gradient(135deg,#6c63ff,#a78bfa);color:#fff;border-radius:20px;text-decoration:none;font-size:0.85rem;font-weight:500;transition:transform 0.2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">New here? Start with the beginner-friendly lesson</a>
 </div>
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('concepts')">Concepts</button>
   <button class="tab-btn" onclick="switchTab('gridworld')">Interactive Gridworld</button>
   <button class="tab-btn" onclick="switchTab('comparison')">SARSA vs Q-Learning</button>
+  <button class="tab-btn" onclick="switchTab('exercises')">Tutorial Exercises</button>
   <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
   <button class="tab-btn" onclick="switchTab('oral')">Oral Practice</button>
 </div>
@@ -307,6 +309,262 @@ canvas { border-radius: 8px; display: block; margin: 0 auto; }
   </div>
 </div>
 
+<!-- TUTORIAL EXERCISES TAB -->
+<div id="exercises" class="tab-content">
+  <h2 style="margin-bottom:1.5rem;font-size:1.3rem">Tutorial Exercises (from Joffrey's tutorial)</h2>
+
+  <!-- Exercise 1: 2-State MDP -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 1: Two-State MDP — Value Functions</span><span class="arrow">▼</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> Two states S = {S₁, S₂}, two actions A = {a₁, a₂}</p>
+      <div class="formula">Transitions & Rewards:
+δ(S₁, a₁) = S₁   r(S₁, a₁) =  0
+δ(S₁, a₂) = S₂   r(S₁, a₂) = -1
+δ(S₂, a₁) = S₂   r(S₂, a₁) = +1
+δ(S₂, a₂) = S₁   r(S₂, a₂) = +5</div>
+      <p><strong>Think of it as:</strong> S₁ has a "stay and get nothing" option (a₁) or "go to S₂ but pay -1" option (a₂). S₂ has "stay and earn +1" (a₁) or "go to S₁ and earn +5" (a₂).</p>
+
+      <p style="margin-top:1rem"><strong>(i) Draw the MDP:</strong></p>
+      <div class="formula">     a₁ (reward 0)
+    ┌──────┐
+    │      ↓
+   [S₁] ──────→ [S₂]
+         a₂         │
+      (reward -1)    │ a₁ (reward +1)
+                     ↓──┘
+   [S₁] ←────── [S₂]
+         a₂
+      (reward +5)</div>
+
+      <p style="margin-top:1rem"><strong>(ii) Optimal Policy (γ = 0.9):</strong></p>
+      <p>We need to compare all possible policies. Let's check each action from each state:</p>
+
+      <p style="margin-top:0.8rem"><strong>From S₁:</strong></p>
+      <div class="formula">If always a₁ at S₁: V^a₁(S₁) = 0 + 0.9·0 + 0.81·0 + ... = 0  (stuck earning nothing!)
+
+If a₂ at S₁ (go to S₂, then best action from S₂):
+V^a₂(S₁) = -1 + γ·(best from S₂)    ← we need to figure out S₂ first</div>
+
+      <p style="margin-top:0.8rem"><strong>From S₂:</strong></p>
+      <div class="formula">If always a₁ at S₂: V^a₁(S₂) = 1 + 0.9·1 + 0.81·1 + ... = 1/(1-0.9) = 10
+
+If always a₂ at S₂ (go to S₁, then take a₂ back to S₂):
+V^a₂(S₂) = 5 + 0.9·(-1) + 0.9²·5 + 0.9³·(-1) + ...
+          = (5 - 0.9) + (5 - 0.9)·0.81 + ...
+          = 4.1 / (1 - 0.81) = 4.1 / 0.19 ≈ 21.58</div>
+
+      <p>Since V^a₂(S₂) > V^a₁(S₂): <strong>at S₂, take a₂ (go to S₁ for +5)</strong></p>
+      <p>Since staying at S₁ with a₁ gives 0 but taking a₂ leads to the lucrative S₁↔S₂ cycle: <strong>at S₁, take a₂ (go to S₂ for -1)</strong></p>
+
+      <div class="formula" style="border-left-color:var(--green)">Optimal Policy π*:
+  π*(S₁) = a₂  (go to S₂, pay -1 now, big rewards later)
+  π*(S₂) = a₂  (go to S₁, earn +5 now)</div>
+
+      <p style="margin-top:1rem"><strong>(b) State-Value Function V*:</strong></p>
+      <p>Using Bellman equation: V*(s) = R(s, π*(s)) + γ·V*(next state)</p>
+      <div class="formula">V*(S₁) = -1 + 0.9·V*(S₂)    ... (1)
+V*(S₂) = 5 + 0.9·V*(S₁)     ... (2)
+
+Substitute (2) into (1):
+V*(S₁) = -1 + 0.9·(5 + 0.9·V*(S₁))
+V*(S₁) = -1 + 4.5 + 0.81·V*(S₁)
+V*(S₁) - 0.81·V*(S₁) = 3.5
+0.19·V*(S₁) = 3.5
+<strong>V*(S₁) = 3.5 / 0.19 ≈ 18.42</strong>
+
+V*(S₂) = 5 + 0.9 × 18.42 ≈ <strong>21.58</strong></div>
+
+      <p style="margin-top:1rem"><strong>(c) Action-Value Function Q*:</strong></p>
+      <div class="formula">Q*(s,a) = R(s,a) + γ·V*(next state)
+
+Q*(S₁, a₁) = 0 + 0.9·V*(S₁) = 0 + 0.9 × 18.42 ≈ <strong>16.58</strong>
+Q*(S₁, a₂) = -1 + 0.9·V*(S₂) = -1 + 0.9 × 21.58 ≈ <strong>18.42</strong>  ← higher → choose a₂ ✓
+Q*(S₂, a₁) = 1 + 0.9·V*(S₂) = 1 + 0.9 × 21.58 ≈ <strong>20.42</strong>
+Q*(S₂, a₂) = 5 + 0.9·V*(S₁) = 5 + 0.9 × 18.42 ≈ <strong>21.58</strong>  ← higher → choose a₂ ✓</div>
+
+      <p><strong>Q-table:</strong></p>
+      <table class="qtable" style="max-width:300px;margin:0.5rem 0">
+        <tr><th>Q*</th><th>a₁</th><th>a₂</th></tr>
+        <tr><td>S₁</td><td>16.58</td><td style="color:#4ade80;font-weight:bold">18.42</td></tr>
+        <tr><td>S₂</td><td>20.42</td><td style="color:#4ade80;font-weight:bold">21.58</td></tr>
+      </table>
+
+      <p style="margin-top:1rem"><strong>Key Takeaway:</strong> Even though a₂ from S₁ has an immediate reward of -1, it's optimal because it leads to the high-reward S₂ cycle. This shows why value functions consider long-term returns, not just immediate rewards!</p>
+    </div>
+  </div>
+
+  <!-- Exercise 2: Q-Learning Trace -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 2: Q-Learning Trace (Why Exploration Matters)</span><span class="arrow">▼</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> Same 2-state MDP as above. All Q-values initialized to 0. α = 0.5, γ = 0.9.</p>
+      <p>Let's trace Q-learning updates step by step, starting at S₁:</p>
+
+      <div class="formula" style="border-left-color:var(--yellow)">Q-learning update: Q(s,a) ← Q(s,a) + α[r + γ·max Q(s',·) - Q(s,a)]
+
+Initial Q-table: all zeros
+  Q(S₁,a₁)=0  Q(S₁,a₂)=0  Q(S₂,a₁)=0  Q(S₂,a₂)=0</div>
+
+      <p><strong>Step 1:</strong> At S₁, all Q=0 so random pick. Say we pick a₁ (stay at S₁, reward=0):</p>
+      <div class="formula">Q(S₁,a₁) ← 0 + 0.5·[0 + 0.9·max(Q(S₁,·)) - 0]
+           = 0 + 0.5·[0 + 0.9·0 - 0] = <strong>0</strong>    (nothing learned!)</div>
+
+      <p><strong>Step 2:</strong> Still at S₁, pick a₁ again... still Q=0. We're stuck!</p>
+
+      <div class="formula" style="border-left-color:var(--red)">PROBLEM: If we always pick a₁ (greedy on Q=0), we never
+discover that a₂ leads to rewards. The Q-values never change.
+This is why ε-greedy exploration is essential!</div>
+
+      <p><strong>Step 3 (with exploration):</strong> Randomly pick a₂. Go to S₂, reward = -1:</p>
+      <div class="formula">Q(S₁,a₂) ← 0 + 0.5·[-1 + 0.9·max(Q(S₂,·)) - 0]
+           = 0 + 0.5·[-1 + 0.9·0 - 0] = <strong>-0.5</strong></div>
+
+      <p><strong>Step 4:</strong> At S₂, explore: pick a₂. Go to S₁, reward = +5:</p>
+      <div class="formula">Q(S₂,a₂) ← 0 + 0.5·[5 + 0.9·max(Q(S₁,·)) - 0]
+           = 0 + 0.5·[5 + 0.9·0 - 0] = <strong>+2.5</strong>    (now S₂ knows a₂ is good!)</div>
+
+      <p><strong>Step 5:</strong> Back at S₁, explore: pick a₂ again. Go to S₂, reward = -1:</p>
+      <div class="formula">Q(S₁,a₂) ← -0.5 + 0.5·[-1 + 0.9·max(Q(S₂,·)) - (-0.5)]
+           = -0.5 + 0.5·[-1 + 0.9·2.5 + 0.5]
+           = -0.5 + 0.5·[0.75] = <strong>-0.125</strong>    (improving! S₁ learning S₂ is worthwhile)</div>
+
+      <p>Over many steps, Q-values converge to the true Q* values (16.58, 18.42, 20.42, 21.58).</p>
+
+      <p style="margin-top:1rem"><strong>Key Takeaway:</strong> Without exploration (ε > 0), the agent can get stuck with Q=0 everywhere and never learn. Exploration ensures all state-action pairs are visited, allowing the agent to discover distant rewards.</p>
+    </div>
+  </div>
+
+  <!-- Exercise 3: Stochastic MDP -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 3: Three-State Stochastic MDP (Exam-Style)</span><span class="arrow">▼</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> S = {S₁, S₂, S₃}, A = {a₁, a₂}, γ = 0.9. Transitions are now <strong>stochastic</strong> (probabilistic):</p>
+
+      <table class="qtable" style="max-width:500px;margin:0.5rem 0">
+        <tr><th>State</th><th>Action</th><th>Next State</th><th>Reward</th></tr>
+        <tr><td>S₁</td><td>a₁</td><td>S₂ (70%), S₃ (30%)</td><td>2</td></tr>
+        <tr><td>S₁</td><td>a₂</td><td>S₃ (100%)</td><td>1</td></tr>
+        <tr><td>S₂</td><td>a₁</td><td>S₁ (100%)</td><td>0</td></tr>
+        <tr><td>S₂</td><td>a₂</td><td>S₂ (80%), S₃ (20%)</td><td>3</td></tr>
+        <tr><td>S₃</td><td>a₁</td><td>S₁ (50%), S₂ (50%)</td><td>-8</td></tr>
+        <tr><td>S₃</td><td>a₂</td><td>Terminal (100%)</td><td>4</td></tr>
+      </table>
+
+      <p style="margin-top:1rem"><strong>Question:</strong> What is Q*(S₁, a₁) — the expected value of taking a₁ in S₁, given optimal policy is followed thereafter?</p>
+
+      <p style="margin-top:0.8rem"><strong>Step 1: Find V* for each state (work backwards from terminal)</strong></p>
+      <div class="formula">At S₃: π*(S₃) = a₂ (reward 4, go to terminal) since a₁ gives -8
+  V*(S₃) = 4   (terminal after, no future rewards)</div>
+
+      <p><strong>Step 2: Find V*(S₂)</strong></p>
+      <div class="formula">Q*(S₂, a₁) = 0 + 0.9·V*(S₁)        ... needs V*(S₁)
+Q*(S₂, a₂) = 3 + 0.9·[0.8·V*(S₂) + 0.2·V*(S₃)]
+           = 3 + 0.9·[0.8·V*(S₂) + 0.2·4]
+           = 3 + 0.72·V*(S₂) + 0.72</div>
+
+      <p><strong>Step 3: Find V*(S₁)</strong></p>
+      <div class="formula">Q*(S₁, a₁) = 2 + 0.9·[0.7·V*(S₂) + 0.3·V*(S₃)]
+           = 2 + 0.9·[0.7·V*(S₂) + 0.3·4]
+           = 2 + 0.63·V*(S₂) + 1.08
+
+Q*(S₁, a₂) = 1 + 0.9·V*(S₃) = 1 + 0.9·4 = 4.6</div>
+
+      <p><strong>Step 4: Assume optimal actions and solve simultaneously</strong></p>
+      <p>Assuming a₂ is optimal at S₂ (staying in S₂ to farm reward 3):</p>
+      <div class="formula">V*(S₂) = 3 + 0.72·V*(S₂) + 0.72
+0.28·V*(S₂) = 3.72
+V*(S₂) = 3.72 / 0.28 ≈ 13.29</div>
+
+      <p>Now compute Q*(S₁, a₁):</p>
+      <div class="formula">Q*(S₁, a₁) = 2 + 0.63·13.29 + 1.08
+           = 2 + 8.37 + 1.08
+           = <strong>11.45</strong></div>
+
+      <div class="formula" style="border-left-color:var(--green)">Answer: E. 11.45
+
+(Also: Q*(S₁, a₂) = 4.6, so π*(S₁) = a₁ since 11.45 > 4.6)</div>
+
+      <p style="margin-top:1rem"><strong>Key insight for stochastic MDPs:</strong> When transitions are probabilistic, the value becomes an <strong>expected value</strong>:</p>
+      <div class="formula">Q(s,a) = R(s,a) + γ · Σ P(s'|s,a) · V*(s')
+                              ↑ sum over all possible next states, weighted by probability</div>
+    </div>
+  </div>
+
+  <!-- Exercise 4: SARSA vs Q-Learning Frozen Lake -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 4: SARSA vs Q-Learning — The Key Difference</span><span class="arrow">▼</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> Frozen Lake grid. Agent at (1,0), takes action → (move right), arrives at (1,1).</p>
+      <p>Q-values at (1,1) are:</p>
+      <table class="qtable" style="max-width:350px;margin:0.5rem 0">
+        <tr><th>Action at (1,1)</th><th>Q-value</th><th>Meaning</th></tr>
+        <tr><td>↑ up</td><td>-0.2</td><td>normal path</td></tr>
+        <tr><td>↓ down</td><td>-0.5</td><td>hole nearby</td></tr>
+        <tr><td>← left</td><td>0.1</td><td>back to (1,0)</td></tr>
+        <tr><td style="color:var(--green)">→ right</td><td style="color:var(--green)">0.3</td><td>heading to goal</td></tr>
+      </table>
+
+      <p style="margin-top:1rem"><strong>SARSA update (on-policy):</strong></p>
+      <div class="formula">The agent uses ε-greedy to choose next action at (1,1).
+Say ε-greedy randomly picks ↓ (down, Q = -0.5):
+
+Q(1,0,→) ← Q(1,0,→) + α·[reward + γ·Q(1,1,↓) - Q(1,0,→)]
+                                          <strong>↑ uses actual next action (↓, which was random)</strong>
+
+SARSA uses Q(1,1,↓) = -0.5 in the update.
+This penalizes going right because "what if I randomly go down from there?"</div>
+
+      <p style="margin-top:1rem"><strong>Q-Learning update (off-policy):</strong></p>
+      <div class="formula">Q-learning always uses the BEST action at (1,1), regardless of what was actually taken:
+
+Q(1,0,→) ← Q(1,0,→) + α·[reward + γ·max Q(1,1,·) - Q(1,0,→)]
+                                          <strong>↑ uses max = Q(1,1,→) = 0.3</strong>
+
+Q-learning uses max Q(1,1,·) = 0.3 in the update.
+This values going right highly because "the best move from there is good."</div>
+
+      <div class="formula" style="border-left-color:var(--yellow)">Summary:
+• SARSA: "What will actually happen next?" → accounts for exploration mistakes → SAFER
+• Q-Learning: "What's the best I could do next?" → ignores exploration risk → OPTIMAL
+
+In cliff/danger scenarios, SARSA learns to stay away from edges.
+Q-learning learns the theoretically optimal path (but falls off cliffs during training).</div>
+    </div>
+  </div>
+
+  <!-- Interactive 2-State MDP Calculator -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Interactive: Solve Any 2-State MDP</span><span class="arrow">▼</span></div>
+    <div class="concept-body">
+      <p>Change the rewards and discount factor to see how V* and Q* change:</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.8rem;margin:1rem 0">
+        <div class="control-row" style="flex-direction:column;align-items:stretch">
+          <label>r(S₁,a₁) — stay at S₁</label>
+          <input type="number" id="ex-r11" value="0" step="0.5" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;color:var(--text-primary);font-family:'JetBrains Mono',monospace" onchange="solveExMDP()">
+        </div>
+        <div class="control-row" style="flex-direction:column;align-items:stretch">
+          <label>r(S₁,a₂) — S₁→S₂</label>
+          <input type="number" id="ex-r12" value="-1" step="0.5" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;color:var(--text-primary);font-family:'JetBrains Mono',monospace" onchange="solveExMDP()">
+        </div>
+        <div class="control-row" style="flex-direction:column;align-items:stretch">
+          <label>r(S₂,a₁) — stay at S₂</label>
+          <input type="number" id="ex-r21" value="1" step="0.5" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;color:var(--text-primary);font-family:'JetBrains Mono',monospace" onchange="solveExMDP()">
+        </div>
+        <div class="control-row" style="flex-direction:column;align-items:stretch">
+          <label>r(S₂,a₂) — S₂→S₁</label>
+          <input type="number" id="ex-r22" value="5" step="0.5" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;color:var(--text-primary);font-family:'JetBrains Mono',monospace" onchange="solveExMDP()">
+        </div>
+        <div class="control-row" style="flex-direction:column;align-items:stretch">
+          <label>γ (discount)</label>
+          <input type="number" id="ex-gamma" value="0.9" step="0.05" min="0" max="0.99" style="background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:0.5rem;color:var(--text-primary);font-family:'JetBrains Mono',monospace" onchange="solveExMDP()">
+        </div>
+      </div>
+      <div id="ex-mdp-result" class="formula" style="border-left-color:var(--green)"></div>
+    </div>
+  </div>
+</div>
+
 <!-- QUIZ TAB -->
 <div id="quiz" class="tab-content">
   <div id="quiz-questions"></div>
@@ -346,7 +604,8 @@ function switchTab(id) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => { if(b.textContent.toLowerCase().includes(id.slice(0,4))) b.classList.add('active'); });
+  const tabMap = {concepts:'Concepts',gridworld:'Interactive',comparison:'SARSA',exercises:'Tutorial',quiz:'Quiz',oral:'Oral'};
+  document.querySelectorAll('.tab-btn').forEach(b => { if(b.textContent.includes(tabMap[id]||'')) b.classList.add('active'); });
   if(id === 'gridworld') gwDraw();
   if(id === 'comparison') { compDraw('sarsa'); compDraw('qlearn'); }
 }
@@ -771,6 +1030,11 @@ const quizData = [
   {type:'mc',q:'When is SARSA preferred over Q-learning?',options:['When we want faster convergence to optimal','When safety during learning matters (e.g., robot near cliff)','When we have a perfect model of the environment','When the state space is very large'],correct:1},
   {type:'mc',q:'What happens as ε increases in ε-greedy?',options:['The agent becomes more greedy','The agent explores more randomly','The learning rate increases','The discount factor changes'],correct:1},
   {type:'mc',q:'Which statement about Q-learning is TRUE?',options:['It always takes the greedy action','It converges to the optimal Q-values regardless of exploration policy','It is on-policy','It cannot handle stochastic environments'],correct:1},
+  {type:'mc',q:'In the 2-state MDP (r(S₁,a₁)=0, r(S₁,a₂)=-1, r(S₂,a₁)=+1, r(S₂,a₂)=+5, γ=0.9), what is the optimal action at S₁?',options:['a₁ (stay at S₁ for reward 0)','a₂ (go to S₂ for reward -1)','Both are equally optimal','Cannot be determined'],correct:1},
+  {type:'mc',q:'Why is exploration necessary in Q-learning even though it converges to optimal values?',options:['To speed up computation','Without exploration, Q-values of unvisited state-action pairs remain at their initial value and are never updated','To reduce memory usage','Exploration is optional in Q-learning'],correct:1},
+  {type:'mc',q:'In a stochastic MDP, Q(s,a) = R(s,a) + γ · ?',options:['V*(next state)','max Q(s\',a\')','Σ P(s\'|s,a) · V*(s\') — expected value over all possible next states','R(s\',a\')'],correct:2},
+  {type:'mc',q:'In the Frozen Lake example, SARSA updates Q(1,0,→) using Q(1,1,↓)=-0.5 while Q-learning uses max Q(1,1,·)=0.3. This means:',options:['SARSA values going right more highly','Q-learning values going right more highly because it assumes the best next action','They produce the same update','Neither is correct'],correct:1},
+  {type:'mc',q:'An MDP has 5 components: (S, A, R, P, γ). What does P represent?',options:['The policy function','The probability/transition function giving P(s\'|s,a)','The penalty function','The performance metric'],correct:1},
 ];
 
 function renderQuiz() {
@@ -816,7 +1080,10 @@ const flashcards = [
   {prompt:"Walk through one Q-learning update step with concrete numbers.",answer:"Suppose: Q(s=A, a=right) = 2.0, we take action 'right', get reward R=1, arrive at state B.\nAt state B: Q(B,up)=3.0, Q(B,down)=1.0, Q(B,left)=0.5, Q(B,right)=2.5\nSo max_a' Q(B,a') = 3.0\n\nWith α=0.1, γ=0.9:\nTD error = R + γ·max Q(B,·) - Q(A,right) = 1 + 0.9×3.0 - 2.0 = 1.7\nQ(A,right) ← 2.0 + 0.1 × 1.7 = 2.17\n\nNote: it doesn't matter what action we actually take at B; the update uses the max."},
   {prompt:"Why does Q-learning converge to the optimal policy even with ε-greedy exploration?",answer:"Q-learning's update rule uses max_a' Q(s',a') regardless of what action is actually taken. This means it's learning about the optimal policy (greedy policy) while following a different behavior policy (ε-greedy). As long as every state-action pair is visited infinitely often (guaranteed by ε > 0) and the learning rate satisfies certain conditions (decreasing appropriately), Q-learning provably converges to Q* - the optimal action-value function. This is the power of off-policy learning: the behavior policy only needs to be exploratory enough, not optimal."},
   {prompt:"Explain what the discount factor γ represents intuitively.",answer:"γ (gamma) represents how much the agent cares about future rewards relative to immediate rewards. With γ=0, the agent is completely myopic - it only maximizes immediate reward. With γ close to 1, future rewards are weighted almost as much as immediate rewards, making the agent far-sighted.\n\nMathematically, a reward k steps in the future is worth γ^k times its face value. So γ=0.9 means a reward 10 steps away is worth 0.9^10 ≈ 0.35 of its value. For continuing tasks, γ<1 is required to keep the return finite. γ also controls the effective planning horizon: roughly 1/(1-γ) steps ahead."},
-  {prompt:"What is the Markov property and why is it important for RL?",answer:"The Markov property states that the future state depends only on the current state and action, not on the history of previous states. Formally: P(S_{t+1}|S_t,A_t) = P(S_{t+1}|S_0,A_0,...,S_t,A_t).\n\nThis is crucial because it means the current state contains all information needed for decision-making. Without this property, we'd need to remember and process entire histories, making the problem intractable. It enables: (1) value functions that depend only on current state, (2) the Bellman equations that recursively define optimal values, (3) efficient dynamic programming and TD learning algorithms. If a problem isn't naturally Markov, we can often make it so by enriching the state representation."}
+  {prompt:"What is the Markov property and why is it important for RL?",answer:"The Markov property states that the future state depends only on the current state and action, not on the history of previous states. Formally: P(S_{t+1}|S_t,A_t) = P(S_{t+1}|S_0,A_0,...,S_t,A_t).\n\nThis is crucial because it means the current state contains all information needed for decision-making. Without this property, we'd need to remember and process entire histories, making the problem intractable. It enables: (1) value functions that depend only on current state, (2) the Bellman equations that recursively define optimal values, (3) efficient dynamic programming and TD learning algorithms. If a problem isn't naturally Markov, we can often make it so by enriching the state representation."},
+  {prompt:"Solve: 2-state MDP with r(S₁,a₂)=-1, r(S₂,a₂)=+5, γ=0.9. Why is π*(S₁)=a₂ even though the immediate reward is negative?",answer:"The immediate reward of a₂ from S₁ is -1, but it takes you to S₂. From S₂, the optimal action a₂ gives +5 and returns to S₁, creating a cycle:\n\nS₁ →(a₂, -1)→ S₂ →(a₂, +5)→ S₁ →(a₂, -1)→ S₂ → ...\n\nThe cycle averages (-1 + 5)/2 = +2 per step. Staying at S₁ with a₁ gives 0 forever.\n\nFormally: V*(S₁) = (-1 + 0.9×5) / (1 - 0.9²) = 3.5/0.19 ≈ 18.42. This is much better than V=0 from always taking a₁.\n\nKey lesson: RL agents evaluate actions by total discounted return, not just immediate reward. A short-term cost can be worth paying if it leads to high long-term rewards."},
+  {prompt:"How does Q-learning handle stochastic transitions? Give the formula.",answer:"When transitions are stochastic (probabilistic), the Q-value becomes an expected value:\n\nQ(s,a) = R(s,a) + γ · Σ P(s'|s,a) · V*(s')\n\nFor example, if action a₁ from S₁ goes to S₂ with 70% probability and S₃ with 30% probability, and the reward is 2:\n\nQ(S₁,a₁) = 2 + γ · [0.7·V*(S₂) + 0.3·V*(S₃)]\n\nIn tabular Q-learning, you don't need to know these probabilities explicitly. By sampling many transitions (visiting S₂ sometimes, S₃ other times), the Q-value estimates converge to the true expected values through averaging."},
+  {prompt:"What are the 5 components of an MDP and what does each represent?",answer:"An MDP is defined by the tuple (S, A, R, P, γ):\n\n1. S (States): Set of all possible states the agent can be in. E.g., grid positions.\n\n2. A (Actions): Set of all possible actions. E.g., {up, down, left, right, idle}.\n\n3. R (Reward function): R(s,a) or R(s,a,s') gives the immediate reward for taking action a in state s. Defines the goal.\n\n4. P (Transition probability): P(s'|s,a) gives the probability of reaching state s' when taking action a in state s. Can be deterministic (one next state) or stochastic (multiple possible next states).\n\n5. γ (Discount factor): 0 ≤ γ < 1. Controls how much future rewards are valued relative to immediate rewards. γ=0 is myopic, γ→1 is far-sighted."}
 ];
 
 let fcIndex=0, fcRatings=new Array(flashcards.length).fill(null);
@@ -839,6 +1106,66 @@ function fcRate(r) { fcRatings[fcIndex]=r; fcNext(); }
 function fcNext() { fcIndex=Math.min(fcIndex+1,flashcards.length-1); fcRender(); }
 function fcPrev() { fcIndex=Math.max(fcIndex-1,0); fcRender(); }
 fcRender();
+
+// ====== INTERACTIVE 2-STATE MDP SOLVER ======
+function solveExMDP() {
+  const r11 = +document.getElementById('ex-r11').value;
+  const r12 = +document.getElementById('ex-r12').value;
+  const r21 = +document.getElementById('ex-r21').value;
+  const r22 = +document.getElementById('ex-r22').value;
+  const g = +document.getElementById('ex-gamma').value;
+
+  // Enumerate all 4 policies: (S1 action, S2 action)
+  const policies = [['a₁','a₁'],['a₁','a₂'],['a₂','a₁'],['a₂','a₂']];
+  let bestV1 = -Infinity, bestV2 = -Infinity, bestPol = null;
+
+  for (const [p1, p2] of policies) {
+    // r1 = reward at S1 under policy, next1 = where S1 goes
+    const rr1 = p1==='a₁' ? r11 : r12;
+    const rr2 = p2==='a₁' ? r21 : r22;
+    const stays1 = p1==='a₁'; // true if S1→S1
+    const stays2 = p2==='a₁'; // true if S2→S2
+
+    let v1, v2;
+    if (stays1 && stays2) {
+      v1 = rr1/(1-g); v2 = rr2/(1-g);
+    } else if (stays1 && !stays2) {
+      // S1→S1, S2→S1: v2 = rr2 + g*v1, v1 = rr1/(1-g)
+      v1 = rr1/(1-g); v2 = rr2 + g*v1;
+    } else if (!stays1 && stays2) {
+      v2 = rr2/(1-g); v1 = rr1 + g*v2;
+    } else {
+      // S1→S2, S2→S1: v1 = rr1 + g*v2, v2 = rr2 + g*v1
+      // v1 = rr1 + g*(rr2 + g*v1) => v1(1-g²) = rr1 + g*rr2
+      v1 = (rr1 + g*rr2)/(1-g*g);
+      v2 = (rr2 + g*rr1)/(1-g*g);
+    }
+
+    if (v1 + v2 > bestV1 + bestV2) {
+      bestV1 = v1; bestV2 = v2; bestPol = [p1, p2];
+    }
+  }
+
+  // Compute Q* values
+  const q11 = r11 + g * bestV1; // S1,a1 → S1
+  const q12 = r12 + g * bestV2; // S1,a2 → S2
+  const q21 = r21 + g * bestV2; // S2,a1 → S2
+  const q22 = r22 + g * bestV1; // S2,a2 → S1
+
+  document.getElementById('ex-mdp-result').innerHTML =
+`<strong>Optimal Policy:</strong>  π*(S₁) = ${bestPol[0]}  |  π*(S₂) = ${bestPol[1]}
+
+<strong>State-Value Function V*:</strong>
+  V*(S₁) = ${bestV1.toFixed(2)}
+  V*(S₂) = ${bestV2.toFixed(2)}
+
+<strong>Action-Value Function Q*:</strong>
+  Q*(S₁, a₁) = ${r11} + ${g}·V*(S₁) = ${q11.toFixed(2)}  ${q11>=q12?'← best':''}
+  Q*(S₁, a₂) = ${r12} + ${g}·V*(S₂) = ${q12.toFixed(2)}  ${q12>q11?'← best':''}
+  Q*(S₂, a₁) = ${r21} + ${g}·V*(S₂) = ${q21.toFixed(2)}  ${q21>=q22?'← best':''}
+  Q*(S₂, a₂) = ${r22} + ${g}·V*(S₁) = ${q22.toFixed(2)}  ${q22>q21?'← best':''}`;
+}
+solveExMDP();
 </script>
 </body>
 </html>

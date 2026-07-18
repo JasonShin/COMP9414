@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn Reinforcement Learning - A Friendly Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #4A90D9;
+    --green: #27AE60;
+    --orange: #F39C12;
+    --purple: #8E44AD;
+    --red: #E74C3C;
+    --pink: #E91E8A;
+    --teal: #1ABC9C;
+    --bg: #FFF9F0;
+    --card: #FFFFFF;
+    --text: #2C3E50;
+    --text-light: #7F8C8D;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --radius: 18px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* Progress Bar */
+  .progress-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: #fff; padding: 10px 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .progress-bar .label { font-weight: 700; font-size: 14px; white-space: nowrap; color: var(--purple); }
+  .progress-track {
+    flex: 1; height: 14px; background: #EDE7F6; border-radius: 10px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple), var(--pink));
+    border-radius: 10px; transition: width 0.5s ease;
+  }
+  .progress-dots {
+    display: flex; gap: 6px;
+  }
+  .progress-dot {
+    width: 14px; height: 14px; border-radius: 50%; background: #EDE7F6;
+    transition: all 0.3s; cursor: pointer; border: 2px solid transparent;
+  }
+  .progress-dot.active { background: var(--purple); transform: scale(1.2); }
+  .progress-dot.done { background: var(--green); }
+
+  /* Chapter container */
+  .chapter {
+    display: none; max-width: 900px; margin: 80px auto 40px;
+    padding: 20px;
+  }
+  .chapter.active { display: block; }
+
+  .chapter-title {
+    font-size: 2.2rem; font-weight: 800; margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .chapter-subtitle {
+    font-size: 1.1rem; color: var(--text-light); margin-bottom: 30px;
+    font-style: italic;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: var(--radius); padding: 28px;
+    box-shadow: var(--shadow); margin-bottom: 24px;
+    border: 2px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .card:hover { border-color: #EDE7F6; }
+  .card h3 { font-size: 1.3rem; margin-bottom: 12px; }
+  .card p { margin-bottom: 12px; }
+
+  .highlight-box {
+    background: linear-gradient(135deg, #E8F8F5, #D5F5E3);
+    border-left: 5px solid var(--green);
+    padding: 18px 22px; border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 16px 0; font-weight: 500;
+  }
+  .warning-box {
+    background: linear-gradient(135deg, #FEF9E7, #FDEBD0);
+    border-left: 5px solid var(--orange);
+    padding: 18px 22px; border-radius: 0 var(--radius) var(--radius) 0;
+    margin: 16px 0;
+  }
+
+  .vocab {
+    display: inline-block; background: #EDE7F6; color: var(--purple);
+    padding: 3px 12px; border-radius: 20px; font-weight: 700; margin: 2px;
+  }
+
+  /* Grid world */
+  .grid-world {
+    display: inline-grid; gap: 3px; background: #BDC3C7; padding: 3px;
+    border-radius: 12px; margin: 16px auto; box-shadow: var(--shadow);
+  }
+  .grid-cell {
+    width: 80px; height: 80px; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; border-radius: 8px;
+    transition: background 0.3s, transform 0.2s;
+    user-select: none; cursor: default;
+    position: relative;
+  }
+  .grid-cell.robot { background: #E8F8F5; }
+  .grid-cell.cookie { background: #FDEBD0; }
+  .grid-cell.wall { background: #95A5A6; }
+  .grid-cell.pit { background: #FADBD8; }
+  .grid-cell.goal { background: #D5F5E3; }
+  .grid-cell.cliff { background: #E74C3C; color: #fff; }
+
+  .center { text-align: center; }
+  .flex-center { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 16px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-block; padding: 14px 32px; border: none; border-radius: 30px;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: all 0.3s; text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+  .btn:active { transform: translateY(0); }
+  .btn-blue { background: var(--blue); color: #fff; }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-orange { background: var(--orange); color: #fff; }
+  .btn-purple { background: var(--purple); color: #fff; }
+  .btn-pink { background: var(--pink); color: #fff; }
+  .btn-small { padding: 8px 18px; font-size: 0.85rem; }
+
+  /* Nav */
+  .chapter-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 40px; padding-top: 24px;
+    border-top: 2px dashed #EDE7F6;
+  }
+  .chapter-nav .btn { min-width: 160px; text-align: center; }
+
+  /* Slider */
+  .slider-container { margin: 20px 0; text-align: center; }
+  .slider-container input[type=range] {
+    width: 80%; max-width: 400px; height: 8px; -webkit-appearance: none;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    border-radius: 5px; outline: none;
+  }
+  .slider-container input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%;
+    background: #fff; border: 3px solid var(--purple);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2); cursor: pointer;
+  }
+  .slider-label { font-weight: 700; font-size: 1.2rem; color: var(--purple); margin: 8px 0; }
+
+  /* Slot machines */
+  .slot-machine {
+    width: 120px; padding: 20px 10px; border-radius: var(--radius);
+    text-align: center; cursor: pointer; transition: all 0.3s;
+    border: 3px solid transparent; user-select: none;
+  }
+  .slot-machine:hover { transform: scale(1.05); }
+  .slot-machine.selected { border-color: var(--text); }
+  .slot-machine .slot-emoji { font-size: 2.5rem; }
+  .slot-machine .slot-avg { font-size: 0.85rem; margin-top: 8px; font-weight: 600; }
+  .slot-machine .slot-pulls { font-size: 0.75rem; color: var(--text-light); }
+
+  /* Q-table */
+  .q-cell {
+    position: relative; width: 100px; height: 100px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+  }
+  .q-val {
+    position: absolute; font-size: 0.55rem; font-weight: 700;
+    background: rgba(255,255,255,0.85); padding: 1px 4px; border-radius: 4px;
+    transition: all 0.3s;
+  }
+  .q-val.up { top: 4px; left: 50%; transform: translateX(-50%); }
+  .q-val.down { bottom: 4px; left: 50%; transform: translateX(-50%); }
+  .q-val.left { left: 4px; top: 50%; transform: translateY(-50%); }
+  .q-val.right { right: 4px; top: 50%; transform: translateY(-50%); }
+
+  /* Chart */
+  .bar-chart {
+    display: flex; align-items: flex-end; gap: 8px; height: 180px;
+    padding: 10px; background: #fff; border-radius: 12px;
+    border: 2px solid #EDE7F6; margin: 16px auto; max-width: 500px;
+    justify-content: center;
+  }
+  .bar-wrapper { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar {
+    width: 50px; border-radius: 8px 8px 0 0;
+    transition: height 0.5s ease, background 0.5s;
+    min-height: 2px;
+  }
+  .bar-label { font-size: 0.7rem; font-weight: 600; color: var(--text-light); }
+  .bar-value { font-size: 0.75rem; font-weight: 700; }
+
+  /* Cookie timeline */
+  .cookie-timeline {
+    display: flex; align-items: flex-end; justify-content: center; gap: 20px;
+    min-height: 120px; margin: 20px 0; padding: 20px;
+    background: #fff; border-radius: var(--radius); border: 2px solid #EDE7F6;
+  }
+  .cookie-item {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    transition: all 0.4s;
+  }
+  .cookie-item .cookie-emoji { transition: font-size 0.4s, opacity 0.4s; }
+  .cookie-item .cookie-val { font-size: 0.8rem; font-weight: 700; color: var(--purple); }
+  .cookie-item .cookie-day { font-size: 0.75rem; color: var(--text-light); }
+
+  /* Comparison boxes */
+  .compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0;
+  }
+  @media (max-width: 600px) {
+    .compare { grid-template-columns: 1fr; }
+    .grid-cell { width: 60px; height: 60px; font-size: 1.5rem; }
+    .q-cell { width: 70px; height: 70px; }
+    .chapter-title { font-size: 1.6rem; }
+  }
+  .compare .card { border-top: 4px solid var(--blue); }
+  .compare .card:nth-child(2) { border-top-color: var(--green); }
+
+  /* Emoji illustration */
+  .emoji-scene {
+    font-size: 3rem; text-align: center; padding: 20px;
+    background: linear-gradient(135deg, #E8F8F5, #EBF5FB);
+    border-radius: var(--radius); margin: 16px 0;
+    line-height: 1.4;
+  }
+
+  /* Arrow cells for policy */
+  .arrow-cell {
+    cursor: pointer; font-size: 1.8rem;
+    transition: background 0.2s;
+  }
+  .arrow-cell:hover { background: #E8F8F5 !important; }
+
+  /* TD visual */
+  .td-visual {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    flex-wrap: wrap; margin: 16px 0;
+  }
+  .td-node {
+    width: 90px; height: 90px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 700; box-shadow: var(--shadow);
+    transition: all 0.5s;
+  }
+  .td-arrow { font-size: 2rem; color: var(--orange); }
+
+  /* Line chart canvas */
+  .line-chart-container {
+    background: #fff; border-radius: 12px; border: 2px solid #EDE7F6;
+    padding: 10px; margin: 16px 0;
+  }
+  canvas { border-radius: 8px; }
+
+  /* Architecture diagram */
+  .arch-diagram {
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    margin: 20px 0;
+  }
+  .arch-box {
+    padding: 16px 32px; border-radius: var(--radius); font-weight: 700;
+    text-align: center; min-width: 200px; box-shadow: var(--shadow);
+  }
+  .arch-arrow { font-size: 2rem; color: var(--text-light); }
+
+  .fade-in { animation: fadeIn 0.5s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .bounce { animation: bounce 0.6s; }
+  @keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+
+  /* Trail dot */
+  .trail { position: absolute; width: 10px; height: 10px; border-radius: 50%; opacity: 0.4; pointer-events: none; }
+
+  /* Stat counter */
+  .stat { display: inline-block; background: #EDE7F6; padding: 6px 16px; border-radius: 20px; font-weight: 700; margin: 4px; }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar">
+  <span class="label" id="progress-label">Chapter 1/8</span>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:12.5%"></div></div>
+  <div class="progress-dots" id="progress-dots"></div>
+</div>
+
+<!-- ========== CHAPTER 1 ========== -->
+<div class="chapter active" id="ch1">
+  <h1 class="chapter-title">Chapter 1: The Cookie-Finding Robot</h1>
+  <p class="chapter-subtitle">How does a robot learn without a teacher?</p>
+
+  <div class="emoji-scene">🤖 ➡️ 🏠❓❓❓ ➡️ 🍪!</div>
+
+  <div class="card">
+    <h3>Imagine this...</h3>
+    <p>You drop a little robot into a house it has <strong>never seen before</strong>. No map. No instructions. No idea where anything is.</p>
+    <p>Its only goal? <strong>Find the cookies!</strong> 🍪</p>
+    <p>The robot can only do one thing at a time: move <strong>up, down, left, or right</strong>. Every time it takes a step, its battery drains a tiny bit (-1). But when it finds a cookie... <strong>+10 points!</strong> 🎉</p>
+  </div>
+
+  <div class="compare">
+    <div class="card">
+      <h3>📸 Supervised Learning</h3>
+      <p>Someone shows the robot 1000 photos of cookies and says <em>"this is a cookie."</em></p>
+      <p>The robot learns to <strong>recognize</strong> cookies, but doesn't know how to <strong>find</strong> them.</p>
+      <p style="font-size:2rem;text-align:center">🧑‍🏫 ➡️ 🤖 = "That's a cookie!"</p>
+    </div>
+    <div class="card">
+      <h3>🔍 Reinforcement Learning</h3>
+      <p>Nobody tells the robot anything. It just <strong>wanders around</strong>, bumps into things, and eventually finds a cookie.</p>
+      <p>Then it thinks: <em>"I should come back here!"</em></p>
+      <p style="font-size:2rem;text-align:center">🤖 ➡️ 🚶 ➡️ 🚶 ➡️ 🍪 = "Yay!"</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Try it! Move the robot to the cookie</h3>
+    <p>Use the buttons below (or arrow keys) to guide the robot. Steps cost <strong>-1</strong>, cookie gives <strong>+10</strong>!</p>
+    <div class="center" style="margin:16px 0">
+      <div id="ch1-grid" class="grid-world" style="grid-template-columns: repeat(3, 80px);"></div>
+    </div>
+    <div class="center">
+      <div style="margin-bottom:8px"><button class="btn btn-blue btn-small" onclick="ch1Move(-1,0)">Up</button></div>
+      <button class="btn btn-blue btn-small" onclick="ch1Move(0,-1)">Left</button>
+      <button class="btn btn-blue btn-small" onclick="ch1Move(1,0)">Down</button>
+      <button class="btn btn-blue btn-small" onclick="ch1Move(0,1)">Right</button>
+    </div>
+    <p class="center" style="margin-top:12px">Score: <span class="stat" id="ch1-score">0</span> Steps: <span class="stat" id="ch1-steps">0</span></p>
+    <p class="center"><button class="btn btn-orange btn-small" onclick="ch1Reset()">Reset</button></p>
+  </div>
+
+  <div class="card">
+    <h3>🔑 Key Vocabulary</h3>
+    <p><span class="vocab">Agent</span> = the robot 🤖 — the thing that makes decisions</p>
+    <p><span class="vocab">Environment</span> = the house 🏠 — the world the agent lives in</p>
+    <p><span class="vocab">State</span> = which room the robot is in — its current situation</p>
+    <p><span class="vocab">Action</span> = move up/down/left/right — what the robot can do</p>
+    <p><span class="vocab">Reward</span> = +10 for cookie 🍪, -1 per step — feedback from the environment</p>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key Insight:</strong> In RL, there's no teacher showing the right answer. The agent learns by <strong>trying things</strong> and seeing what <strong>rewards</strong> it gets!
+  </div>
+
+  <div class="chapter-nav">
+    <span></span>
+    <button class="btn btn-purple" onclick="goChapter(2)">Next Chapter ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CHAPTER 2 ========== -->
+<div class="chapter" id="ch2">
+  <h1 class="chapter-title">Chapter 2: Remembering What Works</h1>
+  <p class="chapter-subtitle">Policy & Value: the robot's notebook</p>
+
+  <div class="emoji-scene">🤖📒 = "Kitchen ➡️ go left! Living room ➡️ go up!"</div>
+
+  <div class="card">
+    <h3>The Robot Gets a Notebook 📒</h3>
+    <p>After wandering randomly, the robot starts noticing patterns. It writes them down:</p>
+    <div class="warning-box">
+      <strong>"When I'm in the kitchen, going LEFT leads me closer to cookies."</strong><br>
+      <strong>"When I'm in the hallway, going UP is a dead end."</strong>
+    </div>
+    <p>This notebook of rules is called a <span class="vocab">Policy</span>. It's the robot's cheat sheet for what to do in every situation.</p>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Click cells to change the policy arrows</h3>
+    <p>Each arrow shows what direction the robot would go in that cell. Click to cycle through directions!</p>
+    <div class="center" style="margin:16px 0">
+      <div id="ch2-policy-grid" class="grid-world" style="grid-template-columns: repeat(3, 80px);"></div>
+    </div>
+    <p class="center" style="font-size:0.9rem;color:var(--text-light)">Click any cell to change its arrow direction</p>
+  </div>
+
+  <div class="card">
+    <h3>💰 Value: How Excited Is the Robot?</h3>
+    <p>The robot also rates each room: <em>"How good is it to be HERE?"</em></p>
+    <p>A room right next to the cookie? <strong style="color:var(--green)">High value!</strong> 🟢</p>
+    <p>A room far from the cookie? <strong style="color:var(--red)">Low value.</strong> 🔴</p>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Drag the cookie to see values change!</h3>
+    <p>The cell colors show value: <strong style="color:var(--green)">green = high</strong>, <strong style="color:var(--red)">red = low</strong>. Drag the 🍪 to a new cell!</p>
+    <div class="center" style="margin:16px 0">
+      <div id="ch2-value-grid" class="grid-world" style="grid-template-columns: repeat(4, 80px);"></div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key Insight:</strong> <span class="vocab">Policy</span> = "what should I do?" (action in each state). <span class="vocab">Value</span> = "how good is it here?" (expected future reward from each state).
+  </div>
+
+  <div class="chapter-nav">
+    <button class="btn btn-blue" onclick="goChapter(1)">⬅️ Previous</button>
+    <button class="btn btn-purple" onclick="goChapter(3)">Next Chapter ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CHAPTER 3 ========== -->
+<div class="chapter" id="ch3">
+  <h1 class="chapter-title">Chapter 3: The Discount Factor</h1>
+  <p class="chapter-subtitle">Would you rather have 1 cookie NOW or 1 cookie TOMORROW?</p>
+
+  <div class="emoji-scene">🍪 today &gt; 🍪 tomorrow &gt; 🍪 next week?</div>
+
+  <div class="card">
+    <h3>🎁 Patience Has a Name: gamma (γ)</h3>
+    <p>If someone offers you a cookie <strong>right now</strong> vs. a cookie <strong>next week</strong>, which do you pick? Most of us want it <strong>now</strong>!</p>
+    <p>In RL, we capture this with a number called <strong>gamma (γ)</strong>, between 0 and 1:</p>
+    <ul style="margin:12px 0 12px 24px">
+      <li><strong>γ = 0</strong> means "I only care about RIGHT NOW" (super impatient!)</li>
+      <li><strong>γ = 0.99</strong> means "I almost equally value future rewards" (super patient!)</li>
+      <li><strong>γ = 0.5</strong> means "each future step is worth HALF as much"</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Adjust γ and watch the cookies change!</h3>
+    <p>The math: Today = 1.0, Tomorrow = γ, Day after = γ<sup>2</sup>, then γ<sup>3</sup>, γ<sup>4</sup>...</p>
+    <div class="slider-container">
+      <div class="slider-label">γ = <span id="gamma-val">0.50</span></div>
+      <input type="range" min="0" max="99" value="50" id="gamma-slider" oninput="updateGamma()">
+    </div>
+    <div class="cookie-timeline" id="cookie-timeline"></div>
+    <div class="bar-chart" id="gamma-bars"></div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key Insight:</strong> γ controls how far into the future the agent looks. Low γ = greedy/short-sighted. High γ = patient/far-sighted.
+  </div>
+
+  <div class="chapter-nav">
+    <button class="btn btn-blue" onclick="goChapter(2)">⬅️ Previous</button>
+    <button class="btn btn-purple" onclick="goChapter(4)">Next Chapter ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CHAPTER 4 ========== -->
+<div class="chapter" id="ch4">
+  <h1 class="chapter-title">Chapter 4: Explore or Exploit?</h1>
+  <p class="chapter-subtitle">The great dilemma: stick with what works, or try something new?</p>
+
+  <div class="emoji-scene">🗺️ Try new things? &nbsp; or &nbsp; 💰 Stick with what works?</div>
+
+  <div class="card">
+    <h3>🍕 The Restaurant Dilemma</h3>
+    <p>You found a pizza place that's <strong>7/10</strong>. Pretty good!</p>
+    <p>But there's a new restaurant next door. It might be <strong>9/10</strong>... or it might be <strong>2/10</strong>. Do you risk it?</p>
+    <div class="compare">
+      <div class="card" style="border-top-color: var(--orange)">
+        <h3>💰 Exploit</h3>
+        <p>Always go to your best-known option. Safe, but you might miss something amazing!</p>
+      </div>
+      <div class="card" style="border-top-color: var(--teal)">
+        <h3>🗺️ Explore</h3>
+        <p>Sometimes try random things. Risky, but you might discover something great!</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Slot Machine Game!</h3>
+    <p>Each machine has a <strong>hidden</strong> average payout. Click to pull! Can you find the best one?</p>
+    <div class="flex-center" id="slot-machines" style="margin:16px 0"></div>
+    <p class="center">
+      Total reward: <span class="stat" id="slot-total">0</span>
+      Pulls left: <span class="stat" id="slot-pulls-left">20</span>
+    </p>
+    <p class="center" style="margin-top:8px">
+      <button class="btn btn-orange btn-small" onclick="resetSlots()">Reset Game</button>
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>🤖 Let the computer try! ε-greedy strategy</h3>
+    <p>ε (epsilon) = probability of exploring (trying a random machine).</p>
+    <div class="slider-container">
+      <div class="slider-label">ε = <span id="eps-val">0.10</span></div>
+      <input type="range" min="0" max="50" value="10" id="eps-slider" oninput="document.getElementById('eps-val').textContent=(this.value/100).toFixed(2)">
+    </div>
+    <div class="center" style="margin:12px 0">
+      <button class="btn btn-green btn-small" onclick="runAutoSlots('greedy')">Run: Always Exploit (ε=0)</button>
+      <button class="btn btn-purple btn-small" onclick="runAutoSlots('egreedy')">Run: ε-greedy</button>
+    </div>
+    <div class="line-chart-container">
+      <canvas id="slot-chart" width="800" height="250"></canvas>
+    </div>
+    <p class="center" style="font-size:0.85rem;color:var(--text-light)" id="slot-result-text"></p>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key Insight:</strong> Pure exploitation gets stuck on a "good enough" option. A little exploration (ε-greedy) helps find the truly best option!
+  </div>
+
+  <div class="chapter-nav">
+    <button class="btn btn-blue" onclick="goChapter(3)">⬅️ Previous</button>
+    <button class="btn btn-purple" onclick="goChapter(5)">Next Chapter ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CHAPTER 5 ========== -->
+<div class="chapter" id="ch5">
+  <h1 class="chapter-title">Chapter 5: Learning Step by Step</h1>
+  <p class="chapter-subtitle">TD Learning: updating your guesses on the go</p>
+
+  <div class="emoji-scene">🤖👣 "I don't need to arrive to know I'm on the right track!"</div>
+
+  <div class="card">
+    <h3>🏫 The Walk to School Analogy</h3>
+    <p>Imagine walking to school. You don't need to <strong>arrive</strong> to know you're going the right way &mdash; seeing <strong>familiar landmarks</strong> tells you!</p>
+    <p>TD Learning works the same way. The robot updates its guess <strong>every single step</strong>, not just when it finds the cookie.</p>
+  </div>
+
+  <div class="card">
+    <h3>🧮 The TD Update (step by step)</h3>
+    <div class="td-visual">
+      <div class="td-node" id="td-node-a" style="background:#E8F8F5; border:3px solid var(--teal)">
+        <span>Cell A</span>
+        <span id="td-va" style="font-size:1.3rem; color:var(--teal)">V=3.0</span>
+      </div>
+      <div class="td-arrow">➡️ <span style="font-size:0.8rem; display:block">r = 1</span></div>
+      <div class="td-node" style="background:#D5F5E3; border:3px solid var(--green)">
+        <span>Cell B</span>
+        <span style="font-size:1.3rem; color:var(--green)">V=5.0</span>
+      </div>
+    </div>
+
+    <div style="background:#F8F9FA; padding:18px; border-radius:12px; margin:12px 0; font-family: monospace; font-size:0.95rem; line-height:2">
+      <strong>1.</strong> New estimate of A = reward + γ x V(B)<br>
+      &nbsp;&nbsp;&nbsp; = 1 + <span id="td-gamma-display">0.90</span> x 5.0 = <span id="td-new-est">5.50</span><br><br>
+      <strong>2.</strong> TD Error = new estimate - old estimate<br>
+      &nbsp;&nbsp;&nbsp; = <span id="td-new-est2">5.50</span> - 3.00 = <span id="td-error">2.50</span><br><br>
+      <strong>3.</strong> V(A) ← old + α x TD Error<br>
+      &nbsp;&nbsp;&nbsp; = 3.00 + <span id="td-alpha-display">0.50</span> x <span id="td-error2">2.50</span> = <strong id="td-result">4.25</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Adjust α (learning rate) and see what happens!</h3>
+    <p>α controls how much the robot trusts the new information vs. its old belief.</p>
+    <div class="slider-container">
+      <div class="slider-label">α = <span id="alpha-val">0.50</span></div>
+      <input type="range" min="1" max="100" value="50" id="alpha-slider" oninput="updateTD()">
+    </div>
+    <div class="compare">
+      <div class="card">
+        <h3>α = small (0.1)</h3>
+        <p>🐢 Slow learner. Trusts old beliefs. Barely moves toward new info. Stable but slow.</p>
+      </div>
+      <div class="card">
+        <h3>α = large (0.9)</h3>
+        <p>🐇 Fast learner. Trusts new info immediately. Quick but might overshoot!</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key Insight:</strong> TD Learning lets the agent learn <strong>during</strong> the journey, not just at the end. It updates its value estimates step by step using the formula: V(s) ← V(s) + α [r + γV(s') - V(s)]
+  </div>
+
+  <div class="chapter-nav">
+    <button class="btn btn-blue" onclick="goChapter(4)">⬅️ Previous</button>
+    <button class="btn btn-purple" onclick="goChapter(6)">Next Chapter ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CHAPTER 6 ========== -->
+<div class="chapter" id="ch6">
+  <h1 class="chapter-title">Chapter 6: Q-Table: Rating Every Move</h1>
+  <p class="chapter-subtitle">Not just "how good is this room?" but "how good is going LEFT from this room?"</p>
+
+  <div class="emoji-scene">📊 Q(state, action) = "How good is doing THIS from HERE?"</div>
+
+  <div class="card">
+    <h3>From Values to Q-Values</h3>
+    <p>Before, we rated each <strong>room</strong>. Now we rate each <strong>(room, direction)</strong> pair!</p>
+    <p>Q(kitchen, left) = 8.5 means "going left from the kitchen is awesome!" 🎉</p>
+    <p>Q(kitchen, right) = -2.0 means "going right from the kitchen is bad!" 😬</p>
+  </div>
+
+  <div class="card">
+    <h3>🎮 Train the Q-Table!</h3>
+    <p>A 3x4 gridworld: 🏆 = goal (+1), 💀 = pit (-1). Click "Train 1 Episode" to watch the robot learn!</p>
+    <div class="center" style="margin:16px 0">
+      <div id="ch6-grid" class="grid-world" style="grid-template-columns: repeat(4, 100px);"></div>
+    </div>
+    <div class="center" style="margin:12px 0">
+      <button class="btn btn-green btn-small" onclick="trainQEpisode()">Train 1 Episode</button>
+      <button class="btn btn-purple btn-small" onclick="trainQMany(10)">Train 10 Episodes</button>
+      <button class="btn btn-orange btn-small" onclick="resetQ()">Reset</button>
+    </div>
+    <p class="center">Episodes trained: <span class="stat" id="q-episodes">0</span></p>
+    <div id="q-table-display" style="margin-top:16px; font-size:0.8rem; overflow-x:auto"></div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key Insight:</strong> A Q-table stores a value for every (state, action) pair. The agent picks the action with the highest Q-value. As it trains more, the values converge to the optimal policy!
+  </div>
+
+  <div class="chapter-nav">
+    <button class="btn btn-blue" onclick="goChapter(5)">⬅️ Previous</button>
+    <button class="btn btn-purple" onclick="goChapter(7)">Next Chapter ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CHAPTER 7 ========== -->
+<div class="chapter" id="ch7">
+  <h1 class="chapter-title">Chapter 7: SARSA vs Q-Learning</h1>
+  <p class="chapter-subtitle">The Careful Turtle vs. the Bold Rabbit</p>
+
+  <div class="emoji-scene">🐢 "I'll take the safe path" &nbsp;&nbsp; 🐇 "I'll take the shortcut!"</div>
+
+  <div class="card">
+    <h3>🏔️ The Cliff World</h3>
+    <p>Both robots start at <strong>S</strong> and want to reach <strong>G</strong>. The bottom row is a <strong>cliff</strong> (instant -100 and restart!).</p>
+    <p>The safe path goes around the top. The risky (but shorter) path goes along the cliff edge.</p>
+    <div class="center" style="margin:16px 0">
+      <div id="ch7-grid" class="grid-world" style="grid-template-columns: repeat(8, 70px);"></div>
+    </div>
+    <div class="center" style="margin:12px 0">
+      <button class="btn btn-green btn-small" onclick="trainCliffBoth(1)">Train Both (1 ep)</button>
+      <button class="btn btn-purple btn-small" onclick="trainCliffBoth(50)">Train Both (50 ep)</button>
+      <button class="btn btn-orange btn-small" onclick="resetCliff()">Reset</button>
+    </div>
+    <p class="center">
+      Episodes: <span class="stat" id="cliff-episodes">0</span>
+    </p>
+    <div class="compare" style="margin-top:16px">
+      <div class="card">
+        <h3>🐢 SARSA (On-Policy)</h3>
+        <p>"What will I <strong>actually do</strong> next (including mistakes)?"</p>
+        <p>Learns the <strong>safe path</strong> because it accounts for its own random exploration near the cliff.</p>
+        <p>Avg reward: <span class="stat" id="sarsa-reward">0</span></p>
+      </div>
+      <div class="card">
+        <h3>🐇 Q-Learning (Off-Policy)</h3>
+        <p>"What's the <strong>best</strong> I could do next?"</p>
+        <p>Learns the <strong>optimal path</strong> close to cliff (risky during training but optimal in theory).</p>
+        <p>Avg reward: <span class="stat" id="qlearn-reward">0</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key Insight:</strong> SARSA uses the action it <em>actually</em> takes next (on-policy). Q-Learning uses the <em>best possible</em> next action (off-policy). This makes SARSA safer but Q-Learning closer to optimal.
+  </div>
+
+  <div class="chapter-nav">
+    <button class="btn btn-blue" onclick="goChapter(6)">⬅️ Previous</button>
+    <button class="btn btn-purple" onclick="goChapter(8)">Next Chapter ➡️</button>
+  </div>
+</div>
+
+<!-- ========== CHAPTER 8 ========== -->
+<div class="chapter" id="ch8">
+  <h1 class="chapter-title">Chapter 8: Putting It All Together</h1>
+  <p class="chapter-subtitle">From toy grids to your Assignment 2!</p>
+
+  <div class="emoji-scene">🤖🤖🤖 ➡️ 🏠🧹 ➡️ 🎓</div>
+
+  <div class="card">
+    <h3>🧹 Your Assignment 2 Setup</h3>
+    <div style="display:grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin:12px 0">
+      <span class="vocab">Grid</span><span>12 x 12 cleaning area</span>
+      <span class="vocab">Agents</span><span>3 cleaning robots working together</span>
+      <span class="vocab">Rewards</span><span>+2 clean dirt, +4 large dirt, -20 crash into each other!</span>
+      <span class="vocab">Policy</span><span>Neural network (Actor) - replaces the Q-table</span>
+      <span class="vocab">Value</span><span>Neural network (Critic) - estimates how good a state is</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🎭 Actor-Critic Architecture</h3>
+    <p>Instead of a Q-table (which gets too big for complex problems), we use two neural networks:</p>
+    <div class="arch-diagram">
+      <div class="arch-box" style="background:#E8F8F5; border:3px solid var(--teal)">
+        🌍 State (what the robot sees)
+      </div>
+      <div class="arch-arrow">⬇️</div>
+      <div style="display:flex; gap:30px; flex-wrap:wrap; justify-content:center">
+        <div style="display:flex; flex-direction:column; align-items:center">
+          <div class="arch-box" style="background:#EBF5FB; border:3px solid var(--blue)">
+            🎭 Actor Network<br><span style="font-size:0.85rem; font-weight:400">"What should I do?"</span>
+          </div>
+          <div class="arch-arrow">⬇️</div>
+          <div class="arch-box" style="background:#FDEBD0; border:3px solid var(--orange)">
+            Action probabilities<br><span style="font-size:0.85rem">⬆️30% ⬇️10% ⬅️50% ➡️10%</span>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center">
+          <div class="arch-box" style="background:#F5EEF8; border:3px solid var(--purple)">
+            🎯 Critic Network<br><span style="font-size:0.85rem; font-weight:400">"How good is this state?"</span>
+          </div>
+          <div class="arch-arrow">⬇️</div>
+          <div class="arch-box" style="background:#D5F5E3; border:3px solid var(--green)">
+            Value = 7.3<br><span style="font-size:0.85rem">"Pretty good spot!"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📦 PPO, IPPO, and MAPPO</h3>
+    <div style="margin:12px 0">
+      <div class="warning-box">
+        <strong>PPO (Proximal Policy Optimization)</strong><br>
+        A smarter version of policy gradient. It says: "don't change the policy too much in one step" by clipping the update. Think of it as training wheels for the learning process!
+      </div>
+      <div class="compare" style="margin-top:16px">
+        <div class="card" style="border-top-color: var(--blue)">
+          <h3>IPPO (Independent PPO)</h3>
+          <p>Each robot learns <strong>independently</strong> &mdash; like 3 separate Q-learners that don't talk to each other.</p>
+          <p style="font-size:1.5rem; text-align:center">🤖 &nbsp; 🤖 &nbsp; 🤖<br><span style="font-size:0.8rem">Each has own Actor + Critic</span></p>
+        </div>
+        <div class="card" style="border-top-color: var(--green)">
+          <h3>MAPPO (Multi-Agent PPO)</h3>
+          <p>Robots share a <strong>critic</strong> &mdash; during training, one brain can see what ALL robots see. Better coordination!</p>
+          <p style="font-size:1.5rem; text-align:center">🤖🤖🤖<br><span style="font-size:0.8rem">Shared Critic, separate Actors</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🗺️ The Full Journey (what you learned!)</h3>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:12px 0">
+      <span class="vocab" style="cursor:pointer" onclick="goChapter(1)">Ch1: Agent & Environment</span>
+      <span class="vocab" style="cursor:pointer" onclick="goChapter(2)">Ch2: Policy & Value</span>
+      <span class="vocab" style="cursor:pointer" onclick="goChapter(3)">Ch3: Discount γ</span>
+      <span class="vocab" style="cursor:pointer" onclick="goChapter(4)">Ch4: Explore vs Exploit</span>
+      <span class="vocab" style="cursor:pointer" onclick="goChapter(5)">Ch5: TD Learning</span>
+      <span class="vocab" style="cursor:pointer" onclick="goChapter(6)">Ch6: Q-Values</span>
+      <span class="vocab" style="cursor:pointer" onclick="goChapter(7)">Ch7: SARSA vs Q-Learning</span>
+      <span class="vocab" style="cursor:pointer" onclick="goChapter(8)">Ch8: Assignment 2</span>
+    </div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>You did it! 🎉</strong> You now understand the fundamentals of Reinforcement Learning. Go crush that assignment!
+  </div>
+
+  <div class="chapter-nav">
+    <button class="btn btn-blue" onclick="goChapter(7)">⬅️ Previous</button>
+    <button class="btn btn-green" onclick="goChapter(1)">🔄 Start Over</button>
+  </div>
+</div>
+
+<script>
+// ===== NAVIGATION =====
+const TOTAL_CHAPTERS = 8;
+let currentChapter = 1;
+
+function initDots() {
+  const c = document.getElementById('progress-dots');
+  for (let i = 1; i <= TOTAL_CHAPTERS; i++) {
+    const d = document.createElement('div');
+    d.className = 'progress-dot' + (i === 1 ? ' active' : '');
+    d.title = 'Chapter ' + i;
+    d.onclick = () => goChapter(i);
+    c.appendChild(d);
+  }
+}
+
+function goChapter(n) {
+  document.getElementById('ch' + currentChapter).classList.remove('active');
+  currentChapter = n;
+  const el = document.getElementById('ch' + n);
+  el.classList.add('active');
+  el.classList.remove('fade-in');
+  void el.offsetWidth;
+  el.classList.add('fade-in');
+  document.getElementById('progress-label').textContent = `Chapter ${n}/${TOTAL_CHAPTERS}`;
+  document.getElementById('progress-fill').style.width = (n / TOTAL_CHAPTERS * 100) + '%';
+  const dots = document.querySelectorAll('.progress-dot');
+  dots.forEach((d, i) => {
+    d.className = 'progress-dot';
+    if (i + 1 === n) d.classList.add('active');
+    else if (i + 1 < n) d.classList.add('done');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== CHAPTER 1: Grid Game =====
+let ch1Robot = [0, 0], ch1Cookie = [2, 2], ch1Score = 0, ch1Steps = 0;
+
+function ch1Render() {
+  const g = document.getElementById('ch1-grid');
+  g.innerHTML = '';
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    if (r === ch1Robot[0] && c === ch1Robot[1]) { cell.textContent = '🤖'; cell.classList.add('robot'); }
+    else if (r === ch1Cookie[0] && c === ch1Cookie[1]) { cell.textContent = '🍪'; cell.classList.add('cookie'); }
+    g.appendChild(cell);
+  }
+  document.getElementById('ch1-score').textContent = ch1Score;
+  document.getElementById('ch1-steps').textContent = ch1Steps;
+}
+
+function ch1Move(dr, dc) {
+  const nr = ch1Robot[0] + dr, nc = ch1Robot[1] + dc;
+  if (nr < 0 || nr > 2 || nc < 0 || nc > 2) return;
+  ch1Robot = [nr, nc];
+  ch1Score -= 1; ch1Steps++;
+  if (nr === ch1Cookie[0] && nc === ch1Cookie[1]) {
+    ch1Score += 10;
+    alert('🍪 Cookie found! Score: ' + ch1Score + ' in ' + ch1Steps + ' steps!');
+    ch1Reset();
+    return;
+  }
+  ch1Render();
+}
+
+function ch1Reset() { ch1Robot = [0,0]; ch1Score = 0; ch1Steps = 0; ch1Render(); }
+
+document.addEventListener('keydown', e => {
+  if (currentChapter !== 1) return;
+  if (e.key === 'ArrowUp') ch1Move(-1, 0);
+  else if (e.key === 'ArrowDown') ch1Move(1, 0);
+  else if (e.key === 'ArrowLeft') ch1Move(0, -1);
+  else if (e.key === 'ArrowRight') ch1Move(0, 1);
+});
+
+// ===== CHAPTER 2: Policy Grid =====
+const arrows = ['⬆️', '➡️', '⬇️', '⬅️'];
+let policyState = [0,1,0,2,1,0,2,3,0]; // indices into arrows
+
+function ch2PolicyRender() {
+  const g = document.getElementById('ch2-policy-grid');
+  g.innerHTML = '';
+  const cookiePos = 8; // bottom-right
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell arrow-cell';
+    if (i === cookiePos) { cell.textContent = '🍪'; cell.classList.add('cookie'); }
+    else {
+      cell.textContent = arrows[policyState[i]];
+      cell.onclick = () => { policyState[i] = (policyState[i] + 1) % 4; ch2PolicyRender(); };
+    }
+    g.appendChild(cell);
+  }
+}
+
+// ===== CHAPTER 2: Value Grid (drag cookie) =====
+let valueCookiePos = 15; // 4x4 grid, index
+let draggingCookie = false;
+
+function ch2ValueRender() {
+  const g = document.getElementById('ch2-value-grid');
+  g.innerHTML = '';
+  const rows = 4, cols = 4;
+  for (let i = 0; i < rows * cols; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    const r = Math.floor(i / cols), c = i % cols;
+    const cr = Math.floor(valueCookiePos / cols), cc = valueCookiePos % cols;
+    const dist = Math.abs(r - cr) + Math.abs(c - cc);
+    const maxDist = rows + cols - 2;
+    const val = 1 - dist / maxDist;
+    if (i === valueCookiePos) {
+      cell.textContent = '🍪';
+      cell.style.background = '#D5F5E3';
+      cell.style.cursor = 'grab';
+      cell.draggable = true;
+      cell.ondragstart = e => { draggingCookie = true; e.dataTransfer.setData('text','cookie'); };
+    } else {
+      const red = Math.round(255 * (1 - val));
+      const green = Math.round(200 * val);
+      cell.style.background = `rgba(${red}, ${green + 80}, 80, 0.3)`;
+      cell.style.fontSize = '0.8rem';
+      cell.style.fontWeight = '700';
+      cell.style.color = val > 0.5 ? '#27AE60' : '#E74C3C';
+      cell.textContent = val.toFixed(1);
+    }
+    cell.ondragover = e => e.preventDefault();
+    cell.ondrop = e => { e.preventDefault(); valueCookiePos = i; ch2ValueRender(); };
+    cell.onclick = () => { if (i !== valueCookiePos) { valueCookiePos = i; ch2ValueRender(); } };
+    g.appendChild(cell);
+  }
+}
+
+// ===== CHAPTER 3: Gamma =====
+function updateGamma() {
+  const gamma = parseInt(document.getElementById('gamma-slider').value) / 100;
+  document.getElementById('gamma-val').textContent = gamma.toFixed(2);
+  const timeline = document.getElementById('cookie-timeline');
+  const bars = document.getElementById('gamma-bars');
+  timeline.innerHTML = '';
+  bars.innerHTML = '';
+  const days = ['Today', 'Tomorrow', 'Day 3', 'Day 4', 'Day 5'];
+  for (let i = 0; i < 5; i++) {
+    const val = Math.pow(gamma, i);
+    const size = Math.max(0.5, val * 3.5);
+    const item = document.createElement('div');
+    item.className = 'cookie-item';
+    item.innerHTML = `
+      <span class="cookie-emoji" style="font-size:${size}rem; opacity:${Math.max(0.1, val)}">${val < 0.01 ? '  ' : '🍪'}</span>
+      <span class="cookie-val">${val.toFixed(2)}</span>
+      <span class="cookie-day">${days[i]}</span>`;
+    timeline.appendChild(item);
+
+    const bw = document.createElement('div');
+    bw.className = 'bar-wrapper';
+    const colors = ['#4A90D9','#8E44AD','#27AE60','#F39C12','#E74C3C'];
+    bw.innerHTML = `
+      <span class="bar-value">${val.toFixed(2)}</span>
+      <div class="bar" style="height:${val * 150}px; background:${colors[i]}"></div>
+      <span class="bar-label">${days[i]}</span>`;
+    bars.appendChild(bw);
+  }
+}
+
+// ===== CHAPTER 4: Slot Machines =====
+const slotColors = ['#E74C3C', '#3498DB', '#27AE60', '#F39C12'];
+const slotEmojis = ['🎰', '🎲', '🃏', '🎯'];
+let slotMeans, slotPulls, slotTotals, slotUserPulls, slotUserTotal;
+
+function initSlots() {
+  slotMeans = [2.0, 5.0, 3.5, 7.0].sort(() => Math.random() - 0.5);
+  slotPulls = [0, 0, 0, 0];
+  slotTotals = [0, 0, 0, 0];
+  slotUserPulls = 20;
+  slotUserTotal = 0;
+}
+
+function renderSlots() {
+  const c = document.getElementById('slot-machines');
+  c.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const m = document.createElement('div');
+    m.className = 'slot-machine';
+    m.style.background = slotColors[i] + '22';
+    m.style.border = `3px solid ${slotColors[i]}`;
+    const avg = slotPulls[i] > 0 ? (slotTotals[i] / slotPulls[i]).toFixed(1) : '?';
+    m.innerHTML = `<div class="slot-emoji">${slotEmojis[i]}</div>
+      <div class="slot-avg">Avg: ${avg}</div>
+      <div class="slot-pulls">Pulls: ${slotPulls[i]}</div>`;
+    m.onclick = () => pullSlot(i);
+    c.appendChild(m);
+  }
+  document.getElementById('slot-total').textContent = slotUserTotal.toFixed(1);
+  document.getElementById('slot-pulls-left').textContent = slotUserPulls;
+}
+
+function pullSlot(i) {
+  if (slotUserPulls <= 0) return;
+  const reward = slotMeans[i] + (Math.random() - 0.5) * 4;
+  slotPulls[i]++; slotTotals[i] += reward;
+  slotUserPulls--; slotUserTotal += reward;
+  renderSlots();
+  if (slotUserPulls === 0) {
+    const bestI = slotMeans.indexOf(Math.max(...slotMeans));
+    document.getElementById('slot-result-text').textContent =
+      `Game over! The best machine was ${slotEmojis[bestI]} with true mean ${slotMeans[bestI].toFixed(1)}. Your total: ${slotUserTotal.toFixed(1)}`;
+  }
+}
+
+function resetSlots() { initSlots(); renderSlots(); document.getElementById('slot-result-text').textContent = ''; }
+
+function runAutoSlots(mode) {
+  const eps = mode === 'egreedy' ? parseFloat(document.getElementById('eps-val').textContent) : 0;
+  const canvas = document.getElementById('slot-chart');
+  const ctx = canvas.getContext('2d');
+  const N = 100;
+  const rewards = [];
+  const bestArm = slotMeans.indexOf(Math.max(...slotMeans));
+  let cumReward = 0;
+  const armPulls = [0,0,0,0], armTotals = [0,0,0,0];
+
+  for (let t = 0; t < N; t++) {
+    let arm;
+    if (Math.random() < eps) {
+      arm = Math.floor(Math.random() * 4);
+    } else {
+      let bestVal = -Infinity, bestA = 0;
+      for (let a = 0; a < 4; a++) {
+        const avg = armPulls[a] > 0 ? armTotals[a] / armPulls[a] : 10;
+        if (avg > bestVal) { bestVal = avg; bestA = a; }
+      }
+      arm = bestA;
+    }
+    const r = slotMeans[arm] + (Math.random() - 0.5) * 4;
+    armPulls[arm]++; armTotals[arm] += r;
+    cumReward += r;
+    rewards.push(cumReward);
+  }
+
+  // Draw
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const w = canvas.width, h = canvas.height;
+  const maxR = Math.max(...rewards, 1);
+  const pad = 40;
+
+  ctx.fillStyle = '#F8F9FA'; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = '#EDE7F6'; ctx.lineWidth = 1;
+  for (let y = 0; y < 5; y++) {
+    const yy = pad + (h - 2 * pad) * y / 4;
+    ctx.beginPath(); ctx.moveTo(pad, yy); ctx.lineTo(w - pad, yy); ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.strokeStyle = mode === 'egreedy' ? '#8E44AD' : '#E74C3C';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < N; i++) {
+    const x = pad + (w - 2 * pad) * i / (N - 1);
+    const y = h - pad - (h - 2 * pad) * rewards[i] / maxR;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  ctx.fillStyle = '#2C3E50'; ctx.font = '13px sans-serif';
+  ctx.fillText('Cumulative Reward', pad, 20);
+  ctx.fillText(mode === 'egreedy' ? `ε-greedy (ε=${eps})` : 'Always Exploit (ε=0)', pad + 160, 20);
+  ctx.fillText(`Total: ${cumReward.toFixed(1)}`, w - 140, 20);
+  ctx.fillText('Pulls', w / 2, h - 5);
+  ctx.fillText(maxR.toFixed(0), 5, pad + 5);
+  ctx.fillText('0', 5, h - pad + 5);
+
+  document.getElementById('slot-result-text').textContent =
+    `${mode === 'egreedy' ? 'ε-greedy' : 'Exploit-only'}: Total reward = ${cumReward.toFixed(1)} over ${N} pulls. Best possible arm mean = ${Math.max(...slotMeans).toFixed(1)}`;
+}
+
+// ===== CHAPTER 5: TD Learning =====
+function updateTD() {
+  const alpha = parseInt(document.getElementById('alpha-slider').value) / 100;
+  document.getElementById('alpha-val').textContent = alpha.toFixed(2);
+  document.getElementById('td-alpha-display').textContent = alpha.toFixed(2);
+
+  const gamma = 0.9;
+  const r = 1, vb = 5.0, va_old = 3.0;
+  const newEst = r + gamma * vb;
+  const error = newEst - va_old;
+  const result = va_old + alpha * error;
+
+  document.getElementById('td-gamma-display').textContent = gamma.toFixed(2);
+  document.getElementById('td-new-est').textContent = newEst.toFixed(2);
+  document.getElementById('td-new-est2').textContent = newEst.toFixed(2);
+  document.getElementById('td-error').textContent = error.toFixed(2);
+  document.getElementById('td-error2').textContent = error.toFixed(2);
+  document.getElementById('td-result').textContent = result.toFixed(2);
+  document.getElementById('td-va').textContent = 'V=' + result.toFixed(2);
+
+  const nodeA = document.getElementById('td-node-a');
+  const hue = Math.round(120 * (result - 3) / 3);
+  nodeA.style.borderColor = `hsl(${hue}, 60%, 45%)`;
+}
+
+// ===== CHAPTER 6: Q-Learning Grid =====
+const Q_ROWS = 3, Q_COLS = 4;
+const Q_GOAL = [0, 3], Q_PIT = [1, 3], Q_WALL = [1, 1];
+let qTable = {}; // key: "r,c,a" -> value
+let qEpisodes = 0;
+const Q_ACTIONS = [[-1,0],[1,0],[0,-1],[0,1]]; // up,down,left,right
+const Q_ACT_NAMES = ['up','down','left','right'];
+const Q_ACT_ARROWS = ['⬆️','⬇️','⬅️','➡️'];
+
+function qKey(r,c,a) { return `${r},${c},${a}`; }
+function getQ(r,c,a) { return qTable[qKey(r,c,a)] || 0; }
+function setQ(r,c,a,v) { qTable[qKey(r,c,a)] = v; }
+
+function isQTerminal(r,c) {
+  return (r===Q_GOAL[0]&&c===Q_GOAL[1]) || (r===Q_PIT[0]&&c===Q_PIT[1]);
+}
+function isQWall(r,c) { return r===Q_WALL[0]&&c===Q_WALL[1]; }
+
+function qReward(r,c) {
+  if (r===Q_GOAL[0]&&c===Q_GOAL[1]) return 1;
+  if (r===Q_PIT[0]&&c===Q_PIT[1]) return -1;
+  return -0.04;
+}
+
+function qStep(r,c,a) {
+  const dr = Q_ACTIONS[a][0], dc = Q_ACTIONS[a][1];
+  let nr = r+dr, nc = c+dc;
+  if (nr<0||nr>=Q_ROWS||nc<0||nc>=Q_COLS||isQWall(nr,nc)) { nr=r; nc=c; }
+  return [nr,nc];
+}
+
+function trainQEpisode() {
+  let r = 2, c = 0;
+  const alpha = 0.2, gamma = 0.9, eps = 0.3;
+  let steps = 0;
+  while (!isQTerminal(r,c) && steps < 100) {
+    let a;
+    if (Math.random() < eps) a = Math.floor(Math.random()*4);
+    else {
+      let best = -Infinity, bestA = 0;
+      for (let i=0;i<4;i++) { const v = getQ(r,c,i); if(v>best){best=v;bestA=i;} }
+      a = bestA;
+    }
+    const [nr,nc] = qStep(r,c,a);
+    const reward = qReward(nr,nc);
+    let maxNext = -Infinity;
+    for (let i=0;i<4;i++) maxNext = Math.max(maxNext, getQ(nr,nc,i));
+    if (isQTerminal(nr,nc)) maxNext = 0;
+    const old = getQ(r,c,a);
+    setQ(r,c,a, old + alpha * (reward + gamma * maxNext - old));
+    r=nr; c=nc; steps++;
+  }
+  qEpisodes++;
+  document.getElementById('q-episodes').textContent = qEpisodes;
+  renderQGrid();
+}
+
+function trainQMany(n) { for(let i=0;i<n;i++) trainQEpisode(); }
+
+function resetQ() { qTable={}; qEpisodes=0; document.getElementById('q-episodes').textContent=0; renderQGrid(); }
+
+function renderQGrid() {
+  const g = document.getElementById('ch6-grid');
+  g.innerHTML = '';
+  for (let r=0;r<Q_ROWS;r++) for (let c=0;c<Q_COLS;c++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell q-cell';
+    if (isQTerminal(r,c)) {
+      if (r===Q_GOAL[0]&&c===Q_GOAL[1]) { cell.textContent='🏆'; cell.classList.add('goal'); }
+      else { cell.textContent='💀'; cell.classList.add('pit'); }
+    } else if (isQWall(r,c)) {
+      cell.textContent='🧱'; cell.classList.add('wall');
+    } else {
+      // Show Q-values and best arrow
+      let best = -Infinity, bestA = 0;
+      const dirs = ['up','down','left','right'];
+      for (let a=0;a<4;a++) {
+        const v = getQ(r,c,a);
+        if (v > best) { best = v; bestA = a; }
+        const span = document.createElement('span');
+        span.className = 'q-val ' + dirs[a];
+        span.textContent = v.toFixed(1);
+        const intensity = Math.min(1, Math.abs(v));
+        span.style.color = v >= 0 ? `rgba(39,174,96,${0.4+intensity*0.6})` : `rgba(231,76,60,${0.4+intensity*0.6})`;
+        cell.appendChild(span);
+      }
+      if (qEpisodes > 0) {
+        const arrow = document.createElement('span');
+        arrow.textContent = Q_ACT_ARROWS[bestA];
+        arrow.style.fontSize = '1.5rem';
+        cell.appendChild(arrow);
+      }
+    }
+    g.appendChild(cell);
+  }
+}
+
+// ===== CHAPTER 7: Cliff World =====
+const CL_ROWS = 4, CL_COLS = 8;
+const CL_START = [3, 0], CL_GOAL_POS = [3, 7];
+let sarsaQ = {}, qlearnQ = {};
+let cliffEpisodes = 0;
+let sarsaTotalReward = 0, qlearnTotalReward = 0;
+
+function clKey(r,c,a) { return `${r},${c},${a}`; }
+function getCLQ(table,r,c,a) { return table[clKey(r,c,a)] || 0; }
+function setCLQ(table,r,c,a,v) { table[clKey(r,c,a)] = v; }
+
+function isCliff(r,c) { return r===3 && c>0 && c<7; }
+function isCliffGoal(r,c) { return r===CL_GOAL_POS[0] && c===CL_GOAL_POS[1]; }
+
+function clStep(r,c,a) {
+  const dr = Q_ACTIONS[a][0], dc = Q_ACTIONS[a][1];
+  let nr=r+dr, nc=c+dc;
+  if(nr<0||nr>=CL_ROWS||nc<0||nc>=CL_COLS) { nr=r; nc=c; }
+  return [nr,nc];
+}
+
+function clReward(nr,nc) {
+  if (isCliff(nr,nc)) return -100;
+  if (isCliffGoal(nr,nc)) return 10;
+  return -1;
+}
+
+function clChoose(table,r,c,eps) {
+  if(Math.random()<eps) return Math.floor(Math.random()*4);
+  let best=-Infinity, bestA=0;
+  for(let a=0;a<4;a++) { const v=getCLQ(table,r,c,a); if(v>best){best=v;bestA=a;} }
+  return bestA;
+}
+
+function trainCliffBoth(n) {
+  const alpha=0.2, gamma=0.95, eps=0.1;
+  for(let ep=0;ep<n;ep++) {
+    // SARSA
+    let sr=CL_START[0], sc=CL_START[1], sa=clChoose(sarsaQ,sr,sc,eps);
+    let sReward=0, steps=0;
+    while(!isCliffGoal(sr,sc) && steps<200) {
+      const [nr,nc]=clStep(sr,sc,sa);
+      const r2=clReward(nr,nc); sReward+=r2;
+      let nr2=nr,nc2=nc;
+      if(isCliff(nr,nc)){nr2=CL_START[0];nc2=CL_START[1];}
+      const na=clChoose(sarsaQ,nr2,nc2,eps);
+      const old=getCLQ(sarsaQ,sr,sc,sa);
+      const nextQ=isCliffGoal(nr,nc)?0:getCLQ(sarsaQ,nr2,nc2,na);
+      setCLQ(sarsaQ,sr,sc,sa, old+alpha*(r2+gamma*nextQ-old));
+      sr=nr2;sc=nc2;sa=na;steps++;
+    }
+    sarsaTotalReward+=sReward;
+
+    // Q-Learning
+    let qr=CL_START[0], qc=CL_START[1];
+    let qRewardTotal=0; steps=0;
+    while(!isCliffGoal(qr,qc) && steps<200) {
+      const qa=clChoose(qlearnQ,qr,qc,eps);
+      const [nr,nc]=clStep(qr,qc,qa);
+      const r2=clReward(nr,nc); qRewardTotal+=r2;
+      let nr2=nr,nc2=nc;
+      if(isCliff(nr,nc)){nr2=CL_START[0];nc2=CL_START[1];}
+      let maxNext=-Infinity;
+      for(let a=0;a<4;a++) maxNext=Math.max(maxNext,getCLQ(qlearnQ,nr2,nc2,a));
+      if(isCliffGoal(nr,nc)) maxNext=0;
+      const old=getCLQ(qlearnQ,qr,qc,qa);
+      setCLQ(qlearnQ,qr,qc,qa, old+alpha*(r2+gamma*maxNext-old));
+      qr=nr2;qc=nc2;steps++;
+    }
+    qlearnTotalReward+=qRewardTotal;
+    cliffEpisodes++;
+  }
+  document.getElementById('cliff-episodes').textContent = cliffEpisodes;
+  document.getElementById('sarsa-reward').textContent = (sarsaTotalReward/cliffEpisodes).toFixed(1);
+  document.getElementById('qlearn-reward').textContent = (qlearnTotalReward/cliffEpisodes).toFixed(1);
+  renderCliffGrid();
+}
+
+function resetCliff() {
+  sarsaQ={}; qlearnQ={}; cliffEpisodes=0; sarsaTotalReward=0; qlearnTotalReward=0;
+  document.getElementById('cliff-episodes').textContent=0;
+  document.getElementById('sarsa-reward').textContent='0';
+  document.getElementById('qlearn-reward').textContent='0';
+  renderCliffGrid();
+}
+
+function getBestAction(table,r,c) {
+  let best=-Infinity, bestA=0;
+  for(let a=0;a<4;a++) { const v=getCLQ(table,r,c,a); if(v>best){best=v;bestA=a;} }
+  return bestA;
+}
+
+function renderCliffGrid() {
+  const g = document.getElementById('ch7-grid');
+  g.innerHTML = '';
+  for (let r=0;r<CL_ROWS;r++) for(let c=0;c<CL_COLS;c++) {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell';
+    cell.style.width = '70px'; cell.style.height = '70px'; cell.style.fontSize = '1.3rem';
+    cell.style.position = 'relative';
+
+    if (r===CL_START[0]&&c===CL_START[1]) {
+      cell.textContent = 'S';
+      cell.style.fontWeight = '800'; cell.style.background = '#E8F8F5';
+    } else if (isCliffGoal(r,c)) {
+      cell.textContent = 'G';
+      cell.style.fontWeight = '800'; cell.classList.add('goal');
+    } else if (isCliff(r,c)) {
+      cell.textContent = '🔥';
+      cell.classList.add('cliff');
+    } else if (cliffEpisodes > 0) {
+      const sA = getBestAction(sarsaQ,r,c);
+      const qA = getBestAction(qlearnQ,r,c);
+      // Show both arrows
+      const s = document.createElement('span');
+      s.style.cssText = 'position:absolute;top:2px;left:4px;font-size:0.8rem;color:#27AE60';
+      s.textContent = '🐢' + Q_ACT_ARROWS[sA];
+      cell.appendChild(s);
+      const q = document.createElement('span');
+      q.style.cssText = 'position:absolute;bottom:2px;right:4px;font-size:0.8rem;color:#E67E22';
+      q.textContent = '🐇' + Q_ACT_ARROWS[qA];
+      cell.appendChild(q);
+    }
+    g.appendChild(cell);
+  }
+}
+
+// ===== INIT =====
+function init() {
+  initDots();
+  ch1Render();
+  ch2PolicyRender();
+  ch2ValueRender();
+  updateGamma();
+  initSlots(); renderSlots();
+  updateTD();
+  renderQGrid();
+  renderCliffGrid();
+}
+
+init();
+</script>
+</body>
+</html>
