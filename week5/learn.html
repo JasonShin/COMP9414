@@ -840,6 +840,25 @@
   </div>
 
   <div class="card">
+    <h3>Assignment 2 Glossary</h3>
+    <p>Quick reference for the 5 tasks and key terminology:</p>
+    <table class="comparison-table">
+      <tr><th>Term</th><th>Definition</th></tr>
+      <tr><td><strong>MARL</strong></td><td>Multi-Agent RL &mdash; multiple agents learn simultaneously in the same environment. Each agent's environment appears non-stationary because other agents are also changing their behaviour.</td></tr>
+      <tr><td><strong>PPO Pipeline</strong></td><td>The full training loop and its building blocks: rollout buffer (stores experience), advantage estimation (A&#770;<sub>t</sub> &asymp; R + &gamma;V(S') - V(S)), actor network (&pi;(a|s)), critic network (V(s)), and the clipped surrogate loss.</td></tr>
+      <tr><td><strong>Rollout Buffer</strong></td><td>Stores collected experience tuples (s, a, r, s', done) from episodes. PPO samples from this buffer to compute updates.</td></tr>
+      <tr><td><strong>Advantage (A&#770;<sub>t</sub>)</strong></td><td>How much better an action turned out compared to the critic's expectation. Positive = better than expected, negative = worse. Typically computed via GAE (Generalised Advantage Estimation).</td></tr>
+      <tr><td><strong>IPPO</strong></td><td>Independent PPO &mdash; each agent has its own actor, own critic, own buffer. Agents learn independently, treating others as part of the environment. Simple but limited coordination.</td></tr>
+      <tr><td><strong>MAPPO</strong></td><td>Multi-Agent PPO &mdash; agents share a centralised critic (sees all observations) during training, but each has its own actor. At deployment, agents act using only local observations. This is the CTDE paradigm.</td></tr>
+      <tr><td><strong>CTDE</strong></td><td>Centralised Training, Decentralised Execution &mdash; use global information during training for better learning, but each agent acts independently at test time.</td></tr>
+      <tr><td><strong>Clipped Ratio</strong></td><td>r<sub>t</sub>(&theta;) = &pi;<sub>new</sub>(a|s) / &pi;<sub>old</sub>(a|s), clipped to [1-&epsilon;, 1+&epsilon;]. Prevents the policy from changing too drastically in one update step.</td></tr>
+    </table>
+    <div class="note-box" style="margin-top:14px">
+      <strong>Task 5 &mdash; Evaluation checklist:</strong> Learning curves (reward per episode), convergence speed, final performance, collision rates, coverage efficiency, and hyperparameter ablations (&gamma;, &alpha;, &epsilon;, network size). Compare IPPO vs MAPPO across all of these.
+    </div>
+  </div>
+
+  <div class="card">
     <h3>The Full Picture</h3>
     <div style="display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:10px 0">
       <span class="vocab" style="cursor:pointer" onclick="goChapter(1)">1. Introduction</span>
