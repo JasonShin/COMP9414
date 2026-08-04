@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 7: Reasoning with Uncertainty - COMP9414</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-tertiary: #242836;
+  --bg-card: #1e2230;
+  --text-primary: #e8eaed;
+  --text-secondary: #9aa0ac;
+  --text-muted: #6b7280;
+  --accent: #6c63ff;
+  --accent-hover: #7f78ff;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --blue: #60a5fa;
+  --border: #2d3348;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+.header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border-bottom: 1px solid var(--border);
+}
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.3rem; }
+.header p { color: var(--text-secondary); font-size: 0.95rem; }
+.tabs {
+  display: flex; justify-content: center; gap: 0.5rem;
+  padding: 1rem; background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 0.6rem 1.2rem; border: 1px solid var(--border);
+  background: var(--bg-tertiary); color: var(--text-secondary);
+  border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+  font-weight: 500; transition: all 0.2s;
+}
+.tab-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab-content { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* Concepts */
+.concept-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 1rem; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.concept-card:hover { border-color: var(--accent); }
+.concept-header {
+  padding: 1rem 1.5rem; cursor: pointer; display: flex;
+  justify-content: space-between; align-items: center;
+  font-weight: 600; font-size: 0.95rem;
+}
+.concept-header .arrow { transition: transform 0.3s; font-size: 0.8rem; color: var(--text-muted); }
+.concept-card.open .arrow { transform: rotate(180deg); }
+.concept-body {
+  max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+  padding: 0 1.5rem;
+}
+.concept-card.open .concept-body { max-height: 5000px; padding: 0 1.5rem 1.5rem; }
+.concept-body p, .concept-body li { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; }
+.concept-body ul { padding-left: 1.2rem; }
+.formula {
+  background: var(--bg-tertiary); padding: 0.8rem 1rem; border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  margin: 0.5rem 0; border-left: 3px solid var(--accent); overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+/* Quiz */
+.quiz-question {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
+}
+.quiz-question .q-text { font-size: 0.95rem; margin-bottom: 1rem; }
+.quiz-options label {
+  display: block; padding: 0.6rem 1rem; margin-bottom: 0.5rem;
+  background: var(--bg-tertiary); border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.quiz-options label:hover { border-color: var(--accent); }
+.quiz-options input { margin-right: 0.5rem; accent-color: var(--accent); }
+.quiz-feedback { margin-top: 0.8rem; padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+.quiz-feedback.correct { display: block; background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+.quiz-feedback.incorrect { display: block; background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+.score-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center; }
+.score-box .score { font-size: 2.5rem; font-weight: 700; color: var(--accent); }
+
+/* Buttons */
+.btn {
+  padding: 0.5rem 1rem; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+
+/* Oral */
+.flashcard {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem; text-align: center;
+  min-height: 300px; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  position: relative;
+}
+.flashcard .prompt { font-size: 1.1rem; font-weight: 500; margin-bottom: 1.5rem; max-width: 600px; }
+.flashcard .answer {
+  background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px;
+  font-size: 0.9rem; color: var(--text-secondary); max-width: 600px;
+  text-align: left; line-height: 1.7; display: none; white-space: pre-wrap;
+}
+.flashcard .answer.visible { display: block; }
+.flashcard-nav { display: flex; gap: 1rem; margin-top: 1.5rem; align-items: center; }
+.flashcard-counter { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+.rating-btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.rating-btn {
+  padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem;
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg-tertiary);
+  color: var(--text-secondary); transition: all 0.2s;
+}
+.rating-btn:hover { border-color: var(--accent); }
+.rating-btn.got-it { color: var(--green); }
+.rating-btn.partial { color: var(--yellow); }
+.rating-btn.review { color: var(--red); }
+.progress-bar { width: 100%; height: 4px; background: var(--bg-tertiary); border-radius: 2px; margin-top: 1rem; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+/* Table */
+.qtable { width: 100%; border-collapse: collapse; font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+.qtable th, .qtable td { padding: 0.4rem 0.6rem; border: 1px solid var(--border); text-align: center; }
+.qtable th { background: var(--bg-tertiary); color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Week 7: Reasoning with Uncertainty</h1>
+  <p>COMP9414 Artificial Intelligence</p>
+</div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('concepts')">Concepts</button>
+  <button class="tab-btn" onclick="switchTab('exercises')">Tutorial Exercises</button>
+  <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
+  <button class="tab-btn" onclick="switchTab('oral')">Oral Practice</button>
+</div>
+
+<!-- CONCEPTS TAB -->
+<div id="concepts" class="tab-content active"></div>
+
+<!-- TUTORIAL EXERCISES TAB -->
+<div id="exercises" class="tab-content">
+  <h2 style="margin-bottom:1.5rem;font-size:1.3rem">Tutorial Exercises (Reasoning with Uncertainty)</h2>
+
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 1: Normalisation</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> A 5-cell corridor with doors at cells 2 and 4. Uniform prior [0.1 per cell]. Sensor: hit=0.8, false alarm=0.2. The robot observes a door.</p>
+      <p><strong>Step 1: Compute unnormalised values</strong></p>
+      <div class="formula">For each cell, multiply prior by likelihood:
+Cell 1: 0.1 x 0.2 = 0.02  (non-door, false alarm)
+Cell 2: 0.1 x 0.8 = 0.08  (door, hit)
+Cell 3: 0.1 x 0.2 = 0.02  (non-door, false alarm)
+Cell 4: 0.1 x 0.8 = 0.08  (door, hit)
+Cell 5: 0.1 x 0.2 = 0.02  (non-door, false alarm)
+
+But with 10 cells and doors at 2 and 6:
+Unnormalised: [0.04, 0.16, 0.04, 0.04, 0.16, 0.04]</div>
+      <p><strong>Step 2: Normalise</strong></p>
+      <div class="formula">Z = 0.04 + 0.16 + 0.04 + 0.04 + 0.16 + 0.04 = 0.44
+
+Posterior = [0.04/0.44, 0.16/0.44, ...]
+         = [0.091, 0.364, 0.091, 0.364, 0.091]</div>
+      <p>The distribution sums to one. Door cells 2 and 4 are tied as the most likely cells.</p>
+    </div>
+  </div>
+
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 2: Bayes' Rule Door-Sensor Calculation</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> P(D) = 0.2, P(S|D) = 0.8, P(S|not D) = 0.2. Find P(D|S).</p>
+      <div class="formula">P(D|S) = P(S|D) x P(D) / [P(S|D) x P(D) + P(S|not D) x P(not D)]
+       = (0.8 x 0.2) / (0.8 x 0.2 + 0.2 x 0.8)
+       = 0.16 / 0.32
+       = 0.5</div>
+      <p><strong>Key insight:</strong> The posterior is NOT 0.8. That is the likelihood P(S|D), not P(D|S). The posterior depends on the prior and the false alarm rate too.</p>
+      <p style="margin-top:0.8rem"><strong>What if the prior changes?</strong></p>
+      <div class="formula">If P(D) = 0.05:
+P(D|S) = (0.8 x 0.05) / (0.8 x 0.05 + 0.2 x 0.95)
+       = 0.04 / 0.23 = 0.174
+
+If false alarm rises to 0.5 while P(D) = 0.2:
+P(D|S) = (0.8 x 0.2) / (0.8 x 0.2 + 0.5 x 0.8)
+       = 0.16 / 0.56 = 0.286</div>
+    </div>
+  </div>
+
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 3: No-Door Sensor Update</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> 5-cell corridor, doors at cells 2 and 4. Uniform prior [0.2 each]. Robot observes NO door.</p>
+      <div class="formula">Likelihoods for "no door" observation:
+P(no door | door cell) = 1 - 0.8 = 0.2
+P(no door | non-door cell) = 1 - 0.2 = 0.8</div>
+      <table class="qtable" style="max-width:400px;margin:0.5rem 0">
+        <tr><th>Cell</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+        <tr><td>Prior</td><td>0.2</td><td>0.2</td><td>0.2</td><td>0.2</td><td>0.2</td></tr>
+        <tr><td>Likelihood</td><td>0.8</td><td>0.2</td><td>0.8</td><td>0.2</td><td>0.8</td></tr>
+        <tr><td>Unnorm.</td><td>0.16</td><td>0.04</td><td>0.16</td><td>0.04</td><td>0.16</td></tr>
+      </table>
+      <div class="formula">Z = 0.16 + 0.04 + 0.16 + 0.04 + 0.16 = 0.56
+Posterior = [0.286, 0.071, 0.286, 0.071, 0.286]</div>
+      <p>Cells 1, 3, and 5 are most likely. A no-door reading supports non-door cells.</p>
+    </div>
+  </div>
+
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 4: Motion Update</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> After a positive door reading, belief is [1/11, 4/11, 1/11, 4/11, 1/11]. Motion model: success=0.8, stay=0.1, overshoot=0.1.</p>
+      <div class="formula">From cell 2 (mass = 4/11):
+  stay in cell 2:   (4/11) x 0.1 = 0.036
+  move to cell 3:   (4/11) x 0.8 = 0.291
+  overshoot to cell 4: (4/11) x 0.1 = 0.036
+
+Full predicted belief:
+  [0.009, 0.109, 0.309, 0.145, 0.427]</div>
+      <p><strong>Key insight:</strong> Uncertain motion spreads belief because one source state can lead to several destination states, and several source states can contribute to the same destination.</p>
+    </div>
+  </div>
+
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 5: Bad Sensor Example</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> A bad sensor with hit=0.45, false alarm=0.50. Starting from uniform prior over 10 cells, observing a door.</p>
+      <div class="formula">Posterior: [0.102, 0.092, 0.102, 0.102, 0.102, 0.092, 0.102, 0.102, 0.102, 0.102]</div>
+      <p>Door cells 2 and 6 become <strong>less</strong> likely after a positive door reading! This happens because the sensor is more likely to falsely report a door than to correctly detect one (false alarm 0.50 > hit 0.45).</p>
+      <div class="formula" style="border-left-color:var(--red)">Warning: A score or signal is not automatically evidence in the direction its name suggests. You need to know the likelihood model.</div>
+    </div>
+  </div>
+
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 6: Reliability Bins &amp; Calibration</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>Setup:</strong> A bin contains 10 predictions: Y, Y, N, Y, N, Y, N, Y, N, Y.</p>
+      <div class="formula">6 correct out of 10 predictions
+Empirical accuracy = 6/10 = 0.6</div>
+      <p>If the average confidence in this bin was 0.85, the model is <strong>overconfident</strong>: it predicted ~85% confidence but was correct only 60% of the time.</p>
+      <p style="margin-top:0.8rem"><strong>Calibration Reflection:</strong> A confidence score is not automatically a reliable probability. A classifier can be accurate but badly calibrated. To treat scores as probabilities, you need calibration evidence: among predictions assigned confidence 0.8, roughly 80% should be correct.</p>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ TAB -->
+<div id="quiz" class="tab-content">
+  <div id="quiz-questions"></div>
+  <div style="text-align:center;margin-top:1.5rem">
+    <button class="btn btn-primary" onclick="submitQuiz()" id="quiz-submit-btn">Submit Answers</button>
+    <button class="btn btn-secondary" onclick="resetQuiz()" style="display:none" id="quiz-reset-btn">Try Again</button>
+  </div>
+  <div class="score-box" id="quiz-score" style="display:none;margin-top:1.5rem">
+    <p style="color:var(--text-secondary);margin-bottom:0.5rem">Your Score</p>
+    <div class="score" id="quiz-score-val"></div>
+  </div>
+</div>
+
+<!-- ORAL PRACTICE TAB -->
+<div id="oral" class="tab-content">
+  <div class="flashcard-counter" id="fc-counter">Card 1 of 8</div>
+  <div class="flashcard" id="flashcard">
+    <div class="prompt" id="fc-prompt"></div>
+    <button class="btn btn-primary" id="fc-reveal-btn" onclick="fcReveal()">Reveal Answer</button>
+    <div class="answer" id="fc-answer"></div>
+    <div class="rating-btns" id="fc-rating" style="display:none">
+      <button class="rating-btn got-it" onclick="fcRate('got')">Got it</button>
+      <button class="rating-btn partial" onclick="fcRate('partial')">Partially</button>
+      <button class="rating-btn review" onclick="fcRate('review')">Need Review</button>
+    </div>
+  </div>
+  <div class="flashcard-nav">
+    <button class="btn btn-secondary" onclick="fcPrev()">Previous</button>
+    <button class="btn btn-primary" onclick="fcNext()">Next</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="fc-progress"></div></div>
+</div>
+
+<script>
+// ====== TAB NAVIGATION ======
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabMap = {concepts:'Concepts',exercises:'Tutorial',quiz:'Quiz',oral:'Oral'};
+  document.querySelectorAll('.tab-btn').forEach(b => { if(b.textContent.includes(tabMap[id]||'')) b.classList.add('active'); });
+}
+
+// ====== CONCEPTS TAB ======
+const concepts = [
+  { title: "Why Uncertainty?", body: `<p>Earlier in this course, we made simplifying assumptions: the agent knows the current state, actions have known effects, facts are true or false. In most real systems:</p>
+    <ul>
+    <li>The agent has <strong>noisy observations</strong>, not perfect state knowledge</li>
+    <li>Actions may <strong>fail or have variable outcomes</strong></li>
+    <li>Evidence supports beliefs to <strong>different degrees</strong></li>
+    <li>A model's answer may be wrong, uncertain, or <strong>poorly calibrated</strong></li>
+    </ul>
+    <p>This week makes the hidden assumption explicit: <strong>intelligent agents rarely know the true state of the world.</strong></p>` },
+  { title: "Aleatoric vs Epistemic Uncertainty", body: `<ul>
+    <li><strong>Aleatoric uncertainty:</strong> Noise or randomness in the world. Examples: noisy sensors, wheel slip, blurred images. Better sensing can reduce some but not all of it.</li>
+    <li><strong>Epistemic uncertainty:</strong> Limited knowledge, data, or model coverage. Example: an object type the robot has never seen. More data can reduce this uncertainty.</li>
+    </ul>
+    <div class="formula">Aleatoric = inherent randomness (cannot fully eliminate)
+Epistemic = ignorance (can reduce with more data/knowledge)</div>` },
+  { title: "Probability as Belief", body: `<p>A probability is a belief over alternatives, not a physical property of an object.</p>
+    <div class="formula">P(DoorOpen) = 0.7,  P(DoorClosed) = 0.3</div>
+    <p>This does NOT mean the door is partly open. It means the robot does not know the true state. A <strong>belief distribution</strong> assigns probability mass across mutually exclusive possibilities.</p>
+    <div class="formula">A distribution must sum to one:  sum_x P(X = x) = 1</div>
+    <ul>
+    <li><strong>Random variable:</strong> A named uncertain quantity with possible values</li>
+    <li><strong>Binary variables:</strong> DoorOpen in {true, false}</li>
+    <li><strong>Multi-valued variables:</strong> Location in {mail, office A, corridor, lab}</li>
+    </ul>` },
+  { title: "Conditional Probability", body: `<p>The bar "|" means "given":</p>
+    <div class="formula">P(DetectorSaysOccupied | RoomOccupied)  -- likelihood
+is NOT the same as:
+P(RoomOccupied | DetectorSaysOccupied)  -- posterior</div>
+    <p>Sensors are often specified in the first direction (likelihood), but agents often need the second direction (posterior). <strong>Bayes' rule</strong> lets the agent reverse the direction.</p>` },
+  { title: "Bayes' Rule", body: `<div class="formula">P(H | E) = P(E | H) * P(H) / P(E)
+
+posterior = (likelihood x prior) / evidence</div>
+    <p>The four components:</p>
+    <ul>
+    <li><strong>Prior P(H):</strong> Belief before the new observation</li>
+    <li><strong>Likelihood P(E|H):</strong> How probable the observation is under each possible state</li>
+    <li><strong>Evidence P(E):</strong> Total probability of the observation (normalising constant)</li>
+    <li><strong>Posterior P(H|E):</strong> Updated belief after incorporating the evidence</li>
+    </ul>
+    <p style="margin-top:0.8rem"><strong>Binary normalisation form (easiest by hand):</strong></p>
+    <div class="formula">P(H|E) = P(E|H) * P(H) / [P(E|H) * P(H) + P(E|not H) * P(not H)]</div>` },
+  { title: "Door Sensor Example", body: `<p><strong>Setup:</strong> P(DoorOpen) = 0.3, P(SensorOpen|DoorOpen) = 0.9, P(SensorOpen|DoorClosed) = 0.2</p>
+    <div class="formula">P(DoorOpen | SensorOpen)
+  = (0.9 x 0.3) / (0.9 x 0.3 + 0.2 x 0.7)
+  = 0.27 / (0.27 + 0.14)
+  = 0.27 / 0.41
+  = 0.66 (approximately)</div>
+    <p>A reliable sensor alone does not automatically imply near certainty. The prior is also part of the calculation.</p>
+    <p style="margin-top:0.8rem"><strong>Base-rate trap:</strong> Same sensor, different prior P(D)=0.8:</p>
+    <div class="formula">(0.9 x 0.8) / (0.9 x 0.8 + 0.2 x 0.2) = 0.72 / 0.76 = 0.95</div>
+    <p>Same sensor, different context: different posterior!</p>` },
+  { title: "Independence and Conditional Independence", body: `<ul>
+    <li><strong>Independence:</strong> Knowing A tells me nothing about B. P(A,B) = P(A)P(B)</li>
+    <li><strong>Conditional independence:</strong> Once I know C, knowing A tells me nothing extra about B. P(A,B|C) = P(A|C) P(B|C)</li>
+    </ul>
+    <div class="formula">Independence:               P(A,B) = P(A) * P(B)
+Conditional independence:   P(A,B|C) = P(A|C) * P(B|C)</div>
+    <p>Conditional independence is the modelling assumption that makes probabilistic AI practical. It is NOT a property you get for free -- it is a claim about the model.</p>
+    <p style="margin-top:0.5rem"><strong>Example:</strong> A camera and a lidar both report an obstacle. Are they independent? It depends on modelling assumptions and failure modes (answer C). They may be dependent if they respond to the same object or both fail under glass/rain/darkness.</p>` },
+  { title: "Bayesian Networks", body: `<p>A Bayesian Network is a compact representation of a joint distribution. It consists of:</p>
+    <ul>
+    <li>A <strong>directed acyclic graph (DAG)</strong></li>
+    <li>One <strong>random variable per node</strong></li>
+    <li>A <strong>conditional probability table (CPT)</strong> for each node</li>
+    <li>An assumption that each node depends directly <strong>only on its parents</strong></li>
+    </ul>
+    <div class="formula">Joint distribution factorises:
+P(X1, ..., Xn) = product_i P(Xi | Parents(Xi))
+
+Example (robot diagnostic):
+P(B,M,S,O,D,H) = P(B) * P(M) * P(S|B,M) * P(O) * P(D|O) * P(H|S,O)
+
+B=BatteryLow, M=MotorFault, S=MovingSlowly
+O=ObstacleAhead, D=ObstacleDetected, H=HighRisk</div>
+    <p><strong>Why factorisation helps:</strong> 6 binary variables need 2^6=64 entries in a full joint table. Bayes-net tables need only: three root probabilities + one 2-row table + two 4-row tables = far fewer parameters.</p>` },
+  { title: "Conditional Independence in Bayes Nets", body: `<p>Three key patterns in Bayesian networks:</p>
+    <ul>
+    <li><strong>Chain (A -> B -> C):</strong> A and C are conditionally independent given B. Once we know MovingSlowly, BatteryLow provides no extra info about HighRisk.</li>
+    <li><strong>Common cause / Fork (A <- B -> C):</strong> A and C look related because they share cause B. If we know whether it is raining (B), CameraWet and LidarNoisy become conditionally independent.</li>
+    <li><strong>Explaining away / V-structure (A -> C <- B):</strong> A and B are marginally independent. But given C (the effect), they become dependent. If the robot is moving slowly, both BatteryLow and MotorFault become more plausible. If we then learn BatteryLow is true, MotorFault becomes <em>less</em> necessary as an explanation.</li>
+    </ul>
+    <div class="formula">Chain:      X _|_ Z | Y    (given the middle node)
+Fork:       X _|_ Z | Y    (given the common cause)
+V-structure: X NOT _|_ Z | Y  (given the common effect, parents BECOME dependent)</div>` },
+  { title: "Inference in Bayesian Networks", body: `<p>Inference means computing probabilities of unknown variables given observed evidence.</p>
+    <p><strong>Types of queries:</strong></p>
+    <ul>
+    <li><strong>Diagnostic:</strong> P(MotorFault | MovingSlowly) -- from effect to cause</li>
+    <li><strong>Predictive:</strong> P(HighRisk | ObstacleAhead) -- from cause to effect</li>
+    <li><strong>Evidence combining:</strong> P(HighRisk | MovingSlowly, ObstacleDetected)</li>
+    <li><strong>Explaining:</strong> P(MotorFault | MovingSlowly, BatteryLow)</li>
+    </ul>
+    <p style="margin-top:0.8rem"><strong>Inference by summing cases:</strong></p>
+    <div class="formula">P(S=true) = sum_b sum_m P(S=true|b,m) * P(b) * P(m)
+
+With P(B)=0.1, P(M)=0.2 and CPT:
+= 0.05*0.9*0.8 + 0.40*0.1*0.8 + 0.70*0.9*0.2 + 0.95*0.1*0.2
+= 0.036 + 0.032 + 0.126 + 0.019
+= 0.213</div>` },
+  { title: "Decision Making Under Uncertainty", body: `<p>Once the agent has a belief distribution (posterior), it needs to decide what to do. The standard framework is <strong>expected utility</strong>:</p>
+    <div class="formula">EU(action) = sum_s P(s | evidence) * U(action, s)
+
+Choose action that maximises expected utility.</div>
+    <ul>
+    <li>The agent combines its <strong>uncertain belief</strong> (probabilities) with its <strong>preferences</strong> (utilities)</li>
+    <li>In high-cost settings, calibration alone is not enough -- the agent also needs an action policy that accounts for consequences</li>
+    <li>The agent may choose to <strong>abstain</strong> or <strong>ask for more information</strong> if uncertainty is too high</li>
+    </ul>` },
+  { title: "Calibration and Confidence Scores", body: `<p>A neural network confidence score is <strong>not automatically a reliable probability</strong>.</p>
+    <ul>
+    <li>A classifier can be accurate but badly calibrated (e.g., says 0.99 on examples where it is much less reliable)</li>
+    <li><strong>Calibration:</strong> Among many predictions assigned confidence 0.8, roughly 80% should be correct</li>
+    <li><strong>Reliability diagram:</strong> Plots predicted confidence vs actual accuracy per bin</li>
+    <li><strong>Overconfident:</strong> Predicted confidence > actual accuracy</li>
+    <li><strong>Underconfident:</strong> Predicted confidence < actual accuracy</li>
+    </ul>
+    <div class="formula">To check calibration:
+1. Group predictions into confidence bins (e.g., 0.8-0.9)
+2. For each bin, compute empirical accuracy
+3. If avg confidence = 0.85 but accuracy = 0.60, the model is overconfident</div>` },
+];
+
+const conceptsDiv = document.getElementById('concepts');
+concepts.forEach((c, i) => {
+  conceptsDiv.innerHTML += `<div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>${c.title}</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">${c.body}</div></div>`;
+});
+function toggleConcept(el) { el.classList.toggle('open'); }
+
+// ====== QUIZ TAB ======
+const quizData = [
+  {type:'mc',q:'In Bayes\' rule, P(H|E) = P(E|H)P(H)/P(E), what is P(E|H) called?',options:['Prior','Posterior','Likelihood','Evidence'],correct:2},
+  {type:'mc',q:'A sensor has P(SensorOpen|DoorOpen)=0.9. The robot observes SensorOpen. Without knowing the prior, what can we say about P(DoorOpen|SensorOpen)?',options:['It equals 0.9','It equals 0.1','We cannot determine it without the prior P(DoorOpen)','It is always greater than 0.5'],correct:2},
+  {type:'mc',q:'What is the key advantage of a Bayesian Network over a full joint distribution table?',options:['It is always more accurate','It requires exponentially fewer parameters by exploiting conditional independence','It does not require probabilities','It only works with binary variables'],correct:1},
+  {type:'mc',q:'In a Bayesian Network with the chain A -> B -> C, which statement is true?',options:['A and C are always independent','A and C are conditionally independent given B','B and C are independent','A causes C directly'],correct:1},
+  {type:'mc',q:'What is the "explaining away" effect?',options:['When one cause explains another cause','When observing a common effect makes its independent causes become dependent','When all variables become independent','When the prior equals the posterior'],correct:1},
+  {type:'mc',q:'Aleatoric uncertainty is best described as:',options:['Uncertainty due to limited data','Uncertainty due to noise or inherent randomness in the world','Uncertainty about the model parameters','Uncertainty that can always be eliminated with more data'],correct:1},
+  {type:'mc',q:'P(DoorOpen)=0.3, P(Sensor|Open)=0.9, P(Sensor|Closed)=0.2. What is P(DoorOpen|SensorOpen)?',options:['0.90','0.30','Approximately 0.66','0.50'],correct:2},
+  {type:'mc',q:'If we change only the prior from P(D)=0.3 to P(D)=0.8 (same sensor), P(D|S) changes to approximately:',options:['0.66','0.95','0.50','0.30'],correct:1},
+  {type:'mc',q:'A distribution over 5 possible locations must satisfy:',options:['All probabilities are equal','The sum of all probabilities equals 1','At least one probability is 0','The maximum probability is 1'],correct:1},
+  {type:'mc',q:'In a Bayesian Network, each node\'s probability depends only on:',options:['All other nodes','Its children','Its parents','The root nodes'],correct:2},
+  {type:'mc',q:'A model predicts with 85% confidence but is correct only 60% of the time. This model is:',options:['Well-calibrated','Underconfident','Overconfident','Perfectly accurate'],correct:2},
+  {type:'mc',q:'The normalisation constant P(E) in Bayes\' rule ensures that:',options:['The likelihood is always less than 1','The posterior probabilities sum to 1','The prior is uniform','The evidence is always observed'],correct:1},
+  {type:'mc',q:'In a common cause structure (Rain -> CameraWet, Rain -> LidarNoisy), CameraWet and LidarNoisy are:',options:['Always independent','Conditionally independent given Rain','Never independent','Conditionally dependent given Rain'],correct:1},
+  {type:'mc',q:'A sensor with hit rate 0.45 and false alarm rate 0.50 observes a door. What happens to the probability of being at a door cell?',options:['It increases as expected','It decreases because false alarm > hit rate','It stays the same','It becomes exactly 0.5'],correct:1},
+  {type:'mc',q:'The joint distribution P(B,M,S,O,D,H) = P(B)P(M)P(S|B,M)P(O)P(D|O)P(H|S,O). How many root nodes are there?',options:['1','2','3','6'],correct:2},
+  {type:'mc',q:'Epistemic uncertainty can be reduced by:',options:['Better sensors only','Collecting more data or improving the model','Reducing noise in the environment','It cannot be reduced'],correct:1},
+];
+
+function renderQuiz() {
+  let html='';
+  quizData.forEach((q,i) => {
+    html+=`<div class="quiz-question" id="qq-${i}"><div class="q-text"><strong>Q${i+1}.</strong> ${q.q}</div>`;
+    html+=`<div class="quiz-options">`;
+    q.options.forEach((o,j)=>html+=`<label><input type="radio" name="qa-${i}" value="${j}">${o}</label>`);
+    html+=`</div>`;
+    html+=`<div class="quiz-feedback" id="qf-${i}"></div></div>`;
+  });
+  document.getElementById('quiz-questions').innerHTML=html;
+}
+renderQuiz();
+
+function submitQuiz() {
+  let score=0;
+  quizData.forEach((q,i) => {
+    let fb=document.getElementById(`qf-${i}`);
+    let sel=document.querySelector(`input[name="qa-${i}"]:checked`);
+    let correct=sel&&parseInt(sel.value)===q.correct;
+    fb.textContent=correct?'Correct!':'Incorrect. Answer: '+q.options[q.correct];
+    fb.className='quiz-feedback '+(correct?'correct':'incorrect');
+    if(correct) score++;
+  });
+  document.getElementById('quiz-score').style.display='block';
+  document.getElementById('quiz-score-val').textContent=`${score}/${quizData.length}`;
+  document.getElementById('quiz-submit-btn').style.display='none';
+  document.getElementById('quiz-reset-btn').style.display='inline-block';
+}
+
+function resetQuiz() {
+  renderQuiz();
+  document.getElementById('quiz-score').style.display='none';
+  document.getElementById('quiz-submit-btn').style.display='inline-block';
+  document.getElementById('quiz-reset-btn').style.display='none';
+}
+
+// ====== ORAL PRACTICE TAB ======
+const flashcards = [
+  {prompt:"Explain the difference between aleatoric and epistemic uncertainty.",answer:"Aleatoric uncertainty is noise or inherent randomness in the world (e.g., noisy sensors, wheel slip). It cannot be fully eliminated even with perfect knowledge.\n\nEpistemic uncertainty comes from limited knowledge, data, or model coverage (e.g., an object type the robot has never seen). It can be reduced by collecting more data or improving the model.\n\nBetter sensing can reduce some aleatoric uncertainty, but not all of it. More data can reduce epistemic uncertainty."},
+  {prompt:"State Bayes' rule and explain each component.",answer:"P(H|E) = P(E|H) * P(H) / P(E)\n\n- P(H): Prior - belief before observing evidence\n- P(E|H): Likelihood - how probable the evidence is if H is true\n- P(E): Evidence - total probability of observing E (normalising constant)\n- P(H|E): Posterior - updated belief after incorporating evidence\n\nBayes' rule lets us reverse the direction of conditional probability. Sensors give us P(observation|state), but we need P(state|observation)."},
+  {prompt:"Work through the door sensor example: P(DoorOpen)=0.3, P(Sensor|Open)=0.9, P(Sensor|Closed)=0.2. Find P(DoorOpen|SensorOpen).",answer:"P(DoorOpen|SensorOpen) = P(Sensor|Open)*P(Open) / [P(Sensor|Open)*P(Open) + P(Sensor|Closed)*P(Closed)]\n= (0.9 * 0.3) / (0.9 * 0.3 + 0.2 * 0.7)\n= 0.27 / (0.27 + 0.14)\n= 0.27 / 0.41\n= 0.66 approximately\n\nKey insight: The posterior (0.66) is NOT the same as the likelihood (0.9). The prior P(DoorOpen)=0.3 pulls the posterior down. A reliable sensor does not automatically imply near certainty."},
+  {prompt:"What is a Bayesian Network and why is it useful?",answer:"A Bayesian Network is a directed acyclic graph (DAG) where:\n- Each node is a random variable\n- Each node has a conditional probability table (CPT)\n- Each node depends only on its parents\n\nThe joint distribution factorises as: P(X1,...,Xn) = product P(Xi | Parents(Xi))\n\nIt is useful because:\n1. It requires far fewer parameters than a full joint table (grows with parent sets, not all variables)\n2. It encodes conditional independence assumptions explicitly\n3. It enables efficient inference algorithms\n4. It provides a visual representation of dependencies\n\nExample: 6 binary variables need 2^6=64 entries in full joint, but a Bayes net may need only ~15 parameters."},
+  {prompt:"Explain the three key patterns of conditional independence in Bayesian Networks: chain, fork, and v-structure.",answer:"Chain (A -> B -> C): A and C are conditionally independent given B. Example: BatteryLow -> MovingSlowly -> HighRisk. Once we know MovingSlowly, BatteryLow gives no extra info about HighRisk.\n\nFork/Common Cause (A <- B -> C): A and C appear correlated because they share a common cause B. Given B, they become conditionally independent. Example: Rain -> CameraWet and Rain -> LidarNoisy.\n\nV-structure/Explaining Away (A -> C <- B): A and B are marginally independent but become dependent when C is observed. Example: BatteryLow -> MovingSlowly <- MotorFault. If robot is moving slowly, learning battery is low makes motor fault less necessary as an explanation."},
+  {prompt:"What is the 'base-rate trap' in Bayesian reasoning?",answer:"The base-rate trap occurs when people ignore or underweight the prior probability (base rate) and focus too much on the likelihood.\n\nExample with same sensor (hit=0.9, false alarm=0.2):\n- Prior P(D)=0.3: Posterior P(D|S) = 0.66\n- Prior P(D)=0.8: Posterior P(D|S) = 0.95\n\nSame sensor, same observation, but vastly different posteriors because the prior matters. A reliable sensor in a rare-event context (low prior) gives much less certainty than the same sensor in a common-event context (high prior).\n\nThis is why medical screening tests for rare diseases often have high false positive rates even with good sensitivity."},
+  {prompt:"Why might a neural network's confidence score NOT be a reliable probability?",answer:"A confidence score is just a number the model outputs; it is not automatically well-calibrated.\n\nProblems:\n1. The model may be overconfident (predicts 0.99 but is wrong 20% of the time)\n2. The model may be underconfident (predicts 0.6 but is right 90% of the time)\n3. Softmax outputs in neural networks tend to be overconfident\n\nCalibration means: among predictions with confidence 0.8, roughly 80% should actually be correct.\n\nTo check calibration:\n1. Group predictions into confidence bins\n2. Compare average confidence vs empirical accuracy per bin\n3. Use reliability diagrams to visualise\n\nIn high-cost settings, calibration alone is not enough. The agent also needs an action policy that accounts for consequences and can defer to humans when uncertain."},
+  {prompt:"How does inference work in a Bayesian Network? Walk through computing P(MovingSlowly=true).",answer:"Inference means computing probabilities of query variables given evidence by summing over hidden variables.\n\nP(S=true) = sum_b sum_m P(S=true|b,m) * P(b) * P(m)\n\nGiven P(B)=0.1, P(M)=0.2 and the CPT for S:\nB=F, M=F: P(S|F,F)=0.05\nB=T, M=F: P(S|T,F)=0.40\nB=F, M=T: P(S|F,T)=0.70\nB=T, M=T: P(S|T,T)=0.95\n\nP(S=true) = 0.05*0.9*0.8 + 0.40*0.1*0.8 + 0.70*0.9*0.2 + 0.95*0.1*0.2\n= 0.036 + 0.032 + 0.126 + 0.019\n= 0.213\n\nWe sum over all possible combinations of the hidden parent variables (BatteryLow and MotorFault), weighted by their probabilities. Exact Bayes-net inference algorithms organise this summing and multiplying more efficiently than building the whole joint table."},
+];
+
+let fcIndex=0, fcRatings=new Array(flashcards.length).fill(null);
+
+function fcRender() {
+  document.getElementById('fc-counter').textContent=`Card ${fcIndex+1} of ${flashcards.length}`;
+  document.getElementById('fc-prompt').textContent=flashcards[fcIndex].prompt;
+  document.getElementById('fc-answer').textContent=flashcards[fcIndex].answer;
+  document.getElementById('fc-answer').classList.remove('visible');
+  document.getElementById('fc-reveal-btn').style.display='inline-block';
+  document.getElementById('fc-rating').style.display='none';
+  document.getElementById('fc-progress').style.width=((fcIndex+1)/flashcards.length*100)+'%';
+}
+function fcReveal() {
+  document.getElementById('fc-answer').classList.add('visible');
+  document.getElementById('fc-reveal-btn').style.display='none';
+  document.getElementById('fc-rating').style.display='flex';
+}
+function fcRate(r) { fcRatings[fcIndex]=r; fcNext(); }
+function fcNext() { fcIndex=Math.min(fcIndex+1,flashcards.length-1); fcRender(); }
+function fcPrev() { fcIndex=Math.max(fcIndex-1,0); fcRender(); }
+fcRender();
+</script>
+</body>
+</html>

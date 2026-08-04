@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 8: Computer Vision - COMP9414</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-tertiary: #242836;
+  --bg-card: #1e2230;
+  --text-primary: #e8eaed;
+  --text-secondary: #9aa0ac;
+  --text-muted: #6b7280;
+  --accent: #6c63ff;
+  --accent-hover: #7f78ff;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --blue: #60a5fa;
+  --border: #2d3348;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+.header {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+  border-bottom: 1px solid var(--border);
+}
+.header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.3rem; }
+.header p { color: var(--text-secondary); font-size: 0.95rem; }
+.tabs {
+  display: flex; justify-content: center; gap: 0.5rem;
+  padding: 1rem; background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 0.6rem 1.2rem; border: 1px solid var(--border);
+  background: var(--bg-tertiary); color: var(--text-secondary);
+  border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+  font-weight: 500; transition: all 0.2s;
+}
+.tab-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.tab-content { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* Concepts */
+.concept-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 1rem; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.concept-card:hover { border-color: var(--accent); }
+.concept-header {
+  padding: 1rem 1.5rem; cursor: pointer; display: flex;
+  justify-content: space-between; align-items: center;
+  font-weight: 600; font-size: 0.95rem;
+}
+.concept-header .arrow { transition: transform 0.3s; font-size: 0.8rem; color: var(--text-muted); }
+.concept-card.open .arrow { transform: rotate(180deg); }
+.concept-body {
+  max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+  padding: 0 1.5rem;
+}
+.concept-card.open .concept-body { max-height: 2000px; padding: 0 1.5rem 1.5rem; }
+.concept-body p, .concept-body li { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; }
+.concept-body ul { padding-left: 1.2rem; }
+.formula {
+  background: var(--bg-tertiary); padding: 0.8rem 1rem; border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+  margin: 0.5rem 0; border-left: 3px solid var(--accent); overflow-x: auto;
+}
+
+/* Controls / Buttons */
+.controls { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1rem; }
+.controls h3 { margin-bottom: 1rem; font-size: 0.95rem; }
+.control-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+.control-row label { font-size: 0.85rem; color: var(--text-secondary); min-width: 80px; }
+.btn {
+  padding: 0.5rem 1rem; border: none; border-radius: 6px;
+  cursor: pointer; font-size: 0.85rem; font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { opacity: 0.8; }
+.btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+
+/* Quiz */
+.quiz-question {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
+}
+.quiz-question .q-text { font-size: 0.95rem; margin-bottom: 1rem; }
+.quiz-question input[type="text"] {
+  width: 100%; padding: 0.6rem 1rem; background: var(--bg-tertiary);
+  border: 1px solid var(--border); border-radius: 6px; color: var(--text-primary);
+  font-size: 0.9rem; outline: none;
+}
+.quiz-question input[type="text"]:focus { border-color: var(--accent); }
+.quiz-options label {
+  display: block; padding: 0.6rem 1rem; margin-bottom: 0.5rem;
+  background: var(--bg-tertiary); border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.quiz-options label:hover { border-color: var(--accent); }
+.quiz-options input { margin-right: 0.5rem; accent-color: var(--accent); }
+.quiz-feedback { margin-top: 0.8rem; padding: 0.6rem 1rem; border-radius: 6px; font-size: 0.85rem; display: none; }
+.quiz-feedback.correct { display: block; background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.3); }
+.quiz-feedback.incorrect { display: block; background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+.score-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center; }
+.score-box .score { font-size: 2.5rem; font-weight: 700; color: var(--accent); }
+
+/* Oral */
+.flashcard {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem; text-align: center;
+  min-height: 300px; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  position: relative;
+}
+.flashcard .prompt { font-size: 1.1rem; font-weight: 500; margin-bottom: 1.5rem; max-width: 600px; }
+.flashcard .answer {
+  background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px;
+  font-size: 0.9rem; color: var(--text-secondary); max-width: 600px;
+  text-align: left; line-height: 1.7; display: none;
+}
+.flashcard .answer.visible { display: block; }
+.flashcard-nav { display: flex; gap: 1rem; margin-top: 1.5rem; align-items: center; }
+.flashcard-counter { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; }
+.rating-btns { display: flex; gap: 0.5rem; margin-top: 1rem; }
+.rating-btn {
+  padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem;
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg-tertiary);
+  color: var(--text-secondary); transition: all 0.2s;
+}
+.rating-btn:hover { border-color: var(--accent); }
+.rating-btn.got-it { color: var(--green); }
+.rating-btn.partial { color: var(--yellow); }
+.rating-btn.review { color: var(--red); }
+.progress-bar { width: 100%; height: 4px; background: var(--bg-tertiary); border-radius: 2px; margin-top: 1rem; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s; }
+
+/* Q-Table reused for kernel tables */
+.qtable-container { overflow-x: auto; margin-top: 1rem; }
+.qtable { width: 100%; border-collapse: collapse; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; }
+.qtable th, .qtable td { padding: 0.4rem 0.6rem; border: 1px solid var(--border); text-align: center; }
+.qtable th { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+/* Update display */
+.update-display {
+  background: var(--bg-tertiary); padding: 1rem; border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+  margin-top: 1rem; border-left: 3px solid var(--yellow);
+  color: var(--text-secondary); white-space: pre-wrap;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Week 8: Computer Vision</h1>
+  <p>COMP9414 Artificial Intelligence</p>
+</div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('concepts')">Concepts</button>
+  <button class="tab-btn" onclick="switchTab('exercises')">Tutorial Exercises</button>
+  <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
+  <button class="tab-btn" onclick="switchTab('oral')">Oral Practice</button>
+</div>
+
+<!-- CONCEPTS TAB -->
+<div id="concepts" class="tab-content active"></div>
+
+<!-- TUTORIAL EXERCISES TAB -->
+<div id="exercises" class="tab-content">
+  <h2 style="margin-bottom:1.5rem;font-size:1.3rem">Tutorial Exercises (from Computer Vision tutorial)</h2>
+
+  <!-- Exercise 3.1: OpenCV Basics -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 3.1: Image Representation with OpenCV</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>Tasks:</strong></p>
+      <ul>
+        <li><strong>3.1.1-3.1.2:</strong> Read an image as both coloured (BGR) and gray-scale. Print shapes and pixel values.</li>
+        <li><strong>3.1.3:</strong> Save a copy of the gray-scale image as <code>parrots_gray_test.jpg</code>.</li>
+        <li><strong>3.1.4:</strong> Add a 75-pixel white border (frame) by setting border pixels to 255.</li>
+        <li><strong>3.1.5:</strong> Generate a random noise matrix with values in [0, 50] matching image dimensions.</li>
+        <li><strong>3.1.6:</strong> Add noise to the gray-scale image using <code>cv2.add()</code> (saturates at 255).</li>
+      </ul>
+      <div class="formula">import cv2
+import numpy as np
+
+# Read colour (BGR) and gray-scale
+img_colour = cv2.imread('parrots.jpg')       # shape: (H, W, 3)
+img_gray   = cv2.imread('parrots.jpg', 0)    # shape: (H, W)
+
+# Save gray-scale copy
+cv2.imwrite('parrots_gray_test.jpg', img_gray)
+
+# Add 75px white frame
+frame = img_colour.copy()
+frame[:75, :] = 255      # top
+frame[-75:, :] = 255     # bottom
+frame[:, :75] = 255      # left
+frame[:, -75:] = 255     # right
+
+# Generate and add noise
+H, W = img_gray.shape
+noise = np.random.randint(0, 51, (H, W), dtype=np.uint8)
+noisy = cv2.add(img_gray, noise)   # saturates at 255</div>
+
+      <p style="margin-top:1rem"><strong>Key Insight:</strong> OpenCV uses BGR channel order (not RGB). The shape of a colour image is (height, width, 3) while gray-scale is (height, width). Use <code>cv2.add()</code> instead of <code>+</code> to prevent overflow wrapping (values stay capped at 255).</p>
+    </div>
+  </div>
+
+  <!-- Exercise 3.2: Noise Removal -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 3.2: Noise Removal with Mean and Median Filters</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>3.2.1 Mean Filter:</strong> Replace each pixel with the average of its neighbourhood.</p>
+      <div class="formula">def mean_filter(image, window=3):
+    img = image.copy()
+    height, width = image.shape
+    pad = window // 2
+    for i in range(pad, height - pad):
+        for j in range(pad, width - pad):
+            neighbourhood = image[i-pad:i+pad+1, j-pad:j+pad+1]
+            img[i, j] = np.mean(neighbourhood)
+    return img</div>
+
+      <p style="margin-top:1rem"><strong>3.2.2 Median Filter:</strong> Replace each pixel with the median of its neighbourhood (nonlinear, better at preserving edges).</p>
+      <div class="formula">def median_filter(image, window=3):
+    img = image.copy()
+    height, width = image.shape
+    pad = window // 2
+    for i in range(pad, height - pad):
+        for j in range(pad, width - pad):
+            neighbourhood = image[i-pad:i+pad+1, j-pad:j+pad+1]
+            img[i, j] = np.median(neighbourhood)
+    return img</div>
+
+      <p style="margin-top:1rem"><strong>3.2.3 OpenCV Built-in Filters:</strong></p>
+      <div class="formula"># Mean filter (box blur)
+cv2.blur(noisy_img, (3, 3))
+
+# Median filter
+cv2.medianBlur(noisy_img, 3)</div>
+
+      <p style="margin-top:0.5rem"><strong>Pros of built-in:</strong> Much faster (C++ optimised), handles borders automatically. <strong>Cons:</strong> Less control, harder to understand what's happening internally.</p>
+
+      <p style="margin-top:1rem"><strong>3.2.4 Effect of kernel size:</strong></p>
+      <ul>
+        <li><strong>3x3:</strong> Removes less noise but preserves detail and edges</li>
+        <li><strong>5x5:</strong> Good balance between noise removal and detail</li>
+        <li><strong>7x7, 9x9:</strong> Removes more noise but blurs edges and fine detail</li>
+        <li>For typical noise levels, 3x3 or 5x5 is the sweet spot, especially with the median filter</li>
+      </ul>
+
+      <p style="margin-top:1rem"><strong>Why use np.mean() instead of summing uint8 values?</strong> Summing uint8 values directly (e.g., <code>image[i-1,j-1] + image[i,j-1] + ...</code>) can overflow since uint8 max is 255. Using <code>np.mean()</code> computes in float internally, avoiding overflow.</p>
+    </div>
+  </div>
+
+  <!-- Exercise 4.1: Edge Detection -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 4.1: Edge Detection with Canny Filter</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>4.1.1:</strong> Load a video, print FPS, total frames, and duration. Display frame 1002.</p>
+      <div class="formula">video = cv2.VideoCapture('tom_and_jerry.mp4')
+fps = video.get(cv2.CAP_PROP_FPS)
+total_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+duration = total_frames / fps
+
+video.set(cv2.CAP_PROP_POS_FRAMES, 1002)
+ret, frame = video.read()</div>
+
+      <p style="margin-top:1rem"><strong>4.1.2:</strong> Apply Canny edge detection to each frame of the video.</p>
+      <div class="formula">gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+edges = cv2.Canny(gray, lower_threshold=100, upper_threshold=200)</div>
+
+      <p style="margin-top:1rem"><strong>4.1.3: Effect of Canny thresholds:</strong></p>
+      <ul>
+        <li><strong>Low thresholds (30/100):</strong> More edges detected, including noise and texture</li>
+        <li><strong>Medium thresholds (100/200):</strong> Balanced -- main edges detected, noise rejected</li>
+        <li><strong>High thresholds (200/400):</strong> Only the strongest edges survive</li>
+      </ul>
+      <p>Canny uses two thresholds: pixels with gradient above the upper threshold are strong edges; pixels between lower and upper are kept only if connected to a strong edge; below lower is discarded (hysteresis thresholding).</p>
+    </div>
+  </div>
+
+  <!-- Exercise 5.1: CNN / Transfer Learning -->
+  <div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>Exercise 5.1: Transfer Learning with VGG16 on MNIST</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">
+      <p><strong>5.1.2-5.1.3: Preprocessing MNIST for VGG16</strong></p>
+      <p>MNIST images are 28x28 grayscale, values 0-255. VGG16 expects 32x32x3 with normalised inputs.</p>
+      <div class="formula">Preprocessing Pipeline:
+Step 1: Normalise pixel values  -- divide by 255 (range 0-255 -> 0-1)
+Step 2: Resize 28x28 -> 32x32 and convert grayscale -> 3-channel (RGB)
+
+Why divide by 255?
+- Neural networks train better with small input values
+- Gradient updates are more stable
+- Prevents large activations that can cause exploding gradients</div>
+
+      <p style="margin-top:1rem"><strong>5.1.4: VGG16 Model Summary</strong></p>
+      <ul>
+        <li>VGG16 has 16 weight layers (13 conv + 3 fully connected)</li>
+        <li>Uses 3x3 convolution kernels throughout</li>
+        <li>Has ~138 million parameters in the full model</li>
+        <li>When using <code>include_top=False</code>, only the convolutional base is loaded (no FC layers)</li>
+        <li>Set <code>base_model.trainable = False</code> to freeze pre-trained weights</li>
+      </ul>
+
+      <p style="margin-top:1rem"><strong>5.1.5: Adding Custom Classification Layers</strong></p>
+      <div class="formula">model = models.Sequential([
+    base_model,                                    # Frozen VGG16 convolutional base
+    layers.Flatten(),                              # Flatten feature maps to 1D
+    layers.Dense(50, activation='relu'),           # Hidden layer 1
+    layers.Dense(20, activation='relu'),           # Hidden layer 2
+    layers.Dense(10, activation='softmax')         # Output: 10 digit classes
+])
+
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)</div>
+
+      <p style="margin-top:1rem"><strong>5.1.7: Single Image Prediction</strong></p>
+      <div class="formula"># Preprocess: normalise, resize, add batch dimension
+image = train_ds[10] / 255.0
+image = cv2.resize(image, (32, 32))
+image = np.stack([image]*3, axis=-1)    # grayscale -> 3 channels
+input_image = np.expand_dims(image, 0)  # add batch dimension
+
+predicted_label = model.predict(input_image)
+predicted_class = np.argmax(predicted_label)
+actual_class = np.argmax(train_labels[10])</div>
+
+      <p style="margin-top:1rem"><strong>Key Insight:</strong> Transfer learning reuses features learned from a large dataset (ImageNet) and applies them to a new task (MNIST digits). We only train the new classification layers, making training much faster and requiring less data.</p>
+    </div>
+  </div>
+</div>
+
+<!-- QUIZ TAB -->
+<div id="quiz" class="tab-content">
+  <div id="quiz-questions"></div>
+  <div style="text-align:center;margin-top:1.5rem">
+    <button class="btn btn-primary" onclick="submitQuiz()" id="quiz-submit-btn">Submit Answers</button>
+    <button class="btn btn-secondary" onclick="resetQuiz()" style="display:none" id="quiz-reset-btn">Try Again</button>
+  </div>
+  <div class="score-box" id="quiz-score" style="display:none;margin-top:1.5rem">
+    <p style="color:var(--text-secondary);margin-bottom:0.5rem">Your Score</p>
+    <div class="score" id="quiz-score-val"></div>
+  </div>
+</div>
+
+<!-- ORAL PRACTICE TAB -->
+<div id="oral" class="tab-content">
+  <div class="flashcard-counter" id="fc-counter">Card 1 of 10</div>
+  <div class="flashcard" id="flashcard">
+    <div class="prompt" id="fc-prompt"></div>
+    <button class="btn btn-primary" id="fc-reveal-btn" onclick="fcReveal()">Reveal Answer</button>
+    <div class="answer" id="fc-answer"></div>
+    <div class="rating-btns" id="fc-rating" style="display:none">
+      <button class="rating-btn got-it" onclick="fcRate('got')">Got it</button>
+      <button class="rating-btn partial" onclick="fcRate('partial')">Partially</button>
+      <button class="rating-btn review" onclick="fcRate('review')">Need Review</button>
+    </div>
+  </div>
+  <div class="flashcard-nav">
+    <button class="btn btn-secondary" onclick="fcPrev()">Previous</button>
+    <button class="btn btn-primary" onclick="fcNext()">Next</button>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="fc-progress"></div></div>
+</div>
+
+<script>
+// ====== TAB NAVIGATION ======
+function switchTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const tabMap = {concepts:'Concepts',exercises:'Tutorial',quiz:'Quiz',oral:'Oral'};
+  document.querySelectorAll('.tab-btn').forEach(b => { if(b.textContent.includes(tabMap[id]||'')) b.classList.add('active'); });
+}
+
+// ====== CONCEPTS TAB ======
+const concepts = [
+  { title: "Computer Vision vs Image Processing", body: `<ul>
+    <li><strong>Image Processing:</strong> Input is an image, output is also an image (e.g., filtering, enhancement, noise removal)</li>
+    <li><strong>Computer Vision:</strong> Input is an image, output is a <strong>description</strong> or <strong>understanding</strong> of the scene (e.g., object recognition, scene classification)</li>
+    <li>CV tries to replicate human visual perception -- understanding what objects are in an image, where they are, and what is happening</li>
+    <li>Image processing is often a <strong>pre-processing step</strong> for computer vision tasks</li>
+    </ul>` },
+  { title: "Image Representation (Pixels & Colour Spaces)", body: `<ul>
+    <li>A digital image is a 2D matrix of <strong>pixels</strong> (picture elements)</li>
+    <li>Grayscale: each pixel is a single intensity value in [0, 255] (0 = black, 255 = white)</li>
+    <li>Colour images use 3 channels: <strong>RGB</strong> (Red, Green, Blue) -- each pixel is a triplet (R, G, B)</li>
+    <li>OpenCV uses <strong>BGR</strong> channel order instead of RGB</li>
+    <li>Image shape: grayscale = (height, width), colour = (height, width, 3)</li>
+    <li>Each channel value ranges from 0 to 255 (8-bit unsigned integer, uint8)</li>
+    </ul>
+    <div class="formula">Colour image: shape (H, W, 3) -- 3 channels (B, G, R in OpenCV)
+Grayscale image: shape (H, W) -- single channel
+Total pixels in colour image: H x W x 3
+Each pixel value: 0-255 (uint8)</div>` },
+  { title: "Histogram Equalization", body: `<p>A technique to improve image contrast by redistributing pixel intensity values.</p>
+    <ul>
+    <li><strong>Problem:</strong> Images with poor contrast have pixel values concentrated in a narrow range</li>
+    <li><strong>Solution:</strong> Spread out the intensity values to use the full 0-255 range</li>
+    <li>Uses the <strong>Cumulative Distribution Function (CDF)</strong> as a transfer function</li>
+    </ul>
+    <div class="formula">Steps:
+1. Compute histogram h(k) -- count of pixels at each intensity k
+2. Compute CDF: CDF(k) = sum of h(i) for i = 0 to k
+3. Normalise CDF to range [0, 255]
+4. Map each pixel: new_value = round(CDF(old_value) * 255 / total_pixels)
+
+Result: output histogram is approximately uniform (flat)</div>
+    <p style="margin-top:0.5rem">The CDF acts as a transfer function that maps input intensities to output intensities. Areas with high concentration of pixels get spread across a wider range.</p>` },
+  { title: "Noise in Digital Images", body: `<ul>
+    <li>Noise is unwanted variation in pixel values caused by: poor lighting, electrical interference, high ISO, analog-to-digital conversion</li>
+    <li><strong>Types of noise:</strong></li>
+    <li style="margin-left:1rem"><strong>Gaussian noise:</strong> random values added from a normal distribution (smooth, spread out)</li>
+    <li style="margin-left:1rem"><strong>Salt-and-pepper noise:</strong> random pixels set to 0 (black) or 255 (white)</li>
+    <li style="margin-left:1rem"><strong>Quantisation noise:</strong> from rounding continuous signals to discrete values</li>
+    <li>Noise removal is a key <strong>pre-processing</strong> step before edge detection or classification</li>
+    </ul>` },
+  { title: "Noise Removal: Mean Filter (Smoothing / Averaging)", body: `<p>A <strong>linear</strong> spatial filter that replaces each pixel with the average of its neighbourhood.</p>
+    <div class="formula">For a 3x3 mean filter (kernel):
+    [1/9  1/9  1/9]
+    [1/9  1/9  1/9]
+    [1/9  1/9  1/9]
+
+Output pixel = (1/9) * sum of all 9 neighbours</div>
+    <ul>
+    <li>Slides a window (kernel) across the image</li>
+    <li>Replaces the centre pixel with the mean of all pixels in the window</li>
+    <li><strong>Effect:</strong> Smooths the image, reducing noise but also <strong>blurring edges</strong></li>
+    <li>Larger kernel = more smoothing but more blurring</li>
+    <li>Border pixels (where window extends outside image) are typically left unchanged or padded</li>
+    </ul>` },
+  { title: "Noise Removal: Median Filter", body: `<p>A <strong>nonlinear</strong> filter that replaces each pixel with the median of its neighbourhood.</p>
+    <div class="formula">For a 3x3 median filter:
+1. Collect all 9 pixel values in the neighbourhood
+2. Sort them
+3. Replace centre pixel with the middle (median) value
+
+Example neighbourhood: [120, 130, 5, 125, 128, 250, 122, 127, 126]
+Sorted: [5, 120, 122, 125, 126, 127, 128, 130, 250]
+Median = 126 (the outliers 5 and 250 are ignored!)</div>
+    <ul>
+    <li>Excellent at removing <strong>salt-and-pepper noise</strong> (outlier pixels)</li>
+    <li>Preserves edges much better than the mean filter</li>
+    <li>Does not blur the image as much as mean filter</li>
+    <li>Computational cost is higher (requires sorting)</li>
+    </ul>` },
+  { title: "Edge Detection: Derivatives and Gradients", body: `<p>Edges correspond to <strong>rapid changes in intensity</strong>. We detect them using derivatives.</p>
+    <div class="formula">First derivative (gradient):
+- Large magnitude = rapid intensity change = edge
+- Direction indicates edge orientation
+- Approximated by finite differences: f'(x) ~ f(x+1) - f(x)
+
+Second derivative (Laplacian):
+- Zero-crossings indicate edges
+- More sensitive to noise than first derivative
+- Approximated by: f''(x) ~ f(x+1) - 2f(x) + f(x-1)</div>
+    <ul>
+    <li><strong>Gradient magnitude:</strong> |G| = sqrt(Gx^2 + Gy^2) -- strength of edge</li>
+    <li><strong>Gradient direction:</strong> theta = atan2(Gy, Gx) -- orientation of edge</li>
+    <li>Need to compute derivatives in both x and y directions for 2D images</li>
+    </ul>` },
+  { title: "Edge Detection: Kernels (Laplacian, Sobel)", body: `<p>Derivative operations are implemented as <strong>convolution kernels</strong>.</p>
+    <div class="formula">Laplacian kernel (second derivative, isotropic):
+    [ 0  1  0]       [ 1  1  1]
+    [ 1 -4  1]  or   [ 1 -8  1]
+    [ 0  1  0]       [ 1  1  1]
+
+Sobel kernels (first derivative):
+Gx (horizontal edges):     Gy (vertical edges):
+    [-1  0  1]              [-1 -2 -1]
+    [-2  0  2]              [ 0  0  0]
+    [-1  0  1]              [ 1  2  1]</div>
+    <ul>
+    <li><strong>Laplacian:</strong> Detects edges in all directions simultaneously. Sensitive to noise -- often combined with Gaussian smoothing (Laplacian of Gaussian / LoG)</li>
+    <li><strong>Sobel:</strong> Computes gradient in x and y separately. Includes smoothing (weighted centre row/column). More robust to noise than simple differences</li>
+    <li><strong>Canny:</strong> Multi-stage edge detector: (1) Gaussian smooth, (2) Sobel gradients, (3) Non-maximum suppression, (4) Hysteresis thresholding with two thresholds</li>
+    </ul>` },
+  { title: "Convolution Operation", body: `<p>Convolution is the fundamental operation for applying filters/kernels to images.</p>
+    <div class="formula">Convolution: (f * g)(x, y) = sum over all (i, j) of f(i, j) * g(x-i, y-j)
+
+In practice (correlation, which is what most libraries use):
+1. Place the kernel centred on each pixel
+2. Multiply each kernel weight by the corresponding pixel
+3. Sum all the products
+4. Store result as the new pixel value</div>
+    <ul>
+    <li>The kernel (filter) is a small matrix (e.g., 3x3, 5x5) of weights</li>
+    <li>Different kernels perform different operations: smoothing, sharpening, edge detection</li>
+    <li>The same convolution operation is used in CNNs -- but the kernel weights are <strong>learned</strong> from data</li>
+    <li>Padding and stride control output size</li>
+    </ul>` },
+  { title: "Convolutional Neural Networks (CNNs)", body: `<p>CNNs apply the convolution operation with <strong>learnable filters</strong> to automatically extract features from images.</p>
+    <div class="formula">CNN Layer Types:
+1. Convolutional Layer: applies learned filters, produces feature maps
+2. Activation (ReLU): introduces non-linearity, f(x) = max(0, x)
+3. Pooling Layer: downsamples feature maps (max pooling or average pooling)
+4. Fully Connected Layer: classification based on extracted features</div>
+    <ul>
+    <li><strong>Key advantage:</strong> Parameter sharing -- same filter applied across entire image (translation invariance)</li>
+    <li><strong>Hierarchical features:</strong> Early layers detect edges/textures, deeper layers detect complex patterns (faces, objects)</li>
+    <li>Much fewer parameters than fully connected networks on images</li>
+    <li>Pooling reduces spatial dimensions while keeping important features</li>
+    </ul>` },
+  { title: "VGG16 and AlexNet Architectures", body: `<ul>
+    <li><strong>AlexNet (2012):</strong> First deep CNN to win ImageNet. 8 layers (5 conv + 3 FC). Used ReLU, dropout, data augmentation. ~60 million parameters.</li>
+    <li><strong>VGG16 (2014):</strong> Deeper network with 16 weight layers (13 conv + 3 FC). Key insight: use only small <strong>3x3 convolution kernels</strong> stacked deep.</li>
+    </ul>
+    <div class="formula">VGG16 Architecture:
+Input: 224x224x3 (or 32x32x3 for small images)
+
+Block 1: 2x Conv(64, 3x3) + MaxPool
+Block 2: 2x Conv(128, 3x3) + MaxPool
+Block 3: 3x Conv(256, 3x3) + MaxPool
+Block 4: 3x Conv(512, 3x3) + MaxPool
+Block 5: 3x Conv(512, 3x3) + MaxPool
+
+FC1: 4096 -> FC2: 4096 -> FC3: 1000 (softmax)
+
+Total parameters: ~138 million</div>
+    <p style="margin-top:0.5rem"><strong>Why 3x3 kernels?</strong> Two stacked 3x3 layers have the same effective receptive field as one 5x5 layer, but with fewer parameters and more non-linearity (two ReLU activations instead of one).</p>` },
+  { title: "Transfer Learning", body: `<p>Reusing a pre-trained network's knowledge for a new task.</p>
+    <ul>
+    <li><strong>Problem:</strong> Training deep CNNs from scratch requires massive datasets and compute</li>
+    <li><strong>Solution:</strong> Use a network pre-trained on a large dataset (e.g., ImageNet) and adapt it</li>
+    <li><strong>How:</strong> Freeze convolutional layers (feature extractor), replace and train only the classification layers</li>
+    </ul>
+    <div class="formula">Transfer Learning Steps:
+1. Load pre-trained model (e.g., VGG16 with ImageNet weights)
+2. Freeze all convolutional layers (trainable = False)
+3. Remove original classification head (include_top=False)
+4. Add new classification layers for your task
+5. Train only the new layers on your dataset
+
+Benefits:
+- Works well even with small datasets
+- Much faster training (only new layers update)
+- Leverages features learned from millions of images</div>` },
+  { title: "Object Detection and Segmentation", body: `<ul>
+    <li><strong>Image Classification:</strong> What object is in the image? (single label)</li>
+    <li><strong>Object Detection:</strong> What objects are there and where? (bounding boxes + labels)</li>
+    <li><strong>Semantic Segmentation:</strong> Classify every pixel into a category (e.g., road, car, sky)</li>
+    <li><strong>Instance Segmentation:</strong> Distinguish individual instances of the same class (e.g., separate each car)</li>
+    </ul>
+    <div class="formula">Progression of CV tasks (increasing difficulty):
+Classification  ->  Detection  ->  Segmentation
+"There's a cat"     "Cat at (x,y,w,h)"   "These exact pixels are cat"
+
+Popular architectures:
+- Detection: YOLO, Faster R-CNN, SSD
+- Segmentation: U-Net, Mask R-CNN, FCN</div>
+    <p style="margin-top:0.5rem"><strong>Cognitive Vision:</strong> Beyond recognising objects -- understanding scenes, actions, relationships, and generating natural language descriptions of images. Combines CV with natural language processing and reasoning.</p>` },
+  { title: "Videos as Sequences of Images", body: `<ul>
+    <li>A video is a sequence of <strong>frames</strong> (images) displayed at a certain rate (FPS = frames per second)</li>
+    <li>Grayscale video: (height x width x t) where t = number of frames</li>
+    <li>Colour video: (height x width x channels x t) -- 4 dimensions</li>
+    <li>Standard video: 24-30 FPS; slow motion: 120+ FPS</li>
+    <li>Each frame can be processed independently (e.g., edge detection per frame) or temporally (e.g., motion detection, optical flow)</li>
+    </ul>
+    <div class="formula">Video dimensions:
+Grayscale: H x W x t
+Colour:    H x W x 3 x t  (or H x W x C x t)
+
+Duration = total_frames / FPS
+Example: 1500 frames at 30 FPS = 50 seconds</div>` },
+];
+
+const conceptsDiv = document.getElementById('concepts');
+concepts.forEach(c => {
+  conceptsDiv.innerHTML += `<div class="concept-card" onclick="toggleConcept(this)">
+    <div class="concept-header"><span>${c.title}</span><span class="arrow">&#9660;</span></div>
+    <div class="concept-body">${c.body}</div></div>`;
+});
+
+function toggleConcept(el) { el.classList.toggle('open'); }
+
+// ====== QUIZ TAB ======
+const quizData = [
+  {type:'mc',q:'What is the main difference between image processing and computer vision?',options:['Image processing is faster','Image processing outputs an image; CV outputs a description/understanding','CV only works on colour images','They are the same thing'],correct:1},
+  {type:'mc',q:'In OpenCV, colour images are stored in which channel order?',options:['RGB','GBR','BGR','HSV'],correct:2},
+  {type:'mc',q:'What is the shape of a 640x480 colour image in OpenCV?',options:['(640, 480, 3)','(480, 640, 3)','(3, 640, 480)','(480, 640)'],correct:1},
+  {type:'mc',q:'Histogram equalization uses which mathematical function as a transfer function?',options:['Probability Density Function (PDF)','Cumulative Distribution Function (CDF)','Fourier Transform','Sigmoid function'],correct:1},
+  {type:'mc',q:'Which filter is better at removing salt-and-pepper noise while preserving edges?',options:['Mean filter','Gaussian filter','Median filter','Laplacian filter'],correct:2},
+  {type:'mc',q:'What happens when you increase the kernel size of a mean filter?',options:['Less smoothing, more noise','More smoothing but more blurring of edges','Edges become sharper','No effect on the image'],correct:1},
+  {type:'mc',q:'The Laplacian filter approximates which mathematical operation?',options:['First derivative','Second derivative','Integration','Fourier transform'],correct:1},
+  {type:'mc',q:'Why do we use cv2.add() instead of the + operator to add noise to an image?',options:['cv2.add() is faster','cv2.add() saturates at 255 instead of wrapping around','The + operator does not work on numpy arrays','cv2.add() automatically converts to grayscale'],correct:1},
+  {type:'mc',q:'In the Canny edge detector, what is hysteresis thresholding?',options:['Using a single threshold to detect edges','Using two thresholds: pixels above upper are strong edges, between lower and upper are kept only if connected to a strong edge','Applying the threshold multiple times','Randomly selecting the threshold'],correct:1},
+  {type:'mc',q:'What is the key advantage of CNNs over fully connected networks for image tasks?',options:['CNNs are always faster','Parameter sharing via convolution kernels (translation invariance)','CNNs do not need training data','CNNs can only process grayscale images'],correct:1},
+  {type:'mc',q:'VGG16 uses only which kernel size for its convolutional layers?',options:['1x1','3x3','5x5','7x7'],correct:1},
+  {type:'mc',q:'Why does stacking two 3x3 conv layers achieve the same receptive field as one 5x5 layer?',options:['Because 3+3=6 > 5','Each 3x3 layer sees a 3x3 area; two stacked layers see a 5x5 area of the original input, but with fewer parameters and more non-linearity','They do not achieve the same receptive field','Because VGG16 uses skip connections'],correct:1},
+  {type:'mc',q:'In transfer learning, what do we typically freeze?',options:['The classification layers','The optimiser','The convolutional (feature extraction) layers','The input data'],correct:2},
+  {type:'mc',q:'Why do we divide MNIST pixel values by 255 before feeding them to a neural network?',options:['To convert to grayscale','To make the image smaller','To normalise values to [0,1] for stable gradient updates','To remove noise'],correct:2},
+  {type:'mc',q:'Which Sobel kernel detects horizontal edges (vertical gradient)?',options:['[[-1,0,1],[-2,0,2],[-1,0,1]]','[[-1,-2,-1],[0,0,0],[1,2,1]]','[[1,1,1],[1,-8,1],[1,1,1]]','[[0,1,0],[1,-4,1],[0,1,0]]'],correct:1},
+  {type:'mc',q:'What is the difference between object detection and semantic segmentation?',options:['They are the same task','Detection gives bounding boxes around objects; segmentation classifies every pixel','Detection works on videos; segmentation on images','Segmentation is always faster'],correct:1},
+];
+
+function renderQuiz() {
+  let html='';
+  quizData.forEach((q,i) => {
+    html+=`<div class="quiz-question" id="qq-${i}"><div class="q-text"><strong>Q${i+1}.</strong> ${q.q}</div>`;
+    html+=`<div class="quiz-options">`;
+    q.options.forEach((o,j)=>html+=`<label><input type="radio" name="qa-${i}" value="${j}">${o}</label>`);
+    html+=`</div>`;
+    html+=`<div class="quiz-feedback" id="qf-${i}"></div></div>`;
+  });
+  document.getElementById('quiz-questions').innerHTML=html;
+}
+renderQuiz();
+
+function submitQuiz() {
+  let score=0;
+  quizData.forEach((q,i) => {
+    let fb=document.getElementById(`qf-${i}`);
+    let sel=document.querySelector(`input[name="qa-${i}"]:checked`);
+    let correct=sel&&parseInt(sel.value)===q.correct;
+    fb.textContent=correct?'Correct!':'Incorrect. Answer: '+q.options[q.correct];
+    fb.className='quiz-feedback '+(correct?'correct':'incorrect');
+    if(correct) score++;
+  });
+  document.getElementById('quiz-score').style.display='block';
+  document.getElementById('quiz-score-val').textContent=`${score}/${quizData.length}`;
+  document.getElementById('quiz-submit-btn').style.display='none';
+  document.getElementById('quiz-reset-btn').style.display='inline-block';
+}
+
+function resetQuiz() {
+  renderQuiz();
+  document.getElementById('quiz-score').style.display='none';
+  document.getElementById('quiz-submit-btn').style.display='inline-block';
+  document.getElementById('quiz-reset-btn').style.display='none';
+}
+
+// ====== ORAL PRACTICE TAB ======
+const flashcards = [
+  {prompt:"Explain the difference between image processing and computer vision.",answer:"Image processing transforms an image into another image (e.g., filtering, enhancement, noise removal). The input and output are both images.\n\nComputer vision takes an image as input and produces a description or understanding of the scene -- classifying objects, detecting their locations, or understanding relationships between elements. CV tries to replicate human visual perception.\n\nImage processing is often a pre-processing step for CV tasks. For example, you might apply noise removal (image processing) before running object detection (computer vision)."},
+  {prompt:"How does histogram equalization improve image contrast? Walk through the steps.",answer:"Histogram equalization redistributes pixel intensity values to use the full 0-255 range, improving contrast in images where values are concentrated in a narrow range.\n\nSteps:\n1. Compute the histogram h(k): count how many pixels have each intensity value k (0 to 255)\n2. Compute the Cumulative Distribution Function: CDF(k) = sum of h(i) for i=0 to k\n3. Normalise the CDF to map to [0, 255]\n4. For each pixel, replace its value with: new = round(CDF(old) * 255 / total_pixels)\n\nThe CDF acts as a transfer function. Where many pixels are concentrated (tall histogram bars), the CDF rises steeply, spreading those values across a wider output range. The result is an approximately uniform histogram."},
+  {prompt:"Compare mean filter and median filter for noise removal. When would you use each?",answer:"Mean filter (linear): Replaces each pixel with the average of its neighbourhood. Good for general noise reduction. Drawback: blurs edges because it averages across edge boundaries. All neighbours contribute equally.\n\nMedian filter (nonlinear): Replaces each pixel with the median of its neighbourhood values. Excellent for salt-and-pepper noise because outlier values (0 or 255) are ignored when taking the median. Preserves edges much better than mean filter.\n\nUse mean filter for: general Gaussian noise when some blurring is acceptable.\nUse median filter for: salt-and-pepper noise, or when edge preservation is important.\n\nLarger kernel sizes remove more noise but lose more detail. For typical noise, 3x3 or 5x5 is a good balance."},
+  {prompt:"Explain how the Canny edge detector works, including its use of two thresholds.",answer:"The Canny edge detector is a multi-stage algorithm:\n\n1. Gaussian smoothing: Blur the image to reduce noise\n2. Gradient computation: Use Sobel filters to find gradient magnitude and direction at each pixel\n3. Non-maximum suppression: Thin edges by keeping only pixels that are local maxima along the gradient direction (removes thick edges to single-pixel width)\n4. Hysteresis thresholding: Uses TWO thresholds (lower and upper):\n   - Pixels with gradient > upper threshold: definitely an edge (strong edge)\n   - Pixels between lower and upper: kept ONLY if connected to a strong edge\n   - Pixels below lower threshold: discarded\n\nThe two-threshold approach prevents broken edges (low threshold alone would include noise; high threshold alone would miss weak but real edges). Connected component analysis bridges the gap."},
+  {prompt:"What is convolution and how is it used in both traditional image processing and CNNs?",answer:"Convolution slides a small kernel (filter matrix) across an image, computing a weighted sum at each position:\n- Place kernel centred on each pixel\n- Multiply each kernel weight by the corresponding pixel value\n- Sum all products to get the output pixel value\n\nIn traditional image processing, kernels are hand-designed:\n- Mean filter kernel: all 1/9 values (smoothing)\n- Sobel kernel: [-1,0,1; -2,0,2; -1,0,1] (edge detection)\n- Laplacian: [0,1,0; 1,-4,1; 0,1,0] (second derivative)\n\nIn CNNs, the kernel weights are LEARNED from data through backpropagation. The network discovers which filters are useful for the task. Early layers typically learn edge/texture filters; deeper layers learn complex pattern detectors.\n\nKey advantage: parameter sharing -- the same kernel is applied everywhere, giving translation invariance."},
+  {prompt:"Describe the VGG16 architecture and explain why it uses only 3x3 kernels.",answer:"VGG16 has 16 weight layers: 13 convolutional layers and 3 fully connected layers, totalling ~138 million parameters.\n\nArchitecture: 5 blocks of conv layers followed by max pooling, then 3 FC layers:\n- Block 1: 2x Conv(64) + Pool\n- Block 2: 2x Conv(128) + Pool\n- Block 3: 3x Conv(256) + Pool\n- Block 4: 3x Conv(512) + Pool\n- Block 5: 3x Conv(512) + Pool\n- FC 4096 -> FC 4096 -> FC 1000 (softmax)\n\nWhy only 3x3 kernels? Two stacked 3x3 layers have the same effective receptive field (5x5) as a single 5x5 layer, but with:\n1. Fewer parameters: 2*(3*3*C^2) = 18C^2 vs 5*5*C^2 = 25C^2\n2. More non-linearity: two ReLU activations instead of one\n3. More representational power from the additional non-linearity\n\nThis was a key insight: go deeper with small filters rather than using large filters."},
+  {prompt:"Explain transfer learning. Why does it work and when would you use it?",answer:"Transfer learning reuses a neural network trained on one task (source) for a different task (target).\n\nHow it works:\n1. Take a model pre-trained on a large dataset (e.g., VGG16 on ImageNet's 1.4M images)\n2. Freeze the convolutional layers (keep learned features)\n3. Replace the classification head with new layers for your task\n4. Train only the new layers on your smaller dataset\n\nWhy it works: Early conv layers learn general features (edges, textures, colours) that are useful across many vision tasks. These features transfer well. Only the task-specific classification needs retraining.\n\nWhen to use it:\n- Small dataset (not enough data to train from scratch)\n- Limited compute resources\n- Source and target domains share similar low-level features\n- When you need fast development\n\nExample: VGG16 trained on ImageNet can be adapted for MNIST digit classification by adding Flatten + Dense(50) + Dense(20) + Dense(10) layers."},
+  {prompt:"What are the different levels of visual understanding in CV? Explain classification, detection, and segmentation.",answer:"Image Classification: Assigns a single label to the entire image. 'This image contains a cat.' Simplest task.\n\nObject Detection: Finds objects AND their locations using bounding boxes. 'There is a cat at coordinates (x, y, width, height) and a dog at (x2, y2, w2, h2).' Popular methods: YOLO, Faster R-CNN, SSD.\n\nSemantic Segmentation: Classifies EVERY pixel into a category. 'These pixels are road, these are sky, these are car.' Does not distinguish between instances of the same class (all cars are just 'car').\n\nInstance Segmentation: Like semantic segmentation but distinguishes individual instances. 'These pixels are car #1, those are car #2.' Combines detection + segmentation. Popular method: Mask R-CNN.\n\nDifficulty increases from classification to instance segmentation, as does the richness of output information."},
+  {prompt:"Explain the Sobel and Laplacian edge detection kernels. How do they differ?",answer:"Sobel kernels compute the first derivative (gradient) in x and y directions separately:\n\nGx = [[-1,0,1],[-2,0,2],[-1,0,1]] -- detects vertical edges\nGy = [[-1,-2,-1],[0,0,0],[1,2,1]] -- detects horizontal edges\n\nEdge magnitude = sqrt(Gx^2 + Gy^2), direction = atan2(Gy, Gx)\nThe weighted centre row/column (factor of 2) provides built-in smoothing.\n\nLaplacian kernel computes the second derivative:\n[[0,1,0],[1,-4,1],[0,1,0]] or [[1,1,1],[1,-8,1],[1,1,1]]\n\nDetects edges in ALL directions simultaneously. Edges appear at zero-crossings of the second derivative.\n\nKey differences:\n- Sobel: directional (separate x,y), includes smoothing, more robust to noise\n- Laplacian: isotropic (all directions), more sensitive to noise, often requires pre-smoothing with Gaussian (LoG)\n- Sobel gives gradient magnitude and direction; Laplacian gives edge location only"},
+  {prompt:"Why do we preprocess MNIST images before feeding them to VGG16? Describe each step.",answer:"MNIST images are 28x28 grayscale with pixel values 0-255. VGG16 expects 32x32x3 normalised inputs. We need three preprocessing steps:\n\nStep 1 - Normalise (divide by 255): Maps pixel values from [0, 255] to [0, 1]. This helps because:\n- Neural networks train better with small input values\n- Gradient updates are more stable and consistent\n- Prevents large activations that could cause exploding gradients\n- Learning rate works uniformly across features\n\nStep 2 - Resize and convert channels: \n- Resize from 28x28 to 32x32 (VGG16's minimum input size)\n- Convert single grayscale channel to 3 channels (duplicate grayscale across R, G, B)\n- This makes the input compatible with VGG16's expected input shape (32, 32, 3)\n\nFor a single prediction, we also need to add a batch dimension: np.expand_dims(image, 0) to get shape (1, 32, 32, 3)."},
+];
+
+let fcIndex=0, fcRatings=new Array(flashcards.length).fill(null);
+
+function fcRender() {
+  document.getElementById('fc-counter').textContent=`Card ${fcIndex+1} of ${flashcards.length}`;
+  document.getElementById('fc-prompt').textContent=flashcards[fcIndex].prompt;
+  document.getElementById('fc-answer').textContent=flashcards[fcIndex].answer;
+  document.getElementById('fc-answer').classList.remove('visible');
+  document.getElementById('fc-reveal-btn').style.display='inline-block';
+  document.getElementById('fc-rating').style.display='none';
+  document.getElementById('fc-progress').style.width=((fcIndex+1)/flashcards.length*100)+'%';
+}
+function fcReveal() {
+  document.getElementById('fc-answer').classList.add('visible');
+  document.getElementById('fc-reveal-btn').style.display='none';
+  document.getElementById('fc-rating').style.display='flex';
+}
+function fcRate(r) { fcRatings[fcIndex]=r; fcNext(); }
+function fcNext() { fcIndex=Math.min(fcIndex+1,flashcards.length-1); fcRender(); }
+function fcPrev() { fcIndex=Math.max(fcIndex-1,0); fcRender(); }
+fcRender();
+</script>
+</body>
+</html>
