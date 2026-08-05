@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COMP9414 Assignment 2 — Discussion Prep</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f5f5f0; color: #2d2d2d; line-height: 1.7; }
+  .container { max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 1.8rem; margin-bottom: 8px; color: #1a1a2e; }
+  .subtitle { color: #666; font-size: 0.95rem; margin-bottom: 48px; }
+  .topic { margin-bottom: 56px; }
+  .topic-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid #e0e0d8; }
+  .topic-num { background: #1a1a2e; color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
+  .topic-title { font-size: 1.35rem; font-weight: 700; color: #1a1a2e; }
+  .topic-marks { font-size: 0.8rem; color: #888; margin-left: auto; }
+
+  .card { background: #fff; border-radius: 12px; padding: 28px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .card h3 { font-size: 1.05rem; color: #1a1a2e; margin-bottom: 14px; }
+  .card p { margin-bottom: 10px; font-size: 0.93rem; }
+  .card ul { padding-left: 20px; margin-bottom: 10px; }
+  .card li { margin-bottom: 6px; font-size: 0.93rem; }
+
+  .highlight { background: #fef9e7; border-left: 4px solid #f0c040; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 0.9rem; }
+  .highlight strong { color: #8a6d00; }
+
+  .danger { background: #fef2f2; border-left: 4px solid #e74c3c; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 14px 0; font-size: 0.9rem; }
+  .danger strong { color: #c0392b; }
+
+  .formula { background: #f0f4f8; border-radius: 8px; padding: 16px 20px; margin: 14px 0; font-family: 'Courier New', monospace; font-size: 0.88rem; text-align: center; color: #334155; letter-spacing: 0.3px; }
+
+  /* Diagrams */
+  .diagram { margin: 20px 0; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; }
+
+  .flow { display: flex; align-items: center; justify-content: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-box { background: #e8edf3; border-radius: 8px; padding: 10px 16px; font-size: 0.82rem; font-weight: 600; color: #334155; text-align: center; min-width: 90px; }
+  .flow-box.accent { background: #1a1a2e; color: #fff; }
+  .flow-arrow { font-size: 1.2rem; color: #aaa; padding: 0 6px; }
+
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .compare-col { background: #f8f8f5; border-radius: 10px; padding: 18px; }
+  .compare-col h4 { font-size: 0.92rem; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid; }
+  .compare-col.ippo h4 { border-color: #3498db; color: #2471a3; }
+  .compare-col.mappo h4 { border-color: #e67e22; color: #ca6f1e; }
+  .compare-col ul { padding-left: 16px; }
+  .compare-col li { font-size: 0.85rem; margin-bottom: 4px; }
+
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-right: 4px; }
+  .tag.green { background: #d5f5e3; color: #1e8449; }
+  .tag.red { background: #fadbd8; color: #c0392b; }
+  .tag.blue { background: #d6eaf8; color: #2471a3; }
+
+  @media (max-width: 600px) {
+    .compare-grid { grid-template-columns: 1fr; }
+    .flow { gap: 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>COMP9414 Assignment 2 — Discussion Prep</h1>
+<p class="subtitle">Collaborative Multi-Agent Reinforcement Learning &middot; Topic 1: MARL &amp; PPO Concepts</p>
+
+<!-- ============================================================ -->
+<!-- TOPIC 1 -->
+<!-- ============================================================ -->
+<div class="topic">
+<div class="topic-header">
+  <div class="topic-num">1</div>
+  <div class="topic-title">Multi-Agent RL Concepts</div>
+  <div class="topic-marks">4 marks &middot; Policy gradient, actor-critic, PPO</div>
+</div>
+
+<!-- Card 1: Policy vs Value -->
+<div class="card">
+  <h3>Policy vs Value Function</h3>
+
+  <div class="diagram">
+    <svg width="520" height="160" viewBox="0 0 520 160">
+      <!-- Policy side -->
+      <rect x="10" y="20" width="220" height="120" rx="14" fill="#eaf2fb" stroke="#2471a3" stroke-width="1.5"/>
+      <text x="120" y="48" text-anchor="middle" font-weight="700" font-size="14" fill="#2471a3">Policy &pi;(a|s)</text>
+      <text x="120" y="72" text-anchor="middle" font-size="12" fill="#555">State &rarr; Action Probabilities</text>
+      <text x="120" y="96" text-anchor="middle" font-size="11" fill="#888">"What should I do?"</text>
+      <text x="120" y="122" text-anchor="middle" font-size="11" fill="#2471a3">Output: [0.1, 0.6, 0.05, 0.2, 0.05]</text>
+
+      <!-- Value side -->
+      <rect x="290" y="20" width="220" height="120" rx="14" fill="#fef5e7" stroke="#ca6f1e" stroke-width="1.5"/>
+      <text x="400" y="48" text-anchor="middle" font-weight="700" font-size="14" fill="#ca6f1e">Value V(s)</text>
+      <text x="400" y="72" text-anchor="middle" font-size="12" fill="#555">State &rarr; Expected Return</text>
+      <text x="400" y="96" text-anchor="middle" font-size="11" fill="#888">"How good is this state?"</text>
+      <text x="400" y="122" text-anchor="middle" font-size="11" fill="#ca6f1e">Output: 12.7</text>
+
+      <!-- Arrow between -->
+      <text x="255" y="85" text-anchor="middle" font-size="20" fill="#aaa">&harr;</text>
+    </svg>
+  </div>
+
+  <ul>
+    <li><strong>Policy</strong> maps states to a <em>probability distribution</em> over actions — not a single action. PPO outputs probabilities for all 5 actions (IDLE, UP, DOWN, LEFT, RIGHT).</li>
+    <li><strong>Value function</strong> estimates the <em>expected</em> cumulative future reward from a state. It's a prediction, not an observation.</li>
+  </ul>
+
+  <div class="highlight">
+    <strong>Tutor trap:</strong> If you say "policy maps states to actions," they'll correct you. PPO uses a <em>stochastic</em> policy — it outputs a distribution and samples from it.
+  </div>
+</div>
+
+<!-- Card 2: Actor-Critic -->
+<div class="card">
+  <h3>Why Actor-Critic?</h3>
+
+  <div class="diagram">
+    <svg width="500" height="200" viewBox="0 0 500 200">
+      <!-- Observation -->
+      <rect x="180" y="5" width="140" height="32" rx="8" fill="#e8e8e8"/>
+      <text x="250" y="26" text-anchor="middle" font-size="12" font-weight="600" fill="#444">Observation (12&times;12&times;5)</text>
+
+      <!-- Lines down -->
+      <line x1="200" y1="37" x2="120" y2="65" stroke="#aaa" stroke-width="1.5"/>
+      <line x1="300" y1="37" x2="380" y2="65" stroke="#aaa" stroke-width="1.5"/>
+
+      <!-- Actor -->
+      <rect x="40" y="65" width="160" height="80" rx="12" fill="#d6eaf8" stroke="#2471a3" stroke-width="1.5"/>
+      <text x="120" y="92" text-anchor="middle" font-weight="700" font-size="14" fill="#2471a3">Actor (Policy)</text>
+      <text x="120" y="112" text-anchor="middle" font-size="11" fill="#555">&pi;(a|o) &rarr; action probs</text>
+      <text x="120" y="130" text-anchor="middle" font-size="10" fill="#888">Learns via policy gradient</text>
+
+      <!-- Critic -->
+      <rect x="300" y="65" width="160" height="80" rx="12" fill="#fef5e7" stroke="#ca6f1e" stroke-width="1.5"/>
+      <text x="380" y="92" text-anchor="middle" font-weight="700" font-size="14" fill="#ca6f1e">Critic (Value)</text>
+      <text x="380" y="112" text-anchor="middle" font-size="11" fill="#555">V(s) &rarr; scalar value</text>
+      <text x="380" y="130" text-anchor="middle" font-size="10" fill="#888">Learns via MSE loss</text>
+
+      <!-- Advantage arrow -->
+      <line x1="300" y1="105" x2="200" y2="105" stroke="#27ae60" stroke-width="2" stroke-dasharray="6,3"/>
+      <polygon points="204,101 194,105 204,109" fill="#27ae60"/>
+      <text x="250" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#27ae60">Advantage</text>
+
+      <!-- Output labels -->
+      <text x="120" y="170" text-anchor="middle" font-size="11" fill="#2471a3">Selects actions</text>
+      <text x="380" y="170" text-anchor="middle" font-size="11" fill="#ca6f1e">Reduces variance</text>
+    </svg>
+  </div>
+
+  <p>Three approaches to learning, each with trade-offs:</p>
+  <ul>
+    <li><strong>Actor only (Monte Carlo PG):</strong> Must wait until episode ends for returns. <span class="tag red">High variance</span> <span class="tag green">No bias</span></li>
+    <li><strong>Critic only (e.g., DQN):</strong> Derives policy indirectly (argmax Q). Can't do stochastic policies or entropy bonus.</li>
+    <li><strong>Actor-Critic (PPO):</strong> Critic provides baseline V(s), advantage A = return - V(s). <span class="tag green">Low variance</span> <span class="tag blue">Small bias</span></li>
+  </ul>
+
+  <div class="highlight">
+    <strong>Key insight:</strong> The advantage centers the learning signal around zero. Positive A = "better than expected" &rarr; increase probability. Negative A = "worse than expected" &rarr; decrease probability.
+  </div>
+</div>
+
+<!-- Card 3: PPO Clipping -->
+<div class="card">
+  <h3>PPO's Clipped Surrogate Objective</h3>
+
+  <p>The evolution from vanilla PG to PPO:</p>
+
+  <div class="flow">
+    <div class="flow-box">Vanilla PG</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box">TRPO</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-box accent">PPO</div>
+  </div>
+
+  <ul>
+    <li><strong>Vanilla PG:</strong> No constraint on update size &rarr; policy can collapse with one bad update</li>
+    <li><strong>TRPO:</strong> Hard KL-divergence constraint keeps policy close &rarr; but needs expensive 2nd-order optimization (Fisher matrix)</li>
+    <li><strong>PPO:</strong> Same goal (small updates) achieved with simple clipping &rarr; only 1st-order methods needed (Adam)</li>
+  </ul>
+
+  <div class="formula">
+    &rho;<sub>t</sub> = P<sub>new</sub>(a) / P<sub>old</sub>(a)&emsp;&emsp;&mdash;&emsp;"How much has the policy changed?"
+  </div>
+
+  <div class="formula">
+    L<sub>clip</sub> = &minus;min( &rho;<sub>t</sub> &middot; &Acirc;, clip(&rho;<sub>t</sub>, 1&minus;&epsilon;, 1+&epsilon;) &middot; &Acirc; )
+  </div>
+
+  <div class="diagram">
+    <svg width="460" height="180" viewBox="0 0 460 180">
+      <!-- Axis -->
+      <line x1="60" y1="140" x2="420" y2="140" stroke="#999" stroke-width="1.5"/>
+      <line x1="60" y1="20" x2="60" y2="140" stroke="#999" stroke-width="1.5"/>
+      <text x="240" y="170" text-anchor="middle" font-size="12" fill="#666">&rho; (probability ratio)</text>
+      <text x="35" y="80" text-anchor="middle" font-size="12" fill="#666" transform="rotate(-90,35,80)">Objective</text>
+
+      <!-- 1-eps, 1, 1+eps markers -->
+      <line x1="150" y1="135" x2="150" y2="145" stroke="#999"/>
+      <text x="150" y="158" text-anchor="middle" font-size="10" fill="#666">1&minus;&epsilon;</text>
+      <line x1="240" y1="135" x2="240" y2="145" stroke="#999"/>
+      <text x="240" y="158" text-anchor="middle" font-size="10" fill="#666">1</text>
+      <line x1="330" y1="135" x2="330" y2="145" stroke="#999"/>
+      <text x="330" y="158" text-anchor="middle" font-size="10" fill="#666">1+&epsilon;</text>
+
+      <!-- A > 0 case -->
+      <line x1="80" y1="110" x2="330" y2="40" stroke="#27ae60" stroke-width="2.5"/>
+      <line x1="330" y1="40" x2="400" y2="40" stroke="#27ae60" stroke-width="2.5" stroke-dasharray="6,3"/>
+      <text x="370" y="34" font-size="10" fill="#27ae60" font-weight="600">clipped (A&gt;0)</text>
+
+      <!-- A < 0 case -->
+      <line x1="80" y1="50" x2="150" y2="105" stroke="#e74c3c" stroke-width="2.5" stroke-dasharray="6,3"/>
+      <line x1="150" y1="105" x2="400" y2="105" stroke="#e74c3c" stroke-width="2.5" stroke-dasharray="6,3"/>
+      <text x="100" y="44" font-size="10" fill="#e74c3c" font-weight="600">clipped (A&lt;0)</text>
+
+      <!-- Labels -->
+      <rect x="280" y="5" width="170" height="20" rx="4" fill="#d5f5e3"/>
+      <text x="365" y="18" text-anchor="middle" font-size="10" fill="#1e8449">Good action: cap the benefit</text>
+      <rect x="70" y="115" width="175" height="20" rx="4" fill="#fadbd8"/>
+      <text x="158" y="128" text-anchor="middle" font-size="10" fill="#c0392b">Bad action: cap the penalty</text>
+    </svg>
+  </div>
+
+  <div class="highlight">
+    <strong>Core idea:</strong> &rho; measures policy drift. Clipping prevents the new policy from straying too far from the old one in a single update, keeping learning stable without expensive constraints.
+  </div>
+</div>
+
+<!-- Card 4: Total Loss -->
+<div class="card">
+  <h3>The Three Components of PPO Loss</h3>
+
+  <div class="formula">
+    L<sub>total</sub> = mean(L<sub>clip</sub>) + c<sub>1</sub> &middot; mean(L<sub>value</sub>) &minus; c<sub>2</sub> &middot; mean(S<sub>entropy</sub>)
+  </div>
+
+  <div class="diagram">
+    <svg width="500" height="130" viewBox="0 0 500 130">
+      <!-- Three boxes -->
+      <rect x="10" y="10" width="150" height="80" rx="10" fill="#d6eaf8" stroke="#2471a3" stroke-width="1.5"/>
+      <text x="85" y="36" text-anchor="middle" font-weight="700" font-size="13" fill="#2471a3">L_clip</text>
+      <text x="85" y="54" text-anchor="middle" font-size="10" fill="#555">Actor loss</text>
+      <text x="85" y="72" text-anchor="middle" font-size="10" fill="#888">Clipped policy gradient</text>
+
+      <text x="177" y="55" text-anchor="middle" font-size="20" fill="#aaa">+</text>
+
+      <rect x="195" y="10" width="150" height="80" rx="10" fill="#fef5e7" stroke="#ca6f1e" stroke-width="1.5"/>
+      <text x="270" y="36" text-anchor="middle" font-weight="700" font-size="13" fill="#ca6f1e">L_value</text>
+      <text x="270" y="54" text-anchor="middle" font-size="10" fill="#555">Critic loss</text>
+      <text x="270" y="72" text-anchor="middle" font-size="10" fill="#888">(V(s) &minus; R)<sup>2</sup></text>
+
+      <text x="362" y="55" text-anchor="middle" font-size="20" fill="#aaa">&minus;</text>
+
+      <rect x="380" y="10" width="110" height="80" rx="10" fill="#d5f5e3" stroke="#27ae60" stroke-width="1.5"/>
+      <text x="435" y="36" text-anchor="middle" font-weight="700" font-size="13" fill="#27ae60">S_entropy</text>
+      <text x="435" y="54" text-anchor="middle" font-size="10" fill="#555">Entropy bonus</text>
+      <text x="435" y="72" text-anchor="middle" font-size="10" fill="#888">Exploration</text>
+
+      <!-- Note about minus -->
+      <text x="435" y="110" text-anchor="middle" font-size="9" fill="#27ae60" font-weight="600">&minus; sign = maximize entropy</text>
+    </svg>
+  </div>
+
+  <ul>
+    <li><strong>L_clip:</strong> Trains the actor. Clipped surrogate objective ensures stable policy updates.</li>
+    <li><strong>L_value:</strong> Trains the critic. Squared error between predicted V(s) and GAE return target R.</li>
+    <li><strong>S_entropy:</strong> Prevents premature convergence. Without it, policy collapses to always picking one action &rarr; agent gets stuck.</li>
+  </ul>
+
+  <div class="danger">
+    <strong>Why the minus sign on entropy?</strong> We're <em>minimizing</em> L_total. Subtracting entropy means we penalize low-entropy (confident) distributions, which encourages the policy to stay exploratory.
+  </div>
+</div>
+
+<!-- Card 5: Non-Stationarity -->
+<div class="card">
+  <h3>Non-Stationarity in Multi-Agent RL</h3>
+
+  <div class="diagram">
+    <svg width="480" height="110" viewBox="0 0 480 110">
+      <!-- Agent boxes -->
+      <rect x="30" y="20" width="100" height="50" rx="8" fill="#d6eaf8" stroke="#2471a3" stroke-width="1.5"/>
+      <text x="80" y="42" text-anchor="middle" font-weight="600" font-size="12" fill="#2471a3">Agent 1</text>
+      <text x="80" y="58" text-anchor="middle" font-size="10" fill="#888">updates &pi;<sub>1</sub></text>
+
+      <rect x="190" y="20" width="100" height="50" rx="8" fill="#d5f5e3" stroke="#27ae60" stroke-width="1.5"/>
+      <text x="240" y="42" text-anchor="middle" font-weight="600" font-size="12" fill="#27ae60">Agent 2</text>
+      <text x="240" y="58" text-anchor="middle" font-size="10" fill="#888">updates &pi;<sub>2</sub></text>
+
+      <rect x="350" y="20" width="100" height="50" rx="8" fill="#fef5e7" stroke="#ca6f1e" stroke-width="1.5"/>
+      <text x="400" y="42" text-anchor="middle" font-weight="600" font-size="12" fill="#ca6f1e">Agent 3</text>
+      <text x="400" y="58" text-anchor="middle" font-size="10" fill="#888">updates &pi;<sub>3</sub></text>
+
+      <!-- Arrows between -->
+      <line x1="130" y1="45" x2="190" y2="45" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <line x1="290" y1="45" x2="350" y2="45" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+      <!-- Label -->
+      <text x="240" y="100" text-anchor="middle" font-size="11" fill="#e74c3c" font-weight="600">Each agent's updates change the "environment" for the others</text>
+    </svg>
+  </div>
+
+  <p>When multiple agents learn simultaneously, each agent's policy changes make the environment non-stationary from every other agent's perspective. This breaks the standard RL assumption of a fixed MDP.</p>
+
+  <div class="compare-grid">
+    <div class="compare-col ippo">
+      <h4>IPPO (Independent)</h4>
+      <ul>
+        <li>Each agent has its own actor AND critic</li>
+        <li>Both see only local observation o<sub>i</sub></li>
+        <li>Doesn't explicitly address non-stationarity</li>
+        <li>Relies on PPO's clipping to absorb instability</li>
+        <li><span class="tag green">Scalable</span> <span class="tag green">Simple</span></li>
+        <li><span class="tag red">Poor coordination</span></li>
+      </ul>
+    </div>
+    <div class="compare-col mappo">
+      <h4>MAPPO (Centralized Critic)</h4>
+      <ul>
+        <li>Shared actor (with agent-ID input)</li>
+        <li>Centralized critic sees global state s</li>
+        <li>Directly addresses non-stationarity</li>
+        <li>Consistent advantage estimates across agents</li>
+        <li><span class="tag green">Better coordination</span> <span class="tag green">Stable</span></li>
+        <li><span class="tag red">Needs global state</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>CTDE paradigm (MAPPO):</strong> Centralized Training with Decentralized Execution. During training, the critic uses global info. During inference, each agent acts using only its local observation — no communication needed.
+  </div>
+</div>
+
+</div><!-- /topic 1 -->
+
+</div><!-- /container -->
+</body>
+</html>
