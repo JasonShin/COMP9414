@@ -62,7 +62,7 @@
 <div class="container">
 
 <h1>COMP9414 Assignment 2 — Discussion Prep</h1>
-<p class="subtitle">Collaborative Multi-Agent Reinforcement Learning &middot; Topic 1: MARL &amp; PPO Concepts</p>
+<p class="subtitle">Collaborative Multi-Agent Reinforcement Learning &middot; All 3 Discussion Topics</p>
 
 <!-- ============================================================ -->
 <!-- TOPIC 1 -->
@@ -332,6 +332,622 @@
 </div>
 
 </div><!-- /topic 1 -->
+
+<!-- ============================================================ -->
+<!-- TOPIC 2 -->
+<!-- ============================================================ -->
+<div class="topic">
+<div class="topic-header">
+  <div class="topic-num">2</div>
+  <div class="topic-title">Neural Network Concepts</div>
+  <div class="topic-marks">4 marks &middot; Architecture, hyperparameters, loss function</div>
+</div>
+
+<!-- Card: Your Architecture -->
+<div class="card">
+  <h3>Your Actor &amp; Critic Architecture</h3>
+
+  <div class="diagram">
+    <svg width="540" height="280" viewBox="0 0 540 280">
+      <!-- Input -->
+      <rect x="200" y="5" width="140" height="35" rx="8" fill="#e8e8e8"/>
+      <text x="270" y="18" text-anchor="middle" font-size="10" fill="#444">Observation</text>
+      <text x="270" y="32" text-anchor="middle" font-weight="700" font-size="11" fill="#333">12 &times; 12 &times; 5</text>
+
+      <!-- Split lines -->
+      <line x1="230" y1="40" x2="120" y2="70" stroke="#aaa" stroke-width="1.5"/>
+      <line x1="310" y1="40" x2="420" y2="70" stroke="#aaa" stroke-width="1.5"/>
+
+      <!-- ACTOR -->
+      <rect x="20" y="70" width="200" height="190" rx="12" fill="#eaf4fd" stroke="#2471a3" stroke-width="1.5"/>
+      <text x="120" y="92" text-anchor="middle" font-weight="700" font-size="13" fill="#2471a3">Actor (Policy Network)</text>
+
+      <!-- Flatten -->
+      <rect x="45" y="102" width="150" height="24" rx="6" fill="#fff" stroke="#bbb"/>
+      <text x="120" y="118" text-anchor="middle" font-size="10" fill="#555">Flatten &rarr; 720</text>
+
+      <!-- Optional agent ID -->
+      <rect x="45" y="132" width="150" height="24" rx="6" fill="#fef9e7" stroke="#f0c040"/>
+      <text x="120" y="148" text-anchor="middle" font-size="9" fill="#8a6d00">+ one-hot agent ID (MAPPO only)</text>
+
+      <!-- Hidden layers -->
+      <rect x="45" y="162" width="150" height="24" rx="6" fill="#fff" stroke="#bbb"/>
+      <text x="120" y="178" text-anchor="middle" font-size="10" fill="#555">Linear(720/723, 128) + ReLU</text>
+
+      <rect x="45" y="192" width="150" height="24" rx="6" fill="#fff" stroke="#bbb"/>
+      <text x="120" y="208" text-anchor="middle" font-size="10" fill="#555">Linear(128, 64) + ReLU</text>
+
+      <!-- Output -->
+      <rect x="45" y="222" width="150" height="28" rx="6" fill="#d6eaf8" stroke="#2471a3"/>
+      <text x="120" y="240" text-anchor="middle" font-weight="600" font-size="10" fill="#2471a3">Linear(64, 5) + Softmax</text>
+
+      <!-- CRITIC -->
+      <rect x="320" y="70" width="200" height="190" rx="12" fill="#fef9ef" stroke="#ca6f1e" stroke-width="1.5"/>
+      <text x="420" y="92" text-anchor="middle" font-weight="700" font-size="13" fill="#ca6f1e">Critic (Value Network)</text>
+
+      <!-- Flatten -->
+      <rect x="345" y="102" width="150" height="24" rx="6" fill="#fff" stroke="#bbb"/>
+      <text x="420" y="118" text-anchor="middle" font-size="10" fill="#555">Flatten &rarr; 720 or 2160</text>
+
+      <!-- Note -->
+      <rect x="345" y="132" width="150" height="24" rx="6" fill="#fef9e7" stroke="#f0c040"/>
+      <text x="420" y="148" text-anchor="middle" font-size="9" fill="#8a6d00">IPPO: 720 / MAPPO: 2160</text>
+
+      <!-- Hidden layers -->
+      <rect x="345" y="162" width="150" height="24" rx="6" fill="#fff" stroke="#bbb"/>
+      <text x="420" y="178" text-anchor="middle" font-size="10" fill="#555">Linear(720/2160, 128) + ReLU</text>
+
+      <rect x="345" y="192" width="150" height="24" rx="6" fill="#fff" stroke="#bbb"/>
+      <text x="420" y="208" text-anchor="middle" font-size="10" fill="#555">Linear(128, 64) + ReLU</text>
+
+      <!-- Output -->
+      <rect x="345" y="222" width="150" height="28" rx="6" fill="#fef5e7" stroke="#ca6f1e"/>
+      <text x="420" y="240" text-anchor="middle" font-weight="600" font-size="10" fill="#ca6f1e">Linear(64, 1) &rarr; scalar V(s)</text>
+    </svg>
+  </div>
+
+  <p>The 5 observation channels encode spatial information as binary maps:</p>
+  <div class="flow">
+    <div class="flow-box">F<sub>t</sub><br/><span style="font-size:0.7rem">Fragile map</span></div>
+    <div class="flow-box">S<sub>i</sub><br/><span style="font-size:0.7rem">Self position</span></div>
+    <div class="flow-box">O<sub>i</sub><br/><span style="font-size:0.7rem">Other agents</span></div>
+    <div class="flow-box">E<sub>t</sub><br/><span style="font-size:0.7rem">Explored area</span></div>
+    <div class="flow-box">D<sub>i</sub><br/><span style="font-size:0.7rem">Docking pos</span></div>
+  </div>
+
+  <div class="compare-grid">
+    <div class="compare-col ippo">
+      <h4>IPPO Architecture</h4>
+      <ul>
+        <li>3 separate actors, 3 separate critics</li>
+        <li>Actor input: local obs (12&times;12&times;5 = 720)</li>
+        <li>Critic input: local obs (720)</li>
+        <li>No parameter sharing at all</li>
+        <li>Each agent is fully independent</li>
+      </ul>
+    </div>
+    <div class="compare-col mappo">
+      <h4>MAPPO Architecture</h4>
+      <ul>
+        <li>1 shared actor, 1 shared critic</li>
+        <li>Actor input: local obs + one-hot agent ID (723)</li>
+        <li>Critic input: global state (12&times;12&times;15 = 2160)</li>
+        <li>All agents share the same networks</li>
+        <li>Agent ID lets shared actor behave differently per agent</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>Why flatten instead of CNN?</strong> The 12&times;12 grid is small enough that an MLP works well. CNNs would be warranted for larger observation spaces (e.g., 84&times;84 Atari frames) where spatial feature extraction matters more.
+  </div>
+</div>
+
+<!-- Card: The 5 Observation Channels -->
+<div class="card">
+  <h3>Why 5 Binary Channels?</h3>
+
+  <p>Each channel is a 12&times;12 binary grid encoding one type of spatial information. This is much better than encoding everything in a single channel with magic numbers (e.g., 1=agent, 2=dirt, 3=fragile).</p>
+
+  <ul>
+    <li><strong>F<sub>t</sub> (Fragile map):</strong> Where fragile objects are — agent must learn to avoid these (collision = -20, truncation)</li>
+    <li><strong>S<sub>i</sub> (Self position):</strong> Where this agent currently is — a single 1 in the grid</li>
+    <li><strong>O<sub>i</sub> (Other agents):</strong> Where other agents are — needed to avoid collisions</li>
+    <li><strong>E<sub>t</sub> (Explored area):</strong> Which cells have been visited — helps avoid redundant exploration</li>
+    <li><strong>D<sub>i</sub> (Docking position):</strong> Agent's start/home position</li>
+  </ul>
+
+  <div class="danger">
+    <strong>MAPPO global state:</strong> The centralized critic concatenates all 3 agents' observations into a 12&times;12&times;15 tensor (5 channels &times; 3 agents). This gives it a complete picture of the world — every agent's position, what each has explored, etc.
+  </div>
+</div>
+
+<!-- Card: Hyperparameters -->
+<div class="card">
+  <h3>Your Hyperparameters &amp; What They Control</h3>
+
+  <table style="width:100%; border-collapse:collapse; font-size:0.88rem; margin-bottom:14px;">
+    <thead>
+      <tr style="border-bottom:2px solid #ddd; text-align:left;">
+        <th style="padding:8px;">Parameter</th>
+        <th style="padding:8px;">Value</th>
+        <th style="padding:8px;">What it does</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>&gamma;</strong> (gamma)</td>
+        <td style="padding:8px;">0.95</td>
+        <td style="padding:8px;">Discount factor. How much to value future vs immediate rewards. Higher = more farsighted.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>&lambda;</strong> (lam)</td>
+        <td style="padding:8px;">0.95</td>
+        <td style="padding:8px;">GAE smoothing. Blends TD(0) (&lambda;=0, low variance/high bias) with MC (&lambda;=1, high variance/low bias).</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>&epsilon;</strong></td>
+        <td style="padding:8px;">0.2</td>
+        <td style="padding:8px;">Clipping range [0.8, 1.2]. Larger = more aggressive updates. 0.2 is the standard PPO default.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>Actor/Critic LR</strong></td>
+        <td style="padding:8px;">5&times;10<sup>-4</sup></td>
+        <td style="padding:8px;">Learning rate for Adam optimizer. Too high = unstable, too low = slow convergence.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>Hidden sizes</strong></td>
+        <td style="padding:8px;">(128, 64)</td>
+        <td style="padding:8px;">2-layer MLP. First layer captures complex features, second compresses before output.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>Rollout length</strong></td>
+        <td style="padding:8px;">400</td>
+        <td style="padding:8px;">Steps of data collected before each PPO update. Longer = more data per update but slower iteration.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>Minibatch size</strong></td>
+        <td style="padding:8px;">200</td>
+        <td style="padding:8px;">Subset of rollout data per gradient step. Rollout(400) / Minibatch(200) = 2 updates per epoch.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>Epochs</strong></td>
+        <td style="padding:8px;">10</td>
+        <td style="padding:8px;">Times to reuse rollout data. More epochs = more sample-efficient but risk overfitting to stale data.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>c<sub>1</sub></strong></td>
+        <td style="padding:8px;">0.5</td>
+        <td style="padding:8px;">Critic loss weight. Balances actor vs critic training speed.</td>
+      </tr>
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:8px;"><strong>c<sub>2</sub></strong></td>
+        <td style="padding:8px;">0.01</td>
+        <td style="padding:8px;">Entropy bonus weight. Small but important — too large and the agent acts randomly forever.</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;"><strong>Weight decay</strong></td>
+        <td style="padding:8px;">10<sup>-5</sup></td>
+        <td style="padding:8px;">L2 regularization. Prevents weights from growing too large, mild overfitting prevention.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="highlight">
+    <strong>Tutor question:</strong> "What would happen if you increased epsilon to 0.5?" Answer: The clipping range widens to [0.5, 1.5], allowing much larger policy updates per step. This could speed up learning initially but risks destabilizing training — the whole point of PPO is keeping updates small.
+  </div>
+</div>
+
+<!-- Card: Loss Function Deep Dive -->
+<div class="card">
+  <h3>Loss Function — How Each Part Trains the Network</h3>
+
+  <div class="diagram">
+    <svg width="520" height="240" viewBox="0 0 520 240">
+      <!-- Actor loss flow -->
+      <rect x="10" y="10" width="160" height="100" rx="10" fill="#eaf4fd" stroke="#2471a3" stroke-width="1.5"/>
+      <text x="90" y="32" text-anchor="middle" font-weight="700" font-size="12" fill="#2471a3">Actor Loss (L_clip)</text>
+      <text x="90" y="52" text-anchor="middle" font-size="9" fill="#555">1. Compute &rho; = P_new/P_old</text>
+      <text x="90" y="66" text-anchor="middle" font-size="9" fill="#555">2. Multiply by advantage</text>
+      <text x="90" y="80" text-anchor="middle" font-size="9" fill="#555">3. Clip &rho; to [0.8, 1.2]</text>
+      <text x="90" y="94" text-anchor="middle" font-size="9" fill="#555">4. Take min (pessimistic)</text>
+
+      <!-- Critic loss flow -->
+      <rect x="180" y="10" width="160" height="100" rx="10" fill="#fef9ef" stroke="#ca6f1e" stroke-width="1.5"/>
+      <text x="260" y="32" text-anchor="middle" font-weight="700" font-size="12" fill="#ca6f1e">Critic Loss (L_value)</text>
+      <text x="260" y="56" text-anchor="middle" font-size="9" fill="#555">Predicted V(s)</text>
+      <text x="260" y="70" text-anchor="middle" font-size="12" fill="#555">vs</text>
+      <text x="260" y="84" text-anchor="middle" font-size="9" fill="#555">GAE Return target R</text>
+      <text x="260" y="100" text-anchor="middle" font-size="9" fill="#ca6f1e">(V(s) &minus; R)&sup2;</text>
+
+      <!-- Entropy flow -->
+      <rect x="350" y="10" width="160" height="100" rx="10" fill="#eafbea" stroke="#27ae60" stroke-width="1.5"/>
+      <text x="430" y="32" text-anchor="middle" font-weight="700" font-size="12" fill="#27ae60">Entropy (S_entropy)</text>
+      <text x="430" y="56" text-anchor="middle" font-size="9" fill="#555">H(&pi;) = &minus;&Sigma; p log p</text>
+      <text x="430" y="76" text-anchor="middle" font-size="9" fill="#555">Uniform [0.2,0.2,0.2,0.2,0.2]</text>
+      <text x="430" y="88" text-anchor="middle" font-size="9" fill="#27ae60">&rarr; HIGH entropy (good)</text>
+      <text x="430" y="102" text-anchor="middle" font-size="9" fill="#555">[0,0,1,0,0]</text>
+      <text x="430" y="114" text-anchor="middle" font-size="9" fill="#e74c3c">&rarr; ZERO entropy (stuck)</text>
+
+      <!-- Combine arrow -->
+      <line x1="90" y1="115" x2="90" y2="155" stroke="#2471a3" stroke-width="1.5"/>
+      <line x1="260" y1="115" x2="260" y2="155" stroke="#ca6f1e" stroke-width="1.5"/>
+      <line x1="430" y1="120" x2="430" y2="155" stroke="#27ae60" stroke-width="1.5"/>
+
+      <!-- Combined box -->
+      <rect x="60" y="160" width="400" height="50" rx="10" fill="#f0f4f8" stroke="#334155" stroke-width="1.5"/>
+      <text x="260" y="183" text-anchor="middle" font-weight="700" font-size="12" fill="#334155">L_total = L_clip + 0.5 &middot; L_value &minus; 0.01 &middot; S_entropy</text>
+      <text x="260" y="200" text-anchor="middle" font-size="10" fill="#888">Minimize with Adam optimizer &rarr; updates &theta; (actor) and &phi; (critic)</text>
+
+      <!-- Labels -->
+      <line x1="90" y1="155" x2="260" y2="160" stroke="#aaa" stroke-width="1"/>
+      <line x1="260" y1="155" x2="260" y2="160" stroke="#aaa" stroke-width="1"/>
+      <line x1="430" y1="155" x2="260" y2="160" stroke="#aaa" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <div class="highlight">
+    <strong>Why "min" in L_clip?</strong> The min takes the <em>pessimistic</em> (lower) bound. If the unclipped objective looks great but the clipped version is lower, we use the clipped version — we'd rather be cautious than over-optimize on a single batch of data.
+  </div>
+</div>
+
+<!-- Card: Activation Functions -->
+<div class="card">
+  <h3>Activation Functions in Your Network</h3>
+
+  <ul>
+    <li><strong>ReLU (hidden layers):</strong> f(x) = max(0, x). Simple, fast, avoids vanishing gradient problem. Standard choice for hidden layers in deep RL.</li>
+    <li><strong>Softmax (actor output):</strong> Converts raw logits into a valid probability distribution (sums to 1, all non-negative). Required because the policy must output action <em>probabilities</em>.</li>
+    <li><strong>No activation (critic output):</strong> The critic outputs a raw scalar value — it can be any real number (positive or negative), so no activation is applied.</li>
+  </ul>
+
+  <div class="danger">
+    <strong>Common mistake:</strong> Don't confuse softmax with sigmoid. Sigmoid outputs independent probabilities per output (used for multi-label classification). Softmax ensures the outputs are <em>mutually exclusive</em> and sum to 1 — exactly what we need for choosing one of 5 actions.
+  </div>
+</div>
+
+<!-- Card: Adam Optimizer -->
+<div class="card">
+  <h3>Why Adam?</h3>
+
+  <p><strong>Adam</strong> (Adaptive Moment Estimation) combines two ideas:</p>
+  <ul>
+    <li><strong>Momentum:</strong> Uses a running average of past gradients to smooth out noisy updates (especially important in RL where gradient estimates are inherently noisy)</li>
+    <li><strong>Adaptive learning rates:</strong> Each parameter gets its own effective learning rate based on the magnitude of its recent gradients. Parameters with consistently large gradients get smaller steps, and vice versa.</li>
+  </ul>
+
+  <p>Compared to vanilla SGD, Adam converges faster and is less sensitive to the choice of learning rate — critical in RL where the data distribution is constantly shifting.</p>
+</div>
+
+</div><!-- /topic 2 -->
+
+<!-- ============================================================ -->
+<!-- TOPIC 3 -->
+<!-- ============================================================ -->
+<div class="topic">
+<div class="topic-header">
+  <div class="topic-num">3</div>
+  <div class="topic-title">Experimental Analysis: IPPO vs MAPPO</div>
+  <div class="topic-marks">4 marks &middot; Learning performance, task efficiency, emergent behaviors</div>
+</div>
+
+<!-- Card: The 4 Evaluation Metrics -->
+<div class="card">
+  <h3>The 4 Evaluation Metrics</h3>
+
+  <div class="diagram">
+    <svg width="520" height="170" viewBox="0 0 520 170">
+      <!-- Box 1 -->
+      <rect x="10" y="10" width="120" height="90" rx="10" fill="#d6eaf8" stroke="#2471a3" stroke-width="1.5"/>
+      <text x="70" y="35" text-anchor="middle" font-weight="700" font-size="11" fill="#2471a3">Average</text>
+      <text x="70" y="50" text-anchor="middle" font-weight="700" font-size="11" fill="#2471a3">Return</text>
+      <text x="70" y="72" text-anchor="middle" font-size="9" fill="#555">Mean cumulative</text>
+      <text x="70" y="84" text-anchor="middle" font-size="9" fill="#555">reward per episode</text>
+
+      <!-- Box 2 -->
+      <rect x="140" y="10" width="120" height="90" rx="10" fill="#d5f5e3" stroke="#27ae60" stroke-width="1.5"/>
+      <text x="200" y="35" text-anchor="middle" font-weight="700" font-size="11" fill="#27ae60">Episode</text>
+      <text x="200" y="50" text-anchor="middle" font-weight="700" font-size="11" fill="#27ae60">Length</text>
+      <text x="200" y="72" text-anchor="middle" font-size="9" fill="#555">Steps to clean all</text>
+      <text x="200" y="84" text-anchor="middle" font-size="9" fill="#555">dirt (success only)</text>
+
+      <!-- Box 3 -->
+      <rect x="270" y="10" width="120" height="90" rx="10" fill="#fef5e7" stroke="#ca6f1e" stroke-width="1.5"/>
+      <text x="330" y="35" text-anchor="middle" font-weight="700" font-size="11" fill="#ca6f1e">Success</text>
+      <text x="330" y="50" text-anchor="middle" font-weight="700" font-size="11" fill="#ca6f1e">Rate</text>
+      <text x="330" y="72" text-anchor="middle" font-size="9" fill="#555">% dirt cleaned</text>
+      <text x="330" y="84" text-anchor="middle" font-size="9" fill="#555">(large = 2&times; normal)</text>
+
+      <!-- Box 4 -->
+      <rect x="400" y="10" width="120" height="90" rx="10" fill="#fadbd8" stroke="#e74c3c" stroke-width="1.5"/>
+      <text x="460" y="35" text-anchor="middle" font-weight="700" font-size="11" fill="#e74c3c">Safety</text>
+      <text x="460" y="50" text-anchor="middle" font-weight="700" font-size="11" fill="#e74c3c">Violations</text>
+      <text x="460" y="72" text-anchor="middle" font-size="9" fill="#555">Episodes truncated</text>
+      <text x="460" y="84" text-anchor="middle" font-size="9" fill="#555">by collision</text>
+
+      <!-- Arrows -->
+      <text x="70" y="120" text-anchor="middle" font-size="9" fill="#2471a3">Higher = better</text>
+      <text x="200" y="120" text-anchor="middle" font-size="9" fill="#27ae60">Lower = faster</text>
+      <text x="330" y="120" text-anchor="middle" font-size="9" fill="#ca6f1e">Higher = better</text>
+      <text x="460" y="120" text-anchor="middle" font-size="9" fill="#e74c3c">Lower = safer</text>
+    </svg>
+  </div>
+
+  <div class="highlight">
+    <strong>Episode length gotcha:</strong> It's averaged over <em>successful</em> episodes only. If no episodes succeed, report N/A. An episode "succeeds" when all dirt is cleaned before the 50-step time limit.
+  </div>
+</div>
+
+<!-- Card: Fixed vs Random -->
+<div class="card">
+  <h3>Fixed vs Random Dirt Positions</h3>
+
+  <div class="compare-grid">
+    <div class="compare-col" style="border-left:4px solid #3498db;">
+      <h4 style="border-color:#3498db; color:#2471a3;">Fixed Mode</h4>
+      <ul>
+        <li>Dirt and fragile objects always in the same positions</li>
+        <li>Agents can <strong>memorize</strong> optimal paths</li>
+        <li>Tests: Can the agent learn a specific task?</li>
+        <li>Expected: Higher success rate, lower episode length</li>
+        <li>Risk: Agents overfit — won't generalize</li>
+      </ul>
+    </div>
+    <div class="compare-col" style="border-left:4px solid #9b59b6;">
+      <h4 style="border-color:#9b59b6; color:#8e44ad;">Random Mode</h4>
+      <ul>
+        <li>Normal and large dirt randomly placed each episode</li>
+        <li>Fragile objects stay stationary</li>
+        <li>Agents must learn <strong>reactive policies</strong></li>
+        <li>Tests: Can the agent generalize?</li>
+        <li>Expected: Lower success rate, but more robust behavior</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <strong>Key discussion point:</strong> Does MAPPO's advantage over IPPO grow larger in random mode? If yes, it suggests the centralized critic helps more when coordination is harder (novel configurations the agents haven't memorized).
+  </div>
+</div>
+
+<!-- Card: IPPO vs MAPPO Expected Results -->
+<div class="card">
+  <h3>IPPO vs MAPPO — What to Expect &amp; Why</h3>
+
+  <div class="diagram">
+    <svg width="500" height="200" viewBox="0 0 500 200">
+      <!-- Learning curves sketch -->
+      <rect x="30" y="10" width="200" height="170" rx="8" fill="#f8f8f5" stroke="#ddd"/>
+      <text x="130" y="30" text-anchor="middle" font-weight="700" font-size="11" fill="#333">Training Return Over Time</text>
+
+      <!-- Axes -->
+      <line x1="60" y1="150" x2="210" y2="150" stroke="#999" stroke-width="1"/>
+      <line x1="60" y1="40" x2="60" y2="150" stroke="#999" stroke-width="1"/>
+      <text x="135" y="168" text-anchor="middle" font-size="8" fill="#888">Episodes</text>
+      <text x="48" y="95" text-anchor="middle" font-size="8" fill="#888" transform="rotate(-90,48,95)">Return</text>
+
+      <!-- MAPPO curve (higher) -->
+      <path d="M65,140 Q100,130 120,90 Q140,60 200,50" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+      <text x="205" y="48" font-size="9" fill="#e67e22" font-weight="600">MAPPO</text>
+
+      <!-- IPPO curve (lower, noisier) -->
+      <path d="M65,142 Q90,138 110,120 Q130,105 150,100 Q170,95 200,85" fill="none" stroke="#3498db" stroke-width="2.5" stroke-dasharray="6,3"/>
+      <text x="205" y="83" font-size="9" fill="#3498db" font-weight="600">IPPO</text>
+
+      <!-- Right side: summary -->
+      <rect x="260" y="10" width="220" height="170" rx="8" fill="#f8f8f5" stroke="#ddd"/>
+      <text x="370" y="30" text-anchor="middle" font-weight="700" font-size="11" fill="#333">Expected Differences</text>
+
+      <text x="275" y="52" font-size="10" fill="#e67e22" font-weight="600">MAPPO tends to:</text>
+      <text x="285" y="68" font-size="9" fill="#555">&bull; Converge faster</text>
+      <text x="285" y="82" font-size="9" fill="#555">&bull; Achieve higher returns</text>
+      <text x="285" y="96" font-size="9" fill="#555">&bull; Better coordination (lower RCR)</text>
+      <text x="285" y="110" font-size="9" fill="#555">&bull; More consistent across agents</text>
+
+      <text x="275" y="132" font-size="10" fill="#3498db" font-weight="600">IPPO tends to:</text>
+      <text x="285" y="148" font-size="9" fill="#555">&bull; Noisier training curves</text>
+      <text x="285" y="162" font-size="9" fill="#555">&bull; More redundant exploration</text>
+      <text x="285" y="176" font-size="9" fill="#555">&bull; More diverse agent behaviors</text>
+    </svg>
+  </div>
+
+  <div class="danger">
+    <strong>Don't just state results — explain WHY.</strong> MAPPO converges faster because the centralized critic gives all agents a consistent, stable value estimate of the global state, reducing the non-stationarity that slows IPPO down.
+  </div>
+</div>
+
+<!-- Card: Global RCR -->
+<div class="card">
+  <h3>Task Efficiency: Global RCR &amp; RCR Heatmap</h3>
+
+  <div class="formula">
+    Global RCR = &Sigma; revisit_map(x,y) / max(1, &Sigma; visit_map(x,y))
+  </div>
+
+  <p><strong>RCR = Redundant Coverage Ratio.</strong> It measures what fraction of all cell visits were <em>revisits</em> (going to a cell that was already explored).</p>
+
+  <ul>
+    <li><strong>Low RCR</strong> = agents efficiently partition the grid, minimal overlap <span class="tag green">Good coordination</span></li>
+    <li><strong>High RCR</strong> = agents keep revisiting the same cells <span class="tag red">Wasted effort</span></li>
+  </ul>
+
+  <div class="diagram">
+    <svg width="440" height="140" viewBox="0 0 440 140">
+      <!-- Low RCR example -->
+      <rect x="10" y="10" width="200" height="110" rx="10" fill="#eafbea" stroke="#27ae60" stroke-width="1.5"/>
+      <text x="110" y="30" text-anchor="middle" font-weight="700" font-size="11" fill="#27ae60">Low RCR (Good)</text>
+
+      <!-- Mini grid -->
+      <rect x="30" y="40" width="25" height="25" fill="#d6eaf8" stroke="#fff" stroke-width="1"/>
+      <rect x="55" y="40" width="25" height="25" fill="#d6eaf8" stroke="#fff" stroke-width="1"/>
+      <rect x="80" y="40" width="25" height="25" fill="#d5f5e3" stroke="#fff" stroke-width="1"/>
+      <rect x="105" y="40" width="25" height="25" fill="#d5f5e3" stroke="#fff" stroke-width="1"/>
+      <rect x="130" y="40" width="25" height="25" fill="#fef5e7" stroke="#fff" stroke-width="1"/>
+      <rect x="155" y="40" width="25" height="25" fill="#fef5e7" stroke="#fff" stroke-width="1"/>
+      <rect x="30" y="65" width="25" height="25" fill="#d6eaf8" stroke="#fff" stroke-width="1"/>
+      <rect x="55" y="65" width="25" height="25" fill="#d6eaf8" stroke="#fff" stroke-width="1"/>
+      <rect x="80" y="65" width="25" height="25" fill="#d5f5e3" stroke="#fff" stroke-width="1"/>
+      <rect x="105" y="65" width="25" height="25" fill="#d5f5e3" stroke="#fff" stroke-width="1"/>
+      <rect x="130" y="65" width="25" height="25" fill="#fef5e7" stroke="#fff" stroke-width="1"/>
+      <rect x="155" y="65" width="25" height="25" fill="#fef5e7" stroke="#fff" stroke-width="1"/>
+
+      <text x="110" y="108" text-anchor="middle" font-size="9" fill="#555">Agents split the grid into zones</text>
+
+      <!-- High RCR example -->
+      <rect x="230" y="10" width="200" height="110" rx="10" fill="#fef2f2" stroke="#e74c3c" stroke-width="1.5"/>
+      <text x="330" y="30" text-anchor="middle" font-weight="700" font-size="11" fill="#e74c3c">High RCR (Bad)</text>
+
+      <!-- Overlapping grid -->
+      <rect x="250" y="40" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="275" y="40" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="300" y="40" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="325" y="40" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="350" y="40" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="375" y="40" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="250" y="65" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="275" y="65" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="300" y="65" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="325" y="65" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="350" y="65" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+      <rect x="375" y="65" width="25" height="25" fill="#c39bd3" stroke="#fff" stroke-width="1"/>
+
+      <text x="330" y="108" text-anchor="middle" font-size="9" fill="#555">All agents walk over same cells</text>
+    </svg>
+  </div>
+
+  <p>The <strong>per-cell RCR heatmap</strong> shows which specific grid cells have the most redundancy:</p>
+  <div class="formula">
+    RCRMap(x,y) = revisit_map(x,y) / visit_map(x,y)&emsp;(if visited, else 0)
+  </div>
+
+  <div class="highlight">
+    <strong>What to say in discussion:</strong> "MAPPO achieves lower Global RCR because the centralized critic can evaluate the joint state — it learns that agents covering different areas leads to higher team return. IPPO agents lack this shared perspective, so they're more likely to redundantly explore the same regions."
+  </div>
+</div>
+
+<!-- Card: Agent Contribution -->
+<div class="card">
+  <h3>Agent Contribution (Advantage Analysis)</h3>
+
+  <div class="formula">
+    A<sub>i</sub> = r + &gamma; V(s') &minus; V(s)
+  </div>
+
+  <p>The advantage estimate measures how much better the actual outcome was compared to what the critic predicted. Aggregating advantages per agent across episodes shows each agent's <strong>contribution to team success</strong>.</p>
+
+  <ul>
+    <li><strong>High mean advantage:</strong> Agent consistently takes actions that exceed expectations &rarr; strong contributor</li>
+    <li><strong>Near-zero advantage:</strong> Agent performs about as expected &rarr; steady but not outstanding</li>
+    <li><strong>Negative advantage:</strong> Agent consistently underperforms expectations &rarr; "lazy agent" problem</li>
+  </ul>
+
+  <div class="highlight">
+    <strong>IPPO vs MAPPO difference:</strong> In MAPPO, advantages are computed from the <em>centralized critic</em> (global state), so they reflect each agent's contribution to the team. In IPPO, advantages are from <em>local critics</em>, so they only reflect individual perspective — less meaningful for team contribution analysis.
+  </div>
+</div>
+
+<!-- Card: Behavioural Diversity (JSD) -->
+<div class="card">
+  <h3>Behavioural Diversity: Jensen-Shannon Divergence</h3>
+
+  <div class="formula">
+    JS(P || Q) = &frac12; KL(P || M) + &frac12; KL(Q || M)&emsp;&emsp;where M = &frac12;(P + Q)
+  </div>
+
+  <div class="formula">
+    KL(P || M) = &Sigma; P(a) log( P(a) / M(a) )
+  </div>
+
+  <p>JSD measures how <strong>different</strong> two agents' policies are. It's symmetric (unlike KL divergence) and bounded between 0 and 1.</p>
+
+  <div class="diagram">
+    <svg width="460" height="120" viewBox="0 0 460 120">
+      <!-- Low JSD -->
+      <rect x="10" y="10" width="210" height="90" rx="10" fill="#eaf4fd" stroke="#2471a3" stroke-width="1.5"/>
+      <text x="115" y="32" text-anchor="middle" font-weight="700" font-size="11" fill="#2471a3">JSD &asymp; 0 (Similar)</text>
+      <text x="115" y="52" text-anchor="middle" font-size="10" fill="#555">Agents have near-identical policies</text>
+      <text x="115" y="70" text-anchor="middle" font-size="9" fill="#888">Expected with MAPPO (shared actor)</text>
+      <text x="115" y="86" text-anchor="middle" font-size="9" fill="#27ae60">Coordinated but homogeneous</text>
+
+      <!-- High JSD -->
+      <rect x="240" y="10" width="210" height="90" rx="10" fill="#fef5e7" stroke="#ca6f1e" stroke-width="1.5"/>
+      <text x="345" y="32" text-anchor="middle" font-weight="700" font-size="11" fill="#ca6f1e">JSD &asymp; high (Diverse)</text>
+      <text x="345" y="52" text-anchor="middle" font-size="10" fill="#555">Agents behave very differently</text>
+      <text x="345" y="70" text-anchor="middle" font-size="9" fill="#888">Expected with IPPO (independent)</text>
+      <text x="345" y="86" text-anchor="middle" font-size="9" fill="#e74c3c">Diverse but may lack coordination</text>
+    </svg>
+  </div>
+
+  <p>Your code computes a <strong>3&times;3 pairwise JSD matrix</strong> for the 3 agents. Diagonal is always 0 (agent vs itself). The off-diagonal values show how different each pair's average policy is.</p>
+
+  <div class="danger">
+    <strong>Nuance for discussion:</strong> High diversity isn't automatically bad, and low diversity isn't automatically good. Ideally you want <em>complementary</em> behavior — agents that are different in useful ways (e.g., each specializing in a region). MAPPO with a shared actor may produce low JSD (similar policies) but the agent-ID input can still let them specialize.
+  </div>
+</div>
+
+<!-- Card: Emergent Behaviors -->
+<div class="card">
+  <h3>Emergent Behaviors to Discuss</h3>
+
+  <p>The tutor will likely ask: "What interesting behaviors did you observe?" Be ready to discuss:</p>
+
+  <ul>
+    <li><strong>Zone splitting:</strong> Did agents learn to cover different parts of the grid? (Check RCR heatmap — low-overlap areas suggest implicit zone assignment)</li>
+    <li><strong>Fragile object avoidance:</strong> Did safety violations decrease over training? Agents should learn that collisions yield -20 and truncation.</li>
+    <li><strong>Lazy agent problem:</strong> Did any agent learn to idle while others do the work? (Check per-agent advantage — if one agent has consistently negative or zero advantage)</li>
+    <li><strong>Path efficiency:</strong> Did agents learn direct paths to dirt, or do they wander? (Compare episode length in fixed vs random mode)</li>
+    <li><strong>Collision avoidance between agents:</strong> Did inter-agent collisions decrease? Agents should learn the other-agent observation channel is important.</li>
+  </ul>
+
+  <div class="highlight">
+    <strong>Tying it together:</strong> MAPPO's centralized critic helps with emergent coordination because it can evaluate the <em>joint outcome</em> of all agents' actions. IPPO agents must discover coordination purely through individual trial-and-error, which is harder but can sometimes produce more creative/diverse strategies.
+  </div>
+</div>
+
+<!-- Card: The Big Picture Summary -->
+<div class="card">
+  <h3>The Big Picture: IPPO vs MAPPO Trade-offs</h3>
+
+  <div class="diagram">
+    <svg width="520" height="240" viewBox="0 0 520 240">
+      <!-- IPPO column -->
+      <rect x="10" y="10" width="240" height="210" rx="14" fill="#eaf4fd" stroke="#2471a3" stroke-width="2"/>
+      <text x="130" y="36" text-anchor="middle" font-weight="700" font-size="15" fill="#2471a3">IPPO</text>
+      <text x="130" y="54" text-anchor="middle" font-size="10" fill="#888">Independent PPO</text>
+
+      <text x="30" y="80" font-size="11" fill="#27ae60" font-weight="600">Strengths:</text>
+      <text x="30" y="98" font-size="10" fill="#555">&bull; Simple to implement</text>
+      <text x="30" y="114" font-size="10" fill="#555">&bull; Scales to many agents easily</text>
+      <text x="30" y="130" font-size="10" fill="#555">&bull; No communication overhead</text>
+      <text x="30" y="146" font-size="10" fill="#555">&bull; More diverse behaviors (higher JSD)</text>
+
+      <text x="30" y="170" font-size="11" fill="#e74c3c" font-weight="600">Weaknesses:</text>
+      <text x="30" y="188" font-size="10" fill="#555">&bull; Non-stationarity unaddressed</text>
+      <text x="30" y="204" font-size="10" fill="#555">&bull; Poor coordination (high RCR)</text>
+
+      <!-- MAPPO column -->
+      <rect x="270" y="10" width="240" height="210" rx="14" fill="#fef9ef" stroke="#ca6f1e" stroke-width="2"/>
+      <text x="390" y="36" text-anchor="middle" font-weight="700" font-size="15" fill="#ca6f1e">MAPPO</text>
+      <text x="390" y="54" text-anchor="middle" font-size="10" fill="#888">Multi-Agent PPO (CTDE)</text>
+
+      <text x="290" y="80" font-size="11" fill="#27ae60" font-weight="600">Strengths:</text>
+      <text x="290" y="98" font-size="10" fill="#555">&bull; Centralized critic &rarr; stable learning</text>
+      <text x="290" y="114" font-size="10" fill="#555">&bull; Better coordination (lower RCR)</text>
+      <text x="290" y="130" font-size="10" fill="#555">&bull; Faster convergence</text>
+      <text x="290" y="146" font-size="10" fill="#555">&bull; Higher team return</text>
+
+      <text x="290" y="170" font-size="11" fill="#e74c3c" font-weight="600">Weaknesses:</text>
+      <text x="290" y="188" font-size="10" fill="#555">&bull; Needs global state during training</text>
+      <text x="290" y="204" font-size="10" fill="#555">&bull; Less scalable (global state grows)</text>
+    </svg>
+  </div>
+
+  <div class="highlight">
+    <strong>The CTDE insight:</strong> MAPPO gets the best of both worlds — it uses global information to <em>train</em> better policies, but at <em>execution</em> time each agent acts independently using only local observations. The centralized critic is discarded after training.
+  </div>
+</div>
+
+</div><!-- /topic 3 -->
 
 </div><!-- /container -->
 </body>
